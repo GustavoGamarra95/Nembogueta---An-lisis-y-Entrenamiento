@@ -1,0 +1,19 @@
+# Ignorar archivos de Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.db
+
+# Ignorar entorno virtual
+.venv/
+venv/
+env/
+
+# Ignorar archivos generados por IDE
+.idea/
+.vscode/
+
+# Archivos de dependencias
+*.egg-info/
+*.log

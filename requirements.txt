@@ -1,0 +1,21 @@
+pip~=24.0
+attrs~=23.2.0
+distro~=1.9.0
+wheel~=0.42.0
+cryptography~=42.0.5
+pillow~=11.2.1
+
+# Procesamiento de video e imágenes
+opencv-python==4.10.0.84
+mediapipe==0.10.9
+
+# Manejo de datos y Machine Learning
+numpy==1.24.4
+tensorflow==2.15.0
+scikit-learn==1.5.2
+
+# Visualización
+matplotlib==3.9.2
+
+# Análisis de datos
+pandas==2.2.3
