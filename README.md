@@ -188,7 +188,7 @@ python scripts/convert_to_tflite.py
   - Palabras: 95%
   - Frases: 95%
 
-- Se generan gráficos de entrenamiento (`training_accuracy_letters.png`, etc.) que puedes incluir en la documentación.
+
 
 ## Notas
 
