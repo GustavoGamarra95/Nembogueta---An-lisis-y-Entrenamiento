@@ -80,7 +80,7 @@ Graba videos de gestos LSPy para letras, palabras y frases.
 **Letras:**
 
 ```bash
-python scripts/lsp_letter_video_collection.py
+python scripts/letter_collection.py
 ```
 
 - Graba 10 videos por letra (a-z, ñ), cada uno de 10 segundos (300 frames a 30 fps).
@@ -89,7 +89,7 @@ python scripts/lsp_letter_video_collection.py
 **Palabras:**
 
 ```bash
-python scripts/lsp_word_video_collection.py
+python scripts/word_collection.py
 ```
 
 - Graba 10 videos por palabra (ejemplo: juicio, abogado).
@@ -98,7 +98,7 @@ python scripts/lsp_word_video_collection.py
 **Frases:**
 
 ```bash
-python scripts/lsp_phrase_video_collection.py
+python scripts/phrase_collection.py
 ```
 
 - Graba 10 videos por frase (ejemplo: acceso a la justicia).
@@ -111,7 +111,7 @@ Convierte los videos en secuencias de esqueletos usando MediaPipe.
 **Letras:**
 
 ```bash
-python scripts/preprocess_lsp_letter_videos.py
+python scripts/letter_preprocessor.py
 ```
 
 - Genera arrays NumPy en `data/processed_lsp_letter_sequences/`.
@@ -119,7 +119,7 @@ python scripts/preprocess_lsp_letter_videos.py
 **Palabras:**
 
 ```bash
-python scripts/preprocess_lsp_word_videos.py
+python scripts/word_processor.py
 ```
 
 - Genera arrays NumPy en `data/processed_lsp_word_sequences/`.
@@ -127,7 +127,7 @@ python scripts/preprocess_lsp_word_videos.py
 **Frases:**
 
 ```bash
-python scripts/preprocess_lsp_phrase_videos.py
+python scripts/phrase_processor.py
 ```
 
 - Genera arrays NumPy en `data/processed_lsp_phrase_sequences/`.
@@ -137,7 +137,7 @@ python scripts/preprocess_lsp_phrase_videos.py
 Analiza las secuencias preprocesadas para verificar su calidad:
 
 ```bash
-python scripts/analyze_sequences.py
+python scripts/sequence_analyzer.py
 ```
 
 ### 5. Entrenamiento de Modelos
@@ -147,7 +147,7 @@ Entrena los modelos CNN-LSTM para cada categoría.
 **Letras:**
 
 ```bash
-python scripts/train_cnn_lstm_lsp_letters.py
+python scripts/letter_model_trainer.py
 ```
 
 - Entrena un modelo para las 27 letras (a-z, ñ).
@@ -156,7 +156,7 @@ python scripts/train_cnn_lstm_lsp_letters.py
 **Palabras:**
 
 ```bash
-python scripts/train_cnn_lstm_lsp_words.py
+python scripts/word_model_trainer.py
 ```
 
 - Entrena un modelo para las 10 palabras.
@@ -165,7 +165,7 @@ python scripts/train_cnn_lstm_lsp_words.py
 **Frases:**
 
 ```bash
-python scripts/train_cnn_lstm_lsp_phrases.py
+python scripts/phrase_model_trainer.py
 ```
 
 - Entrena un modelo para las 3 frases.
@@ -176,7 +176,7 @@ python scripts/train_cnn_lstm_lsp_phrases.py
 Convierte los modelos a TensorFlow Lite para su uso en la API y la app Android.
 
 ```bash
-python scripts/convert_to_tflite.py
+python scripts/model_converter.py
 ```
 
 - Los modelos `.tflite` se guardan en `models/tflite/`.
