@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
 """
 Módulo para el preprocesamiento de datos de señas capturados.
-Incluye funciones para normalizar, aumentar y preparar datos para entrenamiento.
+Incluye funciones para normalizar, aumentar y preparar datos para
+entrenamiento.
 """
 from . import letter_preprocessor
 from . import word_processor

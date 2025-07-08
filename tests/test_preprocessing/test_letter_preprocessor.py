@@ -1,3 +1,4 @@
+"""Tests para el preprocesamiento de letras."""
 import unittest
 import numpy as np
 from pathlib import Path
@@ -6,8 +7,10 @@ from src.utils.validators import VideoData, ProcessedSequence
 
 
 class TestLetterPreprocessor(unittest.TestCase):
+    """Tests para el módulo LetterPreprocessor."""
 
     def setUp(self):
+        """Configura el ambiente de prueba."""
         self.preprocessor = LetterPreprocessor()
         self.test_frame = np.zeros((480, 640, 3), dtype=np.uint8)
         self.test_video_path = Path("tests/test_data/test_video.mp4")
@@ -31,7 +34,10 @@ class TestLetterPreprocessor(unittest.TestCase):
     def test_process_video_valid_data(self):
         """Test el procesamiento con datos válidos"""
         # Crear un video de prueba simple
-        frames = [np.zeros((480, 640, 3), dtype=np.uint8) for _ in range(10)]
+        frames = [
+            np.zeros((480, 640, 3), dtype=np.uint8)
+            for _ in range(10)
+        ]
         video_data = VideoData(
             path=self.test_video_path,
             frames=frames,
@@ -44,7 +50,8 @@ class TestLetterPreprocessor(unittest.TestCase):
 
     def test_validate_processed_sequence(self):
         """Test la validación de secuencias procesadas"""
-        sequence = np.random.random((30, 63))  # 30 frames, 21 landmarks x 3 coordinates
+        # 30 frames, 21 landmarks x 3 coordinates
+        sequence = np.random.random((30, 63))
         processed_sequence = ProcessedSequence(
             sequence=sequence,
             label="A",
@@ -55,5 +62,3 @@ class TestLetterPreprocessor(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
-

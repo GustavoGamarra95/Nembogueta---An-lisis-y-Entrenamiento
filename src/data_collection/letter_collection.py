@@ -7,6 +7,7 @@ from src.utils.validators import VideoData
 
 logger = logging.getLogger(__name__)
 
+
 class LetterDataCollector:
     def __init__(self):
         self.config = Config()
@@ -15,16 +16,13 @@ class LetterDataCollector:
         self.output_path = Path(self.data_config['video_path']['letters'])
         self.output_path.mkdir(parents=True, exist_ok=True)
 
-    def collect_video(self, letter: str, sample_num: int) -> Optional[VideoData]:
+    def collect_video(
+            self,
+            letter: str,
+            sample_num: int
+    ) -> Optional[VideoData]:
         """
         Recolecta un video para una letra específica.
-
-        Args:
-            letter: Letra a grabar
-            sample_num: Número de muestra para esta letra
-
-        Returns:
-            VideoData object si la grabación es exitosa, None en caso contrario
         """
         try:
             cap = cv2.VideoCapture(0)
@@ -62,7 +60,8 @@ class LetterDataCollector:
                 # Mostrar el frame con información
                 cv2.putText(
                     frame,
-                    f"Recording letter {letter}: {frame_count}/{total_frames}",
+                    f"Recording letter {letter}: "
+                    f"{frame_count}/{total_frames}",
                     (10, 30),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     1,
@@ -94,17 +93,22 @@ class LetterDataCollector:
             return None
 
     def collect_all_letters(self):
-        """Recolecta videos para todas las letras del alfabeto incluyendo 'ñ'"""
+        """Recolecta videos para todas las letras del alfabeto con 'ñ'"""
         letters = list('abcdefghijklmnñopqrstuvwxyz')
         samples_per_letter = self.video_config.get('num_samples', 10)
 
         for letter in letters:
             logger.info(f"Iniciando recolección para letra: {letter}")
             for sample in range(samples_per_letter):
-                logger.info(f"Grabando muestra {sample + 1}/{samples_per_letter}")
+                logger.info(
+                    f"Grabando muestra {sample + 1}/{samples_per_letter}"
+                )
 
                 video_data = self.collect_video(letter, sample)
                 if video_data and video_data.validate():
-                    logger.info(f"Video guardado exitosamente: {video_data.path}")
+                    logger.info(f"Video guardado: {video_data.path}")
                 else:
-                    logger.error(f"Error en la grabación de letra {letter}, muestra {sample}")
+                    logger.error(
+                        f"Error en la grabación de letra {letter}, "
+                        f"muestra {sample}"
+                    )

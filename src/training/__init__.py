@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Módulo para el entrenamiento de modelos de reconocimiento de señas.
-Contiene implementaciones para entrenar modelos de letras, palabras y frases.
+Contiene implementaciones para entrenar modelos de letras, palabras y
+frases.
 """
 from . import letter_model_trainer
 from . import word_model_trainer

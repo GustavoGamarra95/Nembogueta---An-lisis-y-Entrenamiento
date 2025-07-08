@@ -1,3 +1,4 @@
+"""Módulo para análisis de secuencias de landmarks."""
 import os
 from dotenv import load_dotenv
 import numpy as np
@@ -10,11 +11,15 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # Directorio de secuencias procesadas desde .env
-SEQUENCE_DIR = os.getenv('DATA_PROCESSED_DIR', 'data/processed_lsp_letter_sequences')
+SEQUENCE_DIR = os.getenv(
+    'DATA_PROCESSED_DIR',
+    'data/processed_lsp_letter_sequences'
+)
+
 
 def analyze(sequence: np.ndarray) -> Dict[str, Any]:
     """
-    Analiza una secuencia de landmarks para extraer características relevantes.
+    Analiza una secuencia de landmarks para extraer características.
 
     Args:
         sequence: Array numpy con la secuencia de landmarks
@@ -38,4 +43,3 @@ def analyze(sequence: np.ndarray) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Error al analizar secuencia: {e}")
         return {}
-
