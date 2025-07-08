@@ -1,3 +1,4 @@
+"""Módulo para convertir modelos entre formatos."""
 import tensorflow as tf
 import logging
 from pathlib import Path
@@ -14,12 +15,17 @@ load_dotenv()
 MODELS_DIR = os.getenv('MODELS_DIR', 'models/h5')
 TFLITE_DIR = os.getenv('TFLITE_DIR', 'models/tflite')
 
+
 class ModelConverter:
     def __init__(self):
         self.config = Config()
         self.model_config = self.config.model_config
 
-    def convert_to_tflite(self, model_path: Path, output_path: Path) -> bool:
+    def convert_to_tflite(
+            self,
+            model_path: Path,
+            output_path: Path
+    ) -> bool:
         """
         Convierte un modelo Keras a formato TFLite.
 
@@ -56,7 +62,7 @@ class ModelConverter:
             return False
 
     def convert_all_models(self):
-        """Convierte todos los modelos encontrados en el directorio de modelos"""
+        """Convierte todos los modelos encontrados en el directorio."""
         try:
             model_dir = Path(MODELS_DIR)
             tflite_dir = Path(TFLITE_DIR)
@@ -67,10 +73,13 @@ class ModelConverter:
                 if model_path.exists():
                     output_path = tflite_dir / f"{model_type}_model.tflite"
                     if self.convert_to_tflite(model_path, output_path):
-                        logger.info(f"Modelo {model_type} convertido exitosamente")
+                        logger.info(
+                            f"Modelo {model_type} convertido exitosamente"
+                        )
                     else:
-                        logger.error(f"Error al convertir modelo {model_type}")
+                        logger.error(
+                            f"Error al convertir modelo {model_type}"
+                        )
 
         except Exception as e:
             logger.error(f"Error al convertir modelos: {e}")
-

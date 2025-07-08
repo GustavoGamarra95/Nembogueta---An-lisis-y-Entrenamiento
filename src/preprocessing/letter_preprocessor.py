@@ -16,13 +16,28 @@ load_dotenv()
 
 # Directorios de entrada y salida desde .env
 input_dir = os.getenv('DATA_RAW_DIR', 'data/lsp_letter_videos')
-output_dir = os.getenv('DATA_PROCESSED_DIR', 'data/processed_lsp_letter_sequences')
-input_dir = os.path.join(input_dir, 'letters') if os.path.isdir(os.path.join(input_dir, 'letters')) else input_dir
-output_dir = os.path.join(output_dir, 'letters') if os.path.isdir(os.path.join(output_dir, 'letters')) else output_dir
+output_dir = os.getenv(
+    'DATA_PROCESSED_DIR',
+    'data/processed_lsp_letter_sequences'
+)
+
+# Configurar rutas de directorios
+input_dir = (
+    os.path.join(input_dir, 'letters')
+    if os.path.isdir(os.path.join(input_dir, 'letters'))
+    else input_dir
+)
+output_dir = (
+    os.path.join(output_dir, 'letters')
+    if os.path.isdir(os.path.join(output_dir, 'letters'))
+    else output_dir
+)
 os.makedirs(output_dir, exist_ok=True)
+
 
 class LetterPreprocessor:
     def __init__(self):
+        """Inicializa el preprocesador de letras."""
         self.config = Config()
         self.mp_hands = mp.solutions.hands
         self.hands = self.mp_hands.Hands(
@@ -34,12 +49,6 @@ class LetterPreprocessor:
     def extract_landmarks(self, frame: np.ndarray) -> Optional[np.ndarray]:
         """
         Extrae los puntos de referencia de las manos de un frame.
-
-        Args:
-            frame: Frame de video en formato BGR
-
-        Returns:
-            Array numpy con los landmarks o None si no se detectan manos
         """
         try:
             # Convertir BGR a RGB
@@ -61,15 +70,12 @@ class LetterPreprocessor:
             logger.error(f"Error al extraer landmarks: {e}")
             return None
 
-    def process_video(self, video_data: VideoData) -> Optional[ProcessedSequence]:
+    def process_video(
+            self,
+            video_data: VideoData
+    ) -> Optional[ProcessedSequence]:
         """
         Procesa un video y extrae la secuencia de landmarks.
-
-        Args:
-            video_data: Objeto VideoData con la información del video
-
-        Returns:
-            ProcessedSequence object con la secuencia procesada
         """
         try:
             sequences = []
@@ -79,7 +85,9 @@ class LetterPreprocessor:
                     sequences.append(landmarks)
 
             if not sequences:
-                logger.warning(f"No se detectaron manos en el video: {video_data.path}")
+                logger.warning(
+                    f"No se detectaron manos en el video: {video_data.path}"
+                )
                 return None
 
             # Normalizar y convertir a array numpy
@@ -107,13 +115,13 @@ class LetterPreprocessor:
             logger.error(f"Error al procesar video: {e}")
             return None
 
-    def process_all_videos(self, input_dir: Path, output_dir: Path):
+    def process_all_videos(
+            self,
+            input_dir: Path,
+            output_dir: Path
+    ):
         """
         Procesa todos los videos en el directorio de entrada.
-
-        Args:
-            input_dir: Directorio con los videos
-            output_dir: Directorio donde guardar las secuencias procesadas
         """
         try:
             input_dir = Path(input_dir)
@@ -137,7 +145,8 @@ class LetterPreprocessor:
                 video_data = VideoData(
                     path=video_file,
                     frames=frames,
-                    label=video_file.stem.split('_')[1],  # Extraer letra del nombre
+                    # Extraer letra del nombre
+                    label=video_file.stem.split('_')[1],
                     duration=len(frames)/30  # Asumiendo 30 fps
                 )
 
@@ -145,7 +154,9 @@ class LetterPreprocessor:
                 processed_sequence = self.process_video(video_data)
                 if processed_sequence:
                     # Guardar secuencia procesada
-                    output_file = output_dir / f"{video_file.stem}_processed.npy"
+                    output_file = (
+                        output_dir / f"{video_file.stem}_processed.npy"
+                    )
                     np.save(output_file, processed_sequence.sequence)
                     logger.info(f"Secuencia guardada en: {output_file}")
                 else:
@@ -153,4 +164,3 @@ class LetterPreprocessor:
 
         except Exception as e:
             logger.error(f"Error en el procesamiento de videos: {e}")
-
