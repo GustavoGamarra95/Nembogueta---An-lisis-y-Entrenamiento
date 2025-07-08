@@ -1,11 +1,12 @@
 import unittest
 import numpy as np
 from pathlib import Path
-import cv2
 from src.preprocessing.letter_preprocessor import LetterPreprocessor
 from src.utils.validators import VideoData, ProcessedSequence
 
+
 class TestLetterPreprocessor(unittest.TestCase):
+
     def setUp(self):
         self.preprocessor = LetterPreprocessor()
         self.test_frame = np.zeros((480, 640, 3), dtype=np.uint8)
@@ -37,7 +38,6 @@ class TestLetterPreprocessor(unittest.TestCase):
             label="A",
             duration=1.0
         )
-
         result = self.preprocessor.process_video(video_data)
         self.assertIsInstance(result, ProcessedSequence)
         self.assertEqual(result.label, "A")
@@ -52,5 +52,7 @@ class TestLetterPreprocessor(unittest.TestCase):
         )
         self.assertTrue(processed_sequence.validate())
 
+
 if __name__ == '__main__':
     unittest.main()
+
