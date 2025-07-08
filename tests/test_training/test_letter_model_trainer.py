@@ -1,8 +1,10 @@
 """Tests para el módulo de entrenamiento de letras."""
 import unittest
+from pathlib import Path
+
 import numpy as np
 import tensorflow as tf
-from pathlib import Path
+
 from src.training.letter_model_trainer import LetterModelTrainer
 
 
@@ -35,9 +37,9 @@ class TestLetterModelTrainer(unittest.TestCase):
         # Entrenar el modelo con datos pequeños
         metrics = self.trainer.train(self.X, y_one_hot)
 
-        self.assertIn('test_accuracy', metrics)
-        self.assertIn('test_loss', metrics)
-        self.assertIn('history', metrics)
+        self.assertIn("test_accuracy", metrics)
+        self.assertIn("test_loss", metrics)
+        self.assertIn("history", metrics)
 
     def test_save_model(self):
         """Test el guardado del modelo."""
@@ -45,8 +47,7 @@ class TestLetterModelTrainer(unittest.TestCase):
         input_shape = (30, 63)
         num_classes = 27
         self.trainer.model = self.trainer.create_model(
-            input_shape,
-            num_classes
+            input_shape, num_classes
         )
 
         # Intentar guardar el modelo
@@ -54,5 +55,5 @@ class TestLetterModelTrainer(unittest.TestCase):
             self.trainer.save_model(Path("nonexistent_dir"))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -1,7 +1,9 @@
-import cv2
 import logging
 from pathlib import Path
 from typing import Optional
+
+import cv2
+
 from src.config.config import Config
 from src.utils.validators import VideoData
 
@@ -13,13 +15,11 @@ class LetterDataCollector:
         self.config = Config()
         self.video_config = self.config.video_config
         self.data_config = self.config.data_config
-        self.output_path = Path(self.data_config['video_path']['letters'])
+        self.output_path = Path(self.data_config["video_path"]["letters"])
         self.output_path.mkdir(parents=True, exist_ok=True)
 
     def collect_video(
-            self,
-            letter: str,
-            sample_num: int
+        self, letter: str, sample_num: int
     ) -> Optional[VideoData]:
         """
         Recolecta un video para una letra específica.
@@ -34,18 +34,18 @@ class LetterDataCollector:
             output_file = self.output_path / filename
 
             # Configurar el escritor de video
-            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-            fps = self.video_config.get('fps', 30)
+            fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+            fps = self.video_config.get("fps", 30)
             writer = cv2.VideoWriter(
                 str(output_file),
                 fourcc,
                 fps,
-                (int(cap.get(3)), int(cap.get(4)))
+                (int(cap.get(3)), int(cap.get(4))),
             )
 
             frames = []
             frame_count = 0
-            total_frames = fps * self.video_config.get('duration', 10)
+            total_frames = fps * self.video_config.get("duration", 10)
 
             while frame_count < total_frames:
                 ret, frame = cap.read()
@@ -66,11 +66,11 @@ class LetterDataCollector:
                     cv2.FONT_HERSHEY_SIMPLEX,
                     1,
                     (0, 255, 0),
-                    2
+                    2,
                 )
-                cv2.imshow('Recording', frame)
+                cv2.imshow("Recording", frame)
 
-                if cv2.waitKey(1) & 0xFF == ord('q'):
+                if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
 
             cap.release()
@@ -85,7 +85,7 @@ class LetterDataCollector:
                 path=output_file,
                 frames=frames,
                 label=letter,
-                duration=frame_count/fps
+                duration=frame_count / fps,
             )
 
         except Exception as e:
@@ -94,8 +94,8 @@ class LetterDataCollector:
 
     def collect_all_letters(self):
         """Recolecta videos para todas las letras del alfabeto con 'ñ'"""
-        letters = list('abcdefghijklmnñopqrstuvwxyz')
-        samples_per_letter = self.video_config.get('num_samples', 10)
+        letters = list("abcdefghijklmnñopqrstuvwxyz")
+        samples_per_letter = self.video_config.get("num_samples", 10)
 
         for letter in letters:
             logger.info(f"Iniciando recolección para letra: {letter}")

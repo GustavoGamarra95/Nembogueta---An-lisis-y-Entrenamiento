@@ -1,12 +1,14 @@
+import logging
+import os
+from pathlib import Path
+from typing import Any, Dict, Tuple
+
 import numpy as np
 import tensorflow as tf
-from pathlib import Path
-import logging
-from typing import Tuple, Dict, Any
-from sklearn.model_selection import train_test_split
-from src.config.config import Config
-import os
 from dotenv import load_dotenv
+from sklearn.model_selection import train_test_split
+
+from src.config.config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -15,20 +17,19 @@ load_dotenv()
 
 # Directorios de entrada y salida desde .env
 input_dir = os.getenv(
-    'DATA_PROCESSED_DIR',
-    'data/processed_lsp_letter_sequences'
+    "DATA_PROCESSED_DIR", "data/processed_lsp_letter_sequences"
 )
-output_dir = os.getenv('MODELS_DIR', 'models/h5')
+output_dir = os.getenv("MODELS_DIR", "models/h5")
 
 # Configurar rutas de directorios
 input_dir = (
-    os.path.join(input_dir, 'letters')
-    if os.path.isdir(os.path.join(input_dir, 'letters'))
+    os.path.join(input_dir, "letters")
+    if os.path.isdir(os.path.join(input_dir, "letters"))
     else input_dir
 )
 output_dir = (
-    os.path.join(output_dir, 'letters')
-    if os.path.isdir(os.path.join(output_dir, 'letters'))
+    os.path.join(output_dir, "letters")
+    if os.path.isdir(os.path.join(output_dir, "letters"))
     else output_dir
 )
 os.makedirs(output_dir, exist_ok=True)
@@ -42,30 +43,28 @@ class LetterModelTrainer:
         self.history = None
 
     def create_model(
-            self,
-            input_shape: Tuple[int, ...],
-            num_classes: int
+        self, input_shape: Tuple[int, ...], num_classes: int
     ) -> tf.keras.Model:
         """
         Crea el modelo CNN-LSTM para clasificación de letras.
         """
         try:
-            model = tf.keras.Sequential([
-                tf.keras.layers.LSTM(
-                    64,
-                    input_shape=input_shape,
-                    return_sequences=True
-                ),
-                tf.keras.layers.LSTM(32),
-                tf.keras.layers.Dense(32, activation='relu'),
-                tf.keras.layers.Dropout(0.2),
-                tf.keras.layers.Dense(num_classes, activation='softmax')
-            ])
+            model = tf.keras.Sequential(
+                [
+                    tf.keras.layers.LSTM(
+                        64, input_shape=input_shape, return_sequences=True
+                    ),
+                    tf.keras.layers.LSTM(32),
+                    tf.keras.layers.Dense(32, activation="relu"),
+                    tf.keras.layers.Dropout(0.2),
+                    tf.keras.layers.Dense(num_classes, activation="softmax"),
+                ]
+            )
 
             model.compile(
-                optimizer='adam',
-                loss='categorical_crossentropy',
-                metrics=['accuracy']
+                optimizer="adam",
+                loss="categorical_crossentropy",
+                metrics=["accuracy"],
             )
 
             return model
@@ -74,10 +73,7 @@ class LetterModelTrainer:
             logger.error(f"Error al crear el modelo: {e}")
             raise
 
-    def load_data(
-            self,
-            data_dir: Path
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    def load_data(self, data_dir: Path) -> Tuple[np.ndarray, np.ndarray]:
         """
         Carga y prepara los datos de entrenamiento.
         """
@@ -88,7 +84,7 @@ class LetterModelTrainer:
             for file_path in data_dir.glob("*_processed.npy"):
                 sequence = np.load(file_path)
                 # Extraer letra del nombre
-                label = file_path.stem.split('_')[1]
+                label = file_path.stem.split("_")[1]
 
                 sequences.append(sequence)
                 labels.append(label)
@@ -110,9 +106,10 @@ class LetterModelTrainer:
         try:
             # Dividir datos en entrenamiento y validación
             X_train, X_val, y_train, y_val = train_test_split(
-                X, y,
-                test_size=self.model_config.get('validation_split', 0.2),
-                random_state=42
+                X,
+                y,
+                test_size=self.model_config.get("validation_split", 0.2),
+                random_state=42,
             )
 
             # Crear el modelo
@@ -122,28 +119,26 @@ class LetterModelTrainer:
 
             # Configurar callback de early stopping
             early_stopping = tf.keras.callbacks.EarlyStopping(
-                monitor='val_accuracy',
-                patience=10,
-                restore_best_weights=True
+                monitor="val_accuracy", patience=10, restore_best_weights=True
             )
 
             # Entrenar el modelo
             self.history = self.model.fit(
                 X_train,
                 y_train,
-                batch_size=self.model_config.get('batch_size', 32),
-                epochs=self.model_config.get('epochs', 100),
+                batch_size=self.model_config.get("batch_size", 32),
+                epochs=self.model_config.get("epochs", 100),
                 validation_data=(X_val, y_val),
-                callbacks=[early_stopping]
+                callbacks=[early_stopping],
             )
 
             # Evaluar el modelo
             test_loss, test_accuracy = self.model.evaluate(X_val, y_val)
 
             metrics = {
-                'test_loss': test_loss,
-                'test_accuracy': test_accuracy,
-                'history': self.history.history
+                "test_loss": test_loss,
+                "test_accuracy": test_accuracy,
+                "history": self.history.history,
             }
 
             return metrics

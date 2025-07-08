@@ -1,16 +1,14 @@
-import numpy as np
-from typing import Dict, Any
 import logging
+from typing import Any, Dict
+
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
 
 class ProcessedSequence:
     def __init__(
-            self,
-            sequence: np.ndarray,
-            label: str,
-            metadata: Dict[str, Any]
+        self, sequence: np.ndarray, label: str, metadata: Dict[str, Any]
     ):
         """
         Constructor de ProcessedSequence.
@@ -62,20 +60,20 @@ class ProcessedSequence:
         Convierte la secuencia a diccionario.
         """
         return {
-            'sequence': self.sequence.tolist(),
-            'label': self.label,
-            'metadata': self.metadata
+            "sequence": self.sequence.tolist(),
+            "label": self.label,
+            "metadata": self.metadata,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'ProcessedSequence':
+    def from_dict(cls, data: Dict[str, Any]) -> "ProcessedSequence":
         """
         Crea una secuencia desde un diccionario.
         """
         return cls(
-            sequence=np.array(data['sequence']),
-            label=data['label'],
-            metadata=data['metadata']
+            sequence=np.array(data["sequence"]),
+            label=data["label"],
+            metadata=data["metadata"],
         )
 
     def get_stats(self) -> Dict[str, Any]:
@@ -86,12 +84,12 @@ class ProcessedSequence:
             return {}
 
         return {
-            'num_frames': len(self.sequence),
-            'num_features': self.sequence.shape[1],
-            'mean': np.mean(self.sequence, axis=0).tolist(),
-            'std': np.std(self.sequence, axis=0).tolist(),
-            'max': np.max(self.sequence, axis=0).tolist(),
-            'min': np.min(self.sequence, axis=0).tolist()
+            "num_frames": len(self.sequence),
+            "num_features": self.sequence.shape[1],
+            "mean": np.mean(self.sequence, axis=0).tolist(),
+            "std": np.std(self.sequence, axis=0).tolist(),
+            "max": np.max(self.sequence, axis=0).tolist(),
+            "min": np.min(self.sequence, axis=0).tolist(),
         }
 
     def __str__(self) -> str:

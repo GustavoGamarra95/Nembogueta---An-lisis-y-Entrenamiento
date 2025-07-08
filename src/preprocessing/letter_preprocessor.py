@@ -1,13 +1,16 @@
-import cv2
-import numpy as np
-import mediapipe as mp
 import logging
+import os
 from pathlib import Path
 from typing import Optional
-from src.config.config import Config
-from ..utils.validators import VideoData, ProcessedSequence
-import os
+
+import cv2
+import mediapipe as mp
+import numpy as np
 from dotenv import load_dotenv
+
+from src.config.config import Config
+
+from ..utils.validators import ProcessedSequence, VideoData
 
 logger = logging.getLogger(__name__)
 
@@ -15,21 +18,20 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # Directorios de entrada y salida desde .env
-input_dir = os.getenv('DATA_RAW_DIR', 'data/lsp_letter_videos')
+input_dir = os.getenv("DATA_RAW_DIR", "data/lsp_letter_videos")
 output_dir = os.getenv(
-    'DATA_PROCESSED_DIR',
-    'data/processed_lsp_letter_sequences'
+    "DATA_PROCESSED_DIR", "data/processed_lsp_letter_sequences"
 )
 
 # Configurar rutas de directorios
 input_dir = (
-    os.path.join(input_dir, 'letters')
-    if os.path.isdir(os.path.join(input_dir, 'letters'))
+    os.path.join(input_dir, "letters")
+    if os.path.isdir(os.path.join(input_dir, "letters"))
     else input_dir
 )
 output_dir = (
-    os.path.join(output_dir, 'letters')
-    if os.path.isdir(os.path.join(output_dir, 'letters'))
+    os.path.join(output_dir, "letters")
+    if os.path.isdir(os.path.join(output_dir, "letters"))
     else output_dir
 )
 os.makedirs(output_dir, exist_ok=True)
@@ -43,7 +45,7 @@ class LetterPreprocessor:
         self.hands = self.mp_hands.Hands(
             static_image_mode=False,
             max_num_hands=2,
-            min_detection_confidence=0.7
+            min_detection_confidence=0.7,
         )
 
     def extract_landmarks(self, frame: np.ndarray) -> Optional[np.ndarray]:
@@ -71,8 +73,7 @@ class LetterPreprocessor:
             return None
 
     def process_video(
-            self,
-            video_data: VideoData
+        self, video_data: VideoData
     ) -> Optional[ProcessedSequence]:
         """
         Procesa un video y extrae la secuencia de landmarks.
@@ -97,13 +98,13 @@ class LetterPreprocessor:
             metadata = {
                 "original_video": str(video_data.path),
                 "num_frames": len(sequences),
-                "shape": sequence_array.shape
+                "shape": sequence_array.shape,
             }
 
             processed_sequence = ProcessedSequence(
                 sequence=sequence_array,
                 label=video_data.label,
-                metadata=metadata
+                metadata=metadata,
             )
 
             if not processed_sequence.validate():
@@ -115,11 +116,7 @@ class LetterPreprocessor:
             logger.error(f"Error al procesar video: {e}")
             return None
 
-    def process_all_videos(
-            self,
-            input_dir: Path,
-            output_dir: Path
-    ):
+    def process_all_videos(self, input_dir: Path, output_dir: Path):
         """
         Procesa todos los videos en el directorio de entrada.
         """
@@ -146,8 +143,8 @@ class LetterPreprocessor:
                     path=video_file,
                     frames=frames,
                     # Extraer letra del nombre
-                    label=video_file.stem.split('_')[1],
-                    duration=len(frames)/30  # Asumiendo 30 fps
+                    label=video_file.stem.split("_")[1],
+                    duration=len(frames) / 30,  # Asumiendo 30 fps
                 )
 
                 # Procesar video
