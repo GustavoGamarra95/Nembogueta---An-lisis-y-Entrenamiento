@@ -43,7 +43,6 @@ class TestLetterModelTrainer(unittest.TestCase):
         with self.assertRaises(Exception):
             self.trainer.save_model(Path("nonexistent_dir"))
 
-
 if __name__ == '__main__':
     unittest.main()
 
