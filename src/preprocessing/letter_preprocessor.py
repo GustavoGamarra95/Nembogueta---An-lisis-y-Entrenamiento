@@ -1,86 +1,143 @@
 import cv2
-import mediapipe as mp
 import numpy as np
-import os
+import mediapipe as mp
+import logging
+from pathlib import Path
+from typing import Optional
+from src.config.config import Config
+from ..utils.validators import VideoData, ProcessedSequence
 
-# Configuración de MediaPipe
-mp_holistic = mp.solutions.holistic
-mp_drawing = mp.solutions.drawing_utils
-holistic = mp_holistic.Holistic(static_image_mode=False, min_detection_confidence=0.5)
+logger = logging.getLogger(__name__)
 
-# Directorios de entrada y salida
-input_dir = 'data/lsp_letter_videos'
-output_dir = 'data/processed_lsp_letter_sequences'
-os.makedirs(output_dir, exist_ok=True)
+class LetterPreprocessor:
+    def __init__(self):
+        self.config = Config()
+        self.mp_hands = mp.solutions.hands
+        self.hands = self.mp_hands.Hands(
+            static_image_mode=False,
+            max_num_hands=2,
+            min_detection_confidence=0.7
+        )
 
-# Lista de letras
-letters = list('abcdefghijklmnopqrstuvwxyz') + ['ñ']
+    def extract_landmarks(self, frame: np.ndarray) -> Optional[np.ndarray]:
+        """
+        Extrae los puntos de referencia de las manos de un frame.
 
-# Parámetros de la secuencia
-sequence_length = 15  # 15 frames por secuencia
-frame_size = (200, 200)  # Tamaño de la imagen del esqueleto
-frame_skip = 20  # Seleccionar 1 frame cada 20 para obtener 15 frames de 300
+        Args:
+            frame: Frame de video en formato BGR
 
+        Returns:
+            Array numpy con los landmarks o None si no se detectan manos
+        """
+        try:
+            # Convertir BGR a RGB
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            results = self.hands.process(frame_rgb)
 
-# Función para procesar un frame y generar una imagen de esqueleto
-def process_frame(frame):
-    skeleton_image = np.zeros((frame_size[0], frame_size[1], 3), dtype=np.uint8)
-    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    results = holistic.process(frame_rgb)
+            if not results.multi_hand_landmarks:
+                return None
 
-    if results.pose_landmarks or results.left_hand_landmarks or results.right_hand_landmarks:
-        mp_drawing.draw_landmarks(skeleton_image, results.pose_landmarks, mp_holistic.POSE_CONNECTIONS)
-        mp_drawing.draw_landmarks(skeleton_image, results.left_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
-        mp_drawing.draw_landmarks(skeleton_image, results.right_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
+            # Extraer coordenadas de landmarks
+            landmarks = []
+            for hand_landmarks in results.multi_hand_landmarks:
+                for landmark in hand_landmarks.landmark:
+                    landmarks.extend([landmark.x, landmark.y, landmark.z])
 
-    return skeleton_image
+            return np.array(landmarks)
 
+        except Exception as e:
+            logger.error(f"Error al extraer landmarks: {e}")
+            return None
 
-# Procesar cada video
-X_data = []
-y_data = []
+    def process_video(self, video_data: VideoData) -> Optional[ProcessedSequence]:
+        """
+        Procesa un video y extrae la secuencia de landmarks.
 
-for letter_idx, letter in enumerate(letters):
-    for sample_num in range(1, 11):
-        video_path = os.path.join(input_dir, f'{letter}_sample_{sample_num}.avi')
-        if not os.path.exists(video_path):
-            print(f"Video no encontrado: {video_path}")
-            continue
+        Args:
+            video_data: Objeto VideoData con la información del video
 
-        print(f"Procesando video: {video_path}")
-        cap = cv2.VideoCapture(video_path)
+        Returns:
+            ProcessedSequence object con la secuencia procesada
+        """
+        try:
+            sequences = []
+            for frame in video_data.frames:
+                landmarks = self.extract_landmarks(frame)
+                if landmarks is not None:
+                    sequences.append(landmarks)
 
-        frames = []
-        frame_count = 0
+            if not sequences:
+                logger.warning(f"No se detectaron manos en el video: {video_data.path}")
+                return None
 
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if not ret:
-                break
+            # Normalizar y convertir a array numpy
+            sequence_array = np.array(sequences)
 
-            if frame_count % frame_skip == 0:
-                skeleton_image = process_frame(frame)
-                frames.append(skeleton_image)
+            # Crear metadata
+            metadata = {
+                "original_video": str(video_data.path),
+                "num_frames": len(sequences),
+                "shape": sequence_array.shape
+            }
 
-            frame_count += 1
-            if len(frames) >= sequence_length:
-                break
+            processed_sequence = ProcessedSequence(
+                sequence=sequence_array,
+                label=video_data.label,
+                metadata=metadata
+            )
 
-        cap.release()
+            if not processed_sequence.validate():
+                return None
 
-        # Asegurarse de que la secuencia tenga exactamente 15 frames
-        if len(frames) == sequence_length:
-            X_data.append(frames)
-            y_data.append(letter_idx)
-        else:
-            print(f"Secuencia incompleta para {video_path}, descartada.")
+            return processed_sequence
 
-# Convertir a arrays NumPy y guardar
-X_data = np.array(X_data)  # Forma: (muestras, 15, 200, 200, 3)
-y_data = np.array(y_data)  # Forma: (muestras,)
+        except Exception as e:
+            logger.error(f"Error al procesar video: {e}")
+            return None
 
-np.save(os.path.join(output_dir, 'X_lsp_letter_sequences.npy'), X_data)
-np.save(os.path.join(output_dir, 'y_lsp_letter_sequences.npy'), y_data)
+    def process_all_videos(self, input_dir: Path, output_dir: Path):
+        """
+        Procesa todos los videos en el directorio de entrada.
 
-print(f"Preprocesamiento completo. Datos guardados en {output_dir}")
-print(f"Forma de X: {X_data.shape}, Forma de y: {y_data.shape}")
+        Args:
+            input_dir: Directorio con los videos
+            output_dir: Directorio donde guardar las secuencias procesadas
+        """
+        try:
+            input_dir = Path(input_dir)
+            output_dir = Path(output_dir)
+            output_dir.mkdir(parents=True, exist_ok=True)
+
+            for video_file in input_dir.glob("*.mp4"):
+                logger.info(f"Procesando video: {video_file}")
+
+                # Leer video
+                cap = cv2.VideoCapture(str(video_file))
+                frames = []
+                while cap.isOpened():
+                    ret, frame = cap.read()
+                    if not ret:
+                        break
+                    frames.append(frame)
+                cap.release()
+
+                # Crear VideoData
+                video_data = VideoData(
+                    path=video_file,
+                    frames=frames,
+                    label=video_file.stem.split('_')[1],  # Extraer letra del nombre
+                    duration=len(frames)/30  # Asumiendo 30 fps
+                )
+
+                # Procesar video
+                processed_sequence = self.process_video(video_data)
+                if processed_sequence:
+                    # Guardar secuencia procesada
+                    output_file = output_dir / f"{video_file.stem}_processed.npy"
+                    np.save(output_file, processed_sequence.sequence)
+                    logger.info(f"Secuencia guardada en: {output_file}")
+                else:
+                    logger.error(f"Error al procesar video: {video_file}")
+
+        except Exception as e:
+            logger.error(f"Error en el procesamiento de videos: {e}")

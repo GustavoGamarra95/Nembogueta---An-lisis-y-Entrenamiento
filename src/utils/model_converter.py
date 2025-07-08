@@ -1,32 +1,66 @@
 import tensorflow as tf
-import os
+import logging
+from pathlib import Path
+from src.config.config import Config
 
-# Rutas a los modelos entrenados
-models_dir = 'models/'
-tflite_dir = 'models/tflite/'
-os.makedirs(tflite_dir, exist_ok=True)
+logger = logging.getLogger(__name__)
 
-# Lista de modelos a convertir
-model_names = [
-    'cnn_lstm_lsp_letters_model.h5',
-    'cnn_lstm_lsp_words_model.h5',
-    'cnn_lstm_lsp_phrases_model.h5'
-]
+class ModelConverter:
+    def __init__(self):
+        self.config = Config()
+        self.model_config = self.config.model_config
 
-# Convertir cada modelo a TensorFlow Lite
-for model_name in model_names:
-    # Cargar el modelo
-    model_path = os.path.join(models_dir, model_name)
-    model = tf.keras.models.load_model(model_path)
+    def convert_to_tflite(self, model_path: Path, output_path: Path) -> bool:
+        """
+        Convierte un modelo Keras a formato TFLite.
 
-    # Convertir a TensorFlow Lite con cuantización
-    converter = tf.lite.TFLiteConverter.from_keras_model(model)
-    converter.optimizations = [tf.lite.Optimize.DEFAULT]
-    tflite_model = converter.convert()
+        Args:
+            model_path: Ruta al modelo .h5
+            output_path: Ruta donde guardar el modelo .tflite
 
-    # Guardar el modelo TFLite
-    tflite_path = os.path.join(tflite_dir, model_name.replace('.h5', '_quant.tflite'))
-    with open(tflite_path, 'wb') as f:
-        f.write(tflite_model)
+        Returns:
+            bool: True si la conversión fue exitosa
+        """
+        try:
+            # Cargar el modelo
+            model = tf.keras.models.load_model(str(model_path))
 
-    print(f"Modelo {model_name} convertido a TFLite y guardado en {tflite_path}")
+            # Crear el convertidor
+            converter = tf.lite.TFLiteConverter.from_keras_model(model)
+
+            # Configurar optimizaciones
+            converter.optimizations = [tf.lite.Optimize.DEFAULT]
+            converter.target_spec.supported_types = [tf.float16]
+
+            # Convertir el modelo
+            tflite_model = converter.convert()
+
+            # Guardar el modelo
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_bytes(tflite_model)
+
+            logger.info(f"Modelo convertido y guardado en: {output_path}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Error durante la conversión del modelo: {e}")
+            return False
+
+    def convert_all_models(self):
+        """Convierte todos los modelos encontrados en el directorio de modelos"""
+        try:
+            model_dir = Path(self.model_config.get('save_path', 'models'))
+            tflite_dir = Path(self.model_config.get('tflite_path', 'models/tflite'))
+
+            # Convertir modelos de letras, palabras y frases
+            for model_type in ['letter', 'word', 'phrase']:
+                model_path = model_dir / f"{model_type}_model.h5"
+                if model_path.exists():
+                    output_path = tflite_dir / f"{model_type}_model.tflite"
+                    if self.convert_to_tflite(model_path, output_path):
+                        logger.info(f"Modelo {model_type} convertido exitosamente")
+                    else:
+                        logger.error(f"Error al convertir modelo {model_type}")
+
+        except Exception as e:
+            logger.error(f"Error al convertir modelos: {e}")
