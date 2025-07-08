@@ -88,6 +88,70 @@ def process_frame(frame):
     return skeleton_image
 
 
+# Create process_data at module level
+def process_data(video_path: str):
+    """
+    Procesa los datos de un video de palabra.
+
+    Args:
+        video_path: Ruta al archivo de video
+
+    Returns:
+        Secuencia procesada de landmarks
+    """
+    try:
+        cap = cv2.VideoCapture(video_path)
+        frames = []
+
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+            frames.append(frame)
+
+        cap.release()
+
+        if not frames:
+            print(f"No se pudieron leer frames del video: {video_path}")
+            return None
+
+        # Initialize MediaPipe Hands
+        mp_hands = mp.solutions.hands
+        hands = mp_hands.Hands(
+            static_image_mode=False,
+            max_num_hands=2,
+            min_detection_confidence=0.7,
+        )
+
+        # Process frames
+        sequences = []
+        for frame in frames:
+            # Convert BGR to RGB
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            results = hands.process(frame_rgb)
+
+            if not results.multi_hand_landmarks:
+                continue
+
+            # Extract landmarks
+            landmarks = []
+            for hand_landmarks in results.multi_hand_landmarks:
+                for landmark in hand_landmarks.landmark:
+                    landmarks.extend([landmark.x, landmark.y, landmark.z])
+
+            sequences.append(landmarks)
+
+        if not sequences:
+            print(f"No se detectaron manos en el video: {video_path}")
+            return None
+
+        return np.array(sequences)
+
+    except Exception as e:
+        print(f"Error procesando video {video_path}: {e}")
+        return None
+
+
 # Procesar cada video
 X_data = []
 y_data = []

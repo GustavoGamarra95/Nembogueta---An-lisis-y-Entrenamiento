@@ -51,16 +51,22 @@ class LetterModelTrainer:
         try:
             model = tf.keras.Sequential(
                 [
+                    # LSTM layers to process sequential landmark data
                     tf.keras.layers.LSTM(
-                        64, input_shape=input_shape, return_sequences=True
+                        256, input_shape=input_shape, return_sequences=True
                     ),
-                    tf.keras.layers.LSTM(32),
-                    tf.keras.layers.Dense(32, activation="relu"),
-                    tf.keras.layers.Dropout(0.2),
+                    tf.keras.layers.Dropout(0.3),
+                    tf.keras.layers.LSTM(128),
+                    tf.keras.layers.Dropout(0.3),
+                    # Dense layers for classification
+                    tf.keras.layers.Dense(64, activation="relu"),
+                    tf.keras.layers.Dropout(0.3),
                     tf.keras.layers.Dense(num_classes, activation="softmax"),
                 ]
             )
 
+            # Compile model with categorical crossentropy
+            # since we're using one-hot encoded labels
             model.compile(
                 optimizer="adam",
                 loss="categorical_crossentropy",
@@ -114,7 +120,7 @@ class LetterModelTrainer:
 
             # Crear el modelo
             input_shape = (X.shape[1], X.shape[2])
-            num_classes = len(np.unique(y))
+            num_classes = y.shape[1]  # Use shape from one-hot encoded labels
             self.model = self.create_model(input_shape, num_classes)
 
             # Configurar callback de early stopping
@@ -130,10 +136,13 @@ class LetterModelTrainer:
                 epochs=self.model_config.get("epochs", 100),
                 validation_data=(X_val, y_val),
                 callbacks=[early_stopping],
+                verbose=1,
             )
 
             # Evaluar el modelo
-            test_loss, test_accuracy = self.model.evaluate(X_val, y_val)
+            test_loss, test_accuracy = self.model.evaluate(
+                X_val, y_val, verbose=0
+            )
 
             metrics = {
                 "test_loss": test_loss,
@@ -167,3 +176,92 @@ class LetterModelTrainer:
         except Exception as e:
             logger.error(f"Error al guardar el modelo: {e}")
             raise
+
+
+def train_model(
+    config: Dict[str, Any] = None
+) -> Tuple[tf.keras.Model, Dict[str, Any]]:
+    """
+    Entrena el modelo de reconocimiento de letras.
+
+    Args:
+        config: Configuración opcional para el entrenamiento
+
+    Returns:
+        Tupla con el modelo entrenado y el historial de entrenamiento
+    """
+    if config is None:
+        config = Config().model_config
+
+    try:
+        # Cargar datos
+        X_path = os.path.join(input_dir, "X_lsp_letter_sequences.npy")
+        y_path = os.path.join(input_dir, "y_lsp_letter_sequences.npy")
+
+        try:
+            X = np.load(X_path)
+            y = np.load(y_path)
+            logger.info(
+                f"Datos cargados: X shape {X.shape}, y shape {y.shape}"
+            )
+        except FileNotFoundError:
+            logger.error("Archivos de datos no encontrados")
+            return None, {}
+
+        if len(X) == 0 or len(y) == 0:
+            logger.error("No hay datos para entrenar")
+            return None, {}
+
+        # Dividir datos
+        X_train, X_val, y_train, y_val = train_test_split(
+            X, y, test_size=0.2, random_state=42
+        )
+
+        # Construir modelo
+        model = tf.keras.Sequential(
+            [
+                tf.keras.layers.LSTM(
+                    256,
+                    return_sequences=True,
+                    input_shape=(X.shape[1], X.shape[2]),
+                ),
+                tf.keras.layers.Dropout(0.3),
+                tf.keras.layers.LSTM(128),
+                tf.keras.layers.Dropout(0.3),
+                tf.keras.layers.Dense(64, activation="relu"),
+                tf.keras.layers.Dropout(0.3),
+                tf.keras.layers.Dense(
+                    27, activation="softmax"
+                ),  # 27 letras (a-z + ñ)
+            ]
+        )
+
+        # Compilar
+        model.compile(
+            optimizer="adam",
+            loss="sparse_categorical_crossentropy",
+            metrics=["accuracy"],
+        )
+
+        # Entrenar
+        history = model.fit(
+            X_train,
+            y_train,
+            validation_data=(X_val, y_val),
+            epochs=config.get("epochs", 50),
+            batch_size=config.get("batch_size", 32),
+            verbose=1,
+        )
+
+        # Guardar modelo
+        output_dir = os.path.join("models", "h5")
+        os.makedirs(output_dir, exist_ok=True)
+        model_path = os.path.join(output_dir, "letter_recognition_model.h5")
+        model.save(model_path)
+        logger.info(f"Modelo guardado en {model_path}")
+
+        return model, history.history
+
+    except Exception as e:
+        logger.error(f"Error en el entrenamiento: {e}")
+        return None, {}
