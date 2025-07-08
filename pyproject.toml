@@ -1,0 +1,30 @@
+[tool.black]
+line-length = 79
+target-version = ['py38']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 79
+src_paths = ["src", "tests"]
+
+[tool.flake8]
+max-line-length = 79
+extend-ignore = "E203"  # Ignora E203 para compatibilidad con black
+per-file-ignores = """
+    # Ignorar ciertas reglas en archivos específicos si es necesario
+    tests/*:F401
+"""

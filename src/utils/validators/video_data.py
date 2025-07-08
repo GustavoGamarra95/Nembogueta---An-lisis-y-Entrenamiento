@@ -1,16 +1,13 @@
 """Módulo para validación de datos de video."""
 from pathlib import Path
 from typing import List
+
 import numpy as np
 
 
 class VideoData:
     def __init__(
-            self,
-            path: Path,
-            frames: List[np.ndarray],
-            label: str,
-            duration: float
+        self, path: Path, frames: List[np.ndarray], label: str, duration: float
     ):
         """
         Constructor de VideoData.

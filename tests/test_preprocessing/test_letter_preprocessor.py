@@ -1,9 +1,11 @@
 """Tests para el preprocesamiento de letras."""
 import unittest
-import numpy as np
 from pathlib import Path
+
+import numpy as np
+
 from src.preprocessing.letter_preprocessor import LetterPreprocessor
-from src.utils.validators import VideoData, ProcessedSequence
+from src.utils.validators import ProcessedSequence, VideoData
 
 
 class TestLetterPreprocessor(unittest.TestCase):
@@ -23,10 +25,7 @@ class TestLetterPreprocessor(unittest.TestCase):
     def test_process_video_invalid_data(self):
         """Test que el procesamiento falla con datos inválidos"""
         invalid_video_data = VideoData(
-            path=Path("nonexistent.mp4"),
-            frames=[],
-            label="A",
-            duration=0
+            path=Path("nonexistent.mp4"), frames=[], label="A", duration=0
         )
         result = self.preprocessor.process_video(invalid_video_data)
         self.assertIsNone(result)
@@ -34,15 +33,9 @@ class TestLetterPreprocessor(unittest.TestCase):
     def test_process_video_valid_data(self):
         """Test el procesamiento con datos válidos"""
         # Crear un video de prueba simple
-        frames = [
-            np.zeros((480, 640, 3), dtype=np.uint8)
-            for _ in range(10)
-        ]
+        frames = [np.zeros((480, 640, 3), dtype=np.uint8) for _ in range(10)]
         video_data = VideoData(
-            path=self.test_video_path,
-            frames=frames,
-            label="A",
-            duration=1.0
+            path=self.test_video_path, frames=frames, label="A", duration=1.0
         )
         result = self.preprocessor.process_video(video_data)
         self.assertIsInstance(result, ProcessedSequence)
@@ -53,12 +46,10 @@ class TestLetterPreprocessor(unittest.TestCase):
         # 30 frames, 21 landmarks x 3 coordinates
         sequence = np.random.random((30, 63))
         processed_sequence = ProcessedSequence(
-            sequence=sequence,
-            label="A",
-            metadata={"test": "data"}
+            sequence=sequence, label="A", metadata={"test": "data"}
         )
         self.assertTrue(processed_sequence.validate())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

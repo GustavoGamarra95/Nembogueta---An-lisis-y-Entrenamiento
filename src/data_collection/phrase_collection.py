@@ -1,16 +1,17 @@
-import cv2
 import os
 import time
 
+import cv2
+
 # Directorio donde se guardarán los videos de frases
-output_dir = 'data/lsp_phrase_videos'
+output_dir = "data/lsp_phrase_videos"
 os.makedirs(output_dir, exist_ok=True)
 
 # Lista de frases LSPy
 phrases = [
-    'acceso a la justicia',
-    'derecho a la defensa',
-    'igualdad ante la ley'
+    "acceso a la justicia",
+    "derecho a la defensa",
+    "igualdad ante la ley",
 ]
 
 # Configuración de la cámara
@@ -32,17 +33,13 @@ def record_video(phrase: str, sample_num: int) -> None:
     Graba un video para una frase específica.
     """
     # Reemplazar espacios por guiones bajos para el nombre del archivo
-    phrase_filename = phrase.replace(' ', '_')
+    phrase_filename = phrase.replace(" ", "_")
     output_path = os.path.join(
-        output_dir,
-        f'{phrase_filename}_sample_{sample_num}.avi'
+        output_dir, f"{phrase_filename}_sample_{sample_num}.avi"
     )
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    fourcc = cv2.VideoWriter_fourcc(*"XVID")
     out = cv2.VideoWriter(
-        output_path,
-        fourcc,
-        fps,
-        (frame_width, frame_height)
+        output_path, fourcc, fps, (frame_width, frame_height)
     )
 
     print(f"Grabando video para la frase '{phrase}' (muestra {sample_num})...")
@@ -58,11 +55,11 @@ def record_video(phrase: str, sample_num: int) -> None:
             print("Error: No se puede leer el frame.")
             break
 
-        cv2.imshow('Grabando...', frame)
+        cv2.imshow("Grabando...", frame)
         out.write(frame)
         frame_counter += 1
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             break
 
     elapsed_time = time.time() - start_time
@@ -91,5 +88,5 @@ def main():
         print("Recolección de videos completa.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
