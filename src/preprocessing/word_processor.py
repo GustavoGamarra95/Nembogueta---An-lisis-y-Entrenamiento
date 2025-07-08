@@ -2,16 +2,22 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import os
+from dotenv import load_dotenv
+
+# Cargar variables de entorno
+load_dotenv()
+
+# Directorios de entrada y salida desde .env
+input_dir = os.getenv('DATA_RAW_DIR', 'data/lsp_word_videos')
+output_dir = os.getenv('DATA_PROCESSED_DIR', 'data/processed_lsp_word_sequences')
+input_dir = os.path.join(input_dir, 'words') if os.path.isdir(os.path.join(input_dir, 'words')) else input_dir
+output_dir = os.path.join(output_dir, 'words') if os.path.isdir(os.path.join(output_dir, 'words')) else output_dir
+os.makedirs(output_dir, exist_ok=True)
 
 # Configuración de MediaPipe
 mp_holistic = mp.solutions.holistic
 mp_drawing = mp.solutions.drawing_utils
 holistic = mp_holistic.Holistic(static_image_mode=False, min_detection_confidence=0.5)
-
-# Directorios de entrada y salida
-input_dir = 'data/lsp_word_videos'
-output_dir = 'data/processed_lsp_word_sequences'
-os.makedirs(output_dir, exist_ok=True)
 
 # Lista de palabras
 words = ['juicio', 'abogado', 'justicia', 'ley', 'juez', 'demanda', 'prueba', 'sentencia', 'apelación', 'veredicto']
@@ -83,3 +89,4 @@ np.save(os.path.join(output_dir, 'y_lsp_word_sequences.npy'), y_data)
 
 print(f"Preprocesamiento completo. Datos guardados en {output_dir}")
 print(f"Forma de X: {X_data.shape}, Forma de y: {y_data.shape}")
+

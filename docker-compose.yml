@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  nembogueta:
+    build: .
+    container_name: nembogueta-dev
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./src:/app/src
+      - ./notebooks:/app/notebooks
+      - ./requirements.txt:/app/requirements.txt
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TZ=America/Asuncion
+    working_dir: /app
+    tty: true
+    stdin_open: true
+    command: /bin/bash
+

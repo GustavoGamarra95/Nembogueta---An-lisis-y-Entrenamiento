@@ -1,8 +1,16 @@
+import os
+from dotenv import load_dotenv
 import numpy as np
 from typing import Dict, Any
 import logging
 
 logger = logging.getLogger(__name__)
+
+# Cargar variables de entorno
+load_dotenv()
+
+# Directorio de secuencias procesadas desde .env
+SEQUENCE_DIR = os.getenv('DATA_PROCESSED_DIR', 'data/processed_lsp_letter_sequences')
 
 def analyze(sequence: np.ndarray) -> Dict[str, Any]:
     """
@@ -30,3 +38,4 @@ def analyze(sequence: np.ndarray) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Error al analizar secuencia: {e}")
         return {}
+
