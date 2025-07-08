@@ -35,6 +35,50 @@ holistic = mp_holistic.Holistic(
     static_image_mode=False, min_detection_confidence=0.5
 )
 
+# Create processor instance and expose process_data at module level
+_processor = holistic  # Use existing holistic instance
+
+
+def process_data(video_path: str):
+    """
+    Procesa un video de frase y devuelve la secuencia procesada.
+
+    Args:
+        video_path: Ruta al archivo de video
+
+    Returns:
+        Secuencia procesada
+    """
+    try:
+        cap = cv2.VideoCapture(video_path)
+        frames = []
+        frame_count = 0
+
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
+
+            if frame_count % frame_skip == 0:
+                skeleton_image = process_frame(frame)
+                frames.append(skeleton_image)
+
+            frame_count += 1
+            if len(frames) >= sequence_length:
+                break
+
+        cap.release()
+
+        if len(frames) != sequence_length:
+            print(f"Secuencia incompleta para {video_path}, descartada.")
+            return None
+
+        return np.array(frames)
+    except Exception as e:
+        print(f"Error procesando video {video_path}: {e}")
+        return None
+
+
 # Lista de frases
 phrases = [
     "acceso_a_la_justicia",

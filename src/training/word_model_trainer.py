@@ -1,12 +1,12 @@
+import logging
 import os
+from typing import Any, Dict, Tuple
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from dotenv import load_dotenv
 from sklearn.model_selection import train_test_split
-from sklearn.utils import class_weight
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.layers import (
     LSTM,
@@ -19,6 +19,10 @@ from tensorflow.keras.layers import (
 )
 from tensorflow.keras.models import Sequential
 
+# Configurar logger
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
 # Establecer una semilla para reproducibilidad
 tf.random.set_seed(42)
 np.random.seed(42)
@@ -27,10 +31,8 @@ np.random.seed(42)
 load_dotenv()
 
 # Directorios de entrada y salida desde .env
-input_dir = os.getenv("DATA_RAW_DIR", "data/lsp_word_videos")
-output_dir = os.getenv(
-    "DATA_PROCESSED_DIR", "data/processed_lsp_word_sequences"
-)
+input_dir = os.getenv("DATA_RAW_DIR", "data/raw/words")
+output_dir = os.getenv("DATA_PROCESSED_DIR", "data/processed/words")
 
 # Configurar rutas de directorios
 input_dir = (
@@ -46,12 +48,21 @@ output_dir = (
 os.makedirs(output_dir, exist_ok=True)
 
 # Rutas a los datos preprocesados
-X_path = os.path.join(input_dir, "X_lsp_word_sequences.npy")
-y_path = os.path.join(input_dir, "y_lsp_word_sequences.npy")
+X_path = os.path.join(output_dir, "X_lsp_word_sequences.npy")
+y_path = os.path.join(output_dir, "y_lsp_word_sequences.npy")
 
-# Cargar los datos
-X = np.load(X_path)  # Forma: (muestras, 15, 200, 200, 3)
-y = np.load(y_path)  # Forma: (muestras,)
+# Cargar los datos si existen
+try:
+    X = np.load(X_path)  # Forma: (muestras, 15, 200, 200, 3)
+    y = np.load(y_path)  # Forma: (muestras,)
+    print(f"Forma de X: {X.shape}, Forma de y: {y.shape}")
+except FileNotFoundError:
+    print(
+        "Archivos de datos no encontrados. "
+        "Por favor, ejecute el preprocesamiento primero."
+    )
+    X = np.array([])
+    y = np.array([])
 
 
 def augment_sequence(sequence):
@@ -82,103 +93,111 @@ def augment_sequence(sequence):
     return augmented_sequence
 
 
-# Aplicar aumento de datos
-X_augmented = np.array([augment_sequence(seq) for seq in X])
+def train_model(
+    config: Dict[str, Any] = None
+) -> Tuple[tf.keras.Model, Dict[str, Any]]:
+    """
+    Entrena el modelo de reconocimiento de palabras.
 
-# Normalizar los datos
-X_augmented = X_augmented / 255.0
+    Args:
+        config: Configuración opcional para el entrenamiento
 
-# Dividir los datos
-X_train, X_val, y_train, y_val = train_test_split(
-    X_augmented, y, test_size=0.2, random_state=42
-)
+    Returns:
+        Tupla con el modelo entrenado y el historial de entrenamiento
+    """
+    if config is None:
+        config = {}
 
-# Calcular pesos de clase
-class_weights = class_weight.compute_class_weight(
-    "balanced", classes=np.unique(y_train), y=y_train
-)
-class_weights_dict = dict(enumerate(class_weights))
+    try:
+        # Cargar datos
+        X_path = os.path.join(output_dir, "X_lsp_word_sequences.npy")
+        y_path = os.path.join(output_dir, "y_lsp_word_sequences.npy")
 
-# Construir el modelo CNN-LSTM mejorado
-model = Sequential(
-    [
-        # Capas CNN para extraer características espaciales
-        TimeDistributed(
-            Conv2D(64, (3, 3), activation="relu", padding="same"),
-            input_shape=(15, 200, 200, 3),
-        ),
-        TimeDistributed(MaxPooling2D((2, 2))),
-        TimeDistributed(
-            Conv2D(128, (3, 3), activation="relu", padding="same")
-        ),
-        TimeDistributed(MaxPooling2D((2, 2))),
-        TimeDistributed(
-            Conv2D(256, (3, 3), activation="relu", padding="same")
-        ),
-        TimeDistributed(MaxPooling2D((2, 2))),
-        TimeDistributed(Flatten()),
-        # Capas LSTM para dependencias temporales
-        LSTM(256, return_sequences=True),
-        Dropout(0.3),
-        LSTM(128, return_sequences=False),
-        Dropout(0.3),
-        # Capas densas para clasificación
-        Dense(128, activation="relu"),
-        Dropout(0.3),
-        Dense(10, activation="softmax"),  # 10 clases para palabras
-    ]
-)
+        try:
+            X = np.load(X_path)
+            y = np.load(y_path)
+            logger.info(
+                f"Datos cargados: X shape {X.shape}, y shape {y.shape}"
+            )
+        except FileNotFoundError:
+            logger.error("Archivos de datos no encontrados")
+            return None, {}
 
-# Compilar el modelo con AdamW
-optimizer = tf.keras.optimizers.AdamW(learning_rate=0.0005, weight_decay=0.01)
-model.compile(
-    optimizer=optimizer,
-    loss="sparse_categorical_crossentropy",
-    metrics=["accuracy"],
-)
+        if len(X) == 0 or len(y) == 0:
+            logger.error("No hay datos para entrenar")
+            return None, {}
 
-# Definir parada temprana
-early_stopping = EarlyStopping(
-    monitor="val_accuracy", patience=10, restore_best_weights=True
-)
+        # Dividir datos
+        X_train, X_val, y_train, y_val = train_test_split(
+            X, y, test_size=0.2, random_state=42
+        )
 
-# Entrenar el modelo
-history = model.fit(
-    X_train,
-    y_train,
-    validation_data=(X_val, y_val),
-    epochs=50,
-    batch_size=16,
-    class_weight=class_weights_dict,
-    callbacks=[early_stopping],
-    verbose=1,
-)
+        # Construir modelo
+        model = Sequential(
+            [
+                # Capas CNN para extraer características espaciales
+                TimeDistributed(
+                    Conv2D(64, (3, 3), activation="relu", padding="same"),
+                    input_shape=(15, 200, 200, 3),
+                ),
+                TimeDistributed(MaxPooling2D((2, 2))),
+                TimeDistributed(
+                    Conv2D(128, (3, 3), activation="relu", padding="same")
+                ),
+                TimeDistributed(MaxPooling2D((2, 2))),
+                TimeDistributed(
+                    Conv2D(256, (3, 3), activation="relu", padding="same")
+                ),
+                TimeDistributed(MaxPooling2D((2, 2))),
+                TimeDistributed(Flatten()),
+                # Capas LSTM para dependencias temporales
+                LSTM(256, return_sequences=True),
+                Dropout(0.3),
+                LSTM(128, return_sequences=False),
+                Dropout(0.3),
+                # Capas densas para clasificación
+                Dense(128, activation="relu"),
+                Dropout(0.3),
+                Dense(10, activation="softmax"),  # 10 clases para palabras
+            ]
+        )
 
-# Evaluar el modelo
-val_loss, val_accuracy = model.evaluate(X_val, y_val, verbose=0)
-print(f"Precisión final de validación: {val_accuracy * 100:.2f}%")
+        # Compilar
+        optimizer = tf.keras.optimizers.AdamW(
+            learning_rate=config.get("learning_rate", 0.0005),
+            weight_decay=config.get("weight_decay", 0.01),
+        )
+        model.compile(
+            optimizer=optimizer,
+            loss="sparse_categorical_crossentropy",
+            metrics=["accuracy"],
+        )
 
-# Guardar el modelo
-model_path = os.path.join(output_dir, "cnn_lstm_lsp_words_model.h5")
-model.save(model_path)
+        # Early stopping
+        early_stopping = EarlyStopping(
+            monitor="val_accuracy",
+            patience=config.get("patience", 10),
+            restore_best_weights=True,
+        )
 
-# Graficar el historial de entrenamiento
-plt.figure(figsize=(10, 6))
-plt.plot(
-    history.history["accuracy"],
-    label="Precisión de Entrenamiento",
-    color="#1f77b4",
-)
-plt.plot(
-    history.history["val_accuracy"],
-    label="Precisión de Validación",
-    color="#ff7f0e",
-)
-plt.axhline(y=0.95, color="red", linestyle="--", label="Objetivo (95%)")
-plt.title("Precisión de Entrenamiento y Validación (Palabras)")
-plt.xlabel("Época")
-plt.ylabel("Precisión")
-plt.legend()
-plt.grid(True)
-plt.savefig("training_accuracy_words.png", dpi=300, bbox_inches="tight")
-plt.show()
+        # Entrenar
+        history = model.fit(
+            X_train,
+            y_train,
+            validation_data=(X_val, y_val),
+            epochs=config.get("epochs", 50),
+            batch_size=config.get("batch_size", 16),
+            callbacks=[early_stopping],
+            verbose=1,
+        )
+
+        # Guardar modelo
+        model_path = os.path.join(output_dir, "cnn_lstm_lsp_words_model.h5")
+        model.save(model_path)
+        logger.info(f"Modelo guardado en {model_path}")
+
+        return model, history.history
+
+    except Exception as e:
+        logger.error(f"Error en el entrenamiento: {e}")
+        return None, {}
