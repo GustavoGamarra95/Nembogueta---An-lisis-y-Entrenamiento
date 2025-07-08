@@ -39,7 +39,7 @@ nembogueta-python/
 - Bibliotecas necesarias:
 
 ```bash
-pip install opencv-python mediapipe numpy tensorflow matplotlib scikit-learn
+pip install -r requirements.txt
 ```
 
 - Cámara web (para recolección de videos).
