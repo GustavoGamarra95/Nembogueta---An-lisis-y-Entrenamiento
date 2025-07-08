@@ -7,14 +7,25 @@ from sklearn.model_selection import train_test_split
 from sklearn.utils import class_weight
 import cv2
 import os
+from dotenv import load_dotenv
 
 # Establecer una semilla para reproducibilidad
 tf.random.set_seed(42)
 np.random.seed(42)
 
+# Cargar variables de entorno
+load_dotenv()
+
+# Directorios de entrada y salida desde .env
+input_dir = os.getenv('DATA_PROCESSED_DIR', 'data/processed_lsp_word_sequences')
+output_dir = os.getenv('MODELS_DIR', 'models/h5')
+input_dir = os.path.join(input_dir, 'words') if os.path.isdir(os.path.join(input_dir, 'words')) else input_dir
+output_dir = os.path.join(output_dir, 'words') if os.path.isdir(os.path.join(output_dir, 'words')) else output_dir
+os.makedirs(output_dir, exist_ok=True)
+
 # Rutas a los datos preprocesados
-X_path = 'data/processed_lsp_word_sequences/X_lsp_word_sequences.npy'
-y_path = 'data/processed_lsp_word_sequences/y_lsp_word_sequences.npy'
+X_path = os.path.join(input_dir, 'X_lsp_word_sequences.npy')
+y_path = os.path.join(input_dir, 'y_lsp_word_sequences.npy')
 
 # Cargar los datos
 X = np.load(X_path)  # Forma: (muestras, 15, 200, 200, 3)
@@ -101,7 +112,7 @@ val_loss, val_accuracy = model.evaluate(X_val, y_val, verbose=0)
 print(f"Precisión final de validación: {val_accuracy * 100:.2f}%")
 
 # Guardar el modelo
-model.save('models/cnn_lstm_lsp_words_model.h5')
+model.save(os.path.join(output_dir, 'cnn_lstm_lsp_words_model.h5'))
 
 # Graficar el historial de entrenamiento
 import matplotlib.pyplot as plt
@@ -117,3 +128,4 @@ plt.legend()
 plt.grid(True)
 plt.savefig('training_accuracy_words.png', dpi=300, bbox_inches='tight')
 plt.show()
+

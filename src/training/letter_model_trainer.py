@@ -5,8 +5,20 @@ import logging
 from typing import Tuple, Dict, Any
 from sklearn.model_selection import train_test_split
 from src.config.config import Config
+import os
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
+
+# Cargar variables de entorno
+load_dotenv()
+
+# Directorios de entrada y salida desde .env
+input_dir = os.getenv('DATA_PROCESSED_DIR', 'data/processed_lsp_letter_sequences')
+output_dir = os.getenv('MODELS_DIR', 'models/h5')
+input_dir = os.path.join(input_dir, 'letters') if os.path.isdir(os.path.join(input_dir, 'letters')) else input_dir
+output_dir = os.path.join(output_dir, 'letters') if os.path.isdir(os.path.join(output_dir, 'letters')) else output_dir
+os.makedirs(output_dir, exist_ok=True)
 
 class LetterModelTrainer:
     def __init__(self):
@@ -155,3 +167,4 @@ class LetterModelTrainer:
         except Exception as e:
             logger.error(f"Error al guardar el modelo: {e}")
             raise
+

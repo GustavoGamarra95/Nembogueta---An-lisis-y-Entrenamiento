@@ -2,16 +2,22 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import os
+from dotenv import load_dotenv
+
+# Cargar variables de entorno
+load_dotenv()
+
+# Directorios de entrada y salida desde .env
+input_dir = os.getenv('DATA_RAW_DIR', 'data/lsp_phrase_videos')
+output_dir = os.getenv('DATA_PROCESSED_DIR', 'data/processed_lsp_phrase_sequences')
+input_dir = os.path.join(input_dir, 'phrases') if os.path.isdir(os.path.join(input_dir, 'phrases')) else input_dir
+output_dir = os.path.join(output_dir, 'phrases') if os.path.isdir(os.path.join(output_dir, 'phrases')) else output_dir
+os.makedirs(output_dir, exist_ok=True)
 
 # Configuración de MediaPipe
 mp_holistic = mp.solutions.holistic
 mp_drawing = mp.solutions.drawing_utils
 holistic = mp_holistic.Holistic(static_image_mode=False, min_detection_confidence=0.5)
-
-# Directorios de entrada y salida
-input_dir = 'data/lsp_phrase_videos'
-output_dir = 'data/processed_lsp_phrase_sequences'
-os.makedirs(output_dir, exist_ok=True)
 
 # Lista de frases
 phrases = ['acceso_a_la_justicia', 'derecho_a_la_defensa', 'igualdad_ante_la_ley']
@@ -83,3 +89,4 @@ np.save(os.path.join(output_dir, 'y_lsp_phrase_sequences.npy'), y_data)
 
 print(f"Preprocesamiento completo. Datos guardados en {output_dir}")
 print(f"Forma de X: {X_data.shape}, Forma de y: {y_data.shape}")
+

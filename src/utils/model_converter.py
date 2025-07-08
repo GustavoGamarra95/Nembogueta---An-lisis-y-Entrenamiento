@@ -2,8 +2,17 @@ import tensorflow as tf
 import logging
 from pathlib import Path
 from src.config.config import Config
+import os
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
+
+# Cargar variables de entorno
+load_dotenv()
+
+# Directorios de modelos desde .env
+MODELS_DIR = os.getenv('MODELS_DIR', 'models/h5')
+TFLITE_DIR = os.getenv('TFLITE_DIR', 'models/tflite')
 
 class ModelConverter:
     def __init__(self):
@@ -49,8 +58,8 @@ class ModelConverter:
     def convert_all_models(self):
         """Convierte todos los modelos encontrados en el directorio de modelos"""
         try:
-            model_dir = Path(self.model_config.get('save_path', 'models'))
-            tflite_dir = Path(self.model_config.get('tflite_path', 'models/tflite'))
+            model_dir = Path(MODELS_DIR)
+            tflite_dir = Path(TFLITE_DIR)
 
             # Convertir modelos de letras, palabras y frases
             for model_type in ['letter', 'word', 'phrase']:
@@ -64,3 +73,4 @@ class ModelConverter:
 
         except Exception as e:
             logger.error(f"Error al convertir modelos: {e}")
+

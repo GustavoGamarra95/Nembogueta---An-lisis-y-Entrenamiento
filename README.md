@@ -1,4 +1,3 @@
-
 # Ñemongeta - Módulo Python
 
 ## Descripción
@@ -181,14 +180,44 @@ python scripts/model_converter.py
 
 - Los modelos `.tflite` se guardan en `models/tflite/`.
 
+## Uso flexible con variables de entorno (.env)
+
+Este proyecto soporta configuración flexible de rutas y parámetros mediante un archivo `.env` en la raíz del repositorio. Puedes definir rutas de entrada/salida de datos, modelos y otros parámetros globales sin modificar el código fuente.
+
+Ejemplo de `.env`:
+
+```
+DATA_RAW_DIR=data/raw
+DATA_PROCESSED_DIR=data/processed
+MODELS_DIR=models/h5
+TFLITE_DIR=models/tflite
+FRAME_RATE=30
+FRAME_COUNT=300
+SEED=42
+```
+
+- Todos los scripts principales (preprocesamiento, entrenamiento, análisis, conversión) leen estas variables automáticamente usando la librería `python-dotenv`.
+- Puedes cambiar la ubicación de los datos o modelos simplemente editando el archivo `.env`.
+- No olvides crear tu propio `.env` a partir de `.env.example` y agregar `.env` a tu `.gitignore`.
+
+### Ejecución en Docker
+
+El entorno está preparado para ejecutarse en Docker o Docker Compose. Los volúmenes de datos y modelos se mapean automáticamente y las variables de entorno se leen desde `.env`.
+
+Ejemplo:
+
+```bash
+docker-compose up --build
+```
+
+Luego, ejecuta los scripts dentro del contenedor como lo harías localmente.
+
 ## Resultados Esperados
 
 - **Precisión de Entrenamiento:**
   - Letras: 95%
   - Palabras: 95%
   - Frases: 95%
-
-
 
 ## Notas
 
