@@ -1,70 +1,110 @@
 import cv2
-import os
-import time
+import logging
+from pathlib import Path
+from typing import Optional
+from src.config.config import Config
+from src.utils.validators import VideoData
 
-# Directorio donde se guardarán los videos de letras
-output_dir = 'data/lsp_letter_videos'
-os.makedirs(output_dir, exist_ok=True)
+logger = logging.getLogger(__name__)
 
-# Lista de letras (a-z, ñ)
-letters = list('abcdefghijklmnopqrstuvwxyz') + ['ñ']
+class LetterDataCollector:
+    def __init__(self):
+        self.config = Config()
+        self.video_config = self.config.video_config
+        self.data_config = self.config.data_config
+        self.output_path = Path(self.data_config['video_path']['letters'])
+        self.output_path.mkdir(parents=True, exist_ok=True)
 
-# Configuración de la cámara
-cap = cv2.VideoCapture(0)  # 0 para la cámara predeterminada
-if not cap.isOpened():
-    print("Error: No se puede abrir la cámara.")
-    exit()
+    def collect_video(self, letter: str, sample_num: int) -> Optional[VideoData]:
+        """
+        Recolecta un video para una letra específica.
 
-# Configuración del video
-fps = 30
-frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-frame_count = 300  # 10 segundos a 30 fps
-video_duration = 10  # segundos
+        Args:
+            letter: Letra a grabar
+            sample_num: Número de muestra para esta letra
 
+        Returns:
+            VideoData object si la grabación es exitosa, None en caso contrario
+        """
+        try:
+            cap = cv2.VideoCapture(0)
+            if not cap.isOpened():
+                logger.error("No se pudo acceder a la cámara")
+                return None
 
-# Función para grabar un video
-def record_video(letter, sample_num):
-    output_path = os.path.join(output_dir, f'{letter}_sample_{sample_num}.avi')
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = cv2.VideoWriter(output_path, fourcc, fps, (frame_width, frame_height))
+            filename = f"letter_{letter}_sample_{sample_num}.mp4"
+            output_file = self.output_path / filename
 
-    print(f"Grabando video para la letra '{letter}' (muestra {sample_num})...")
-    print("Prepárate, grabación comienza en 3 segundos...")
-    time.sleep(3)
+            # Configurar el escritor de video
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            fps = self.video_config.get('fps', 30)
+            writer = cv2.VideoWriter(
+                str(output_file),
+                fourcc,
+                fps,
+                (int(cap.get(3)), int(cap.get(4)))
+            )
 
-    start_time = time.time()
-    frame_counter = 0
+            frames = []
+            frame_count = 0
+            total_frames = fps * self.video_config.get('duration', 10)
 
-    while frame_counter < frame_count:
-        ret, frame = cap.read()
-        if not ret:
-            print("Error: No se puede leer el frame.")
-            break
+            while frame_count < total_frames:
+                ret, frame = cap.read()
+                if not ret:
+                    logger.error("Error al leer frame de la cámara")
+                    break
 
-        # Mostrar el frame en una ventana
-        cv2.imshow('Grabando...', frame)
-        out.write(frame)
-        frame_counter += 1
+                frames.append(frame)
+                writer.write(frame)
+                frame_count += 1
 
-        # Salir si se presiona 'q'
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+                # Mostrar el frame con información
+                cv2.putText(
+                    frame,
+                    f"Recording letter {letter}: {frame_count}/{total_frames}",
+                    (10, 30),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    1,
+                    (0, 255, 0),
+                    2
+                )
+                cv2.imshow('Recording', frame)
 
-    elapsed_time = time.time() - start_time
-    print(f"Video grabado: {output_path} (Duración: {elapsed_time:.2f} segundos)")
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
 
-    out.release()
-    cv2.destroyAllWindows()
+            cap.release()
+            writer.release()
+            cv2.destroyAllWindows()
 
+            if frame_count < total_frames:
+                logger.warning(f"Grabación incompleta para letra {letter}")
+                return None
 
-# Grabar 10 muestras por letra
-for letter in letters:
-    for sample_num in range(1, 11):  # 10 muestras por letra
-        print(f"\nPróxima letra: '{letter}', muestra {sample_num}")
-        input("Presiona Enter para comenzar la grabación...")
-        record_video(letter, sample_num)
+            return VideoData(
+                path=output_file,
+                frames=frames,
+                label=letter,
+                duration=frame_count/fps
+            )
 
-# Liberar la cámara
-cap.release()
-print("Recolección de videos completa.")
+        except Exception as e:
+            logger.error(f"Error durante la grabación: {e}")
+            return None
+
+    def collect_all_letters(self):
+        """Recolecta videos para todas las letras del alfabeto incluyendo 'ñ'"""
+        letters = list('abcdefghijklmnñopqrstuvwxyz')
+        samples_per_letter = self.video_config.get('num_samples', 10)
+
+        for letter in letters:
+            logger.info(f"Iniciando recolección para letra: {letter}")
+            for sample in range(samples_per_letter):
+                logger.info(f"Grabando muestra {sample + 1}/{samples_per_letter}")
+
+                video_data = self.collect_video(letter, sample)
+                if video_data and video_data.validate():
+                    logger.info(f"Video guardado exitosamente: {video_data.path}")
+                else:
+                    logger.error(f"Error en la grabación de letra {letter}, muestra {sample}")

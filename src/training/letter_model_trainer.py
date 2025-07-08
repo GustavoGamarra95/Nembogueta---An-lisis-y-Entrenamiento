@@ -1,85 +1,157 @@
-import cv2
-import mediapipe as mp
 import numpy as np
-import os
+import tensorflow as tf
+from pathlib import Path
+import logging
+from typing import Tuple, Dict, Any
+from sklearn.model_selection import train_test_split
+from src.config.config import Config
 
-# Configuración de MediaPipe
-mp_holistic = mp.solutions.holistic
-mp_drawing = mp.solutions.drawing_utils
-holistic = mp_holistic.Holistic(static_image_mode=False, min_detection_confidence=0.5)
+logger = logging.getLogger(__name__)
 
-# Directorios de entrada y salida
-input_dir = 'data/lsp_phrase_videos'
-output_dir = 'data/processed_lsp_phrase_sequences'
-os.makedirs(output_dir, exist_ok=True)
+class LetterModelTrainer:
+    def __init__(self):
+        self.config = Config()
+        self.model_config = self.config.model_config
+        self.model = None
+        self.history = None
 
-# Lista de frases
-phrases = ['acceso_a_la_justicia', 'derecho_a_la_defensa', 'igualdad_ante_la_ley']
+    def create_model(self, input_shape: Tuple[int, ...], num_classes: int) -> tf.keras.Model:
+        """
+        Crea el modelo CNN-LSTM para clasificación de letras.
 
-# Parámetros de la secuencia
-sequence_length = 15
-frame_size = (200, 200)
-frame_skip = 20
+        Args:
+            input_shape: Forma de los datos de entrada
+            num_classes: Número de clases (letras) a clasificar
 
+        Returns:
+            Modelo de Keras compilado
+        """
+        try:
+            model = tf.keras.Sequential([
+                tf.keras.layers.LSTM(64, input_shape=input_shape, return_sequences=True),
+                tf.keras.layers.LSTM(32),
+                tf.keras.layers.Dense(32, activation='relu'),
+                tf.keras.layers.Dropout(0.2),
+                tf.keras.layers.Dense(num_classes, activation='softmax')
+            ])
 
-# Función para procesar un frame
-def process_frame(frame):
-    skeleton_image = np.zeros((frame_size[0], frame_size[1], 3), dtype=np.uint8)
-    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    results = holistic.process(frame_rgb)
+            model.compile(
+                optimizer='adam',
+                loss='categorical_crossentropy',
+                metrics=['accuracy']
+            )
 
-    if results.pose_landmarks or results.left_hand_landmarks or results.right_hand_landmarks:
-        mp_drawing.draw_landmarks(skeleton_image, results.pose_landmarks, mp_holistic.POSE_CONNECTIONS)
-        mp_drawing.draw_landmarks(skeleton_image, results.left_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
-        mp_drawing.draw_landmarks(skeleton_image, results.right_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
+            return model
 
-    return skeleton_image
+        except Exception as e:
+            logger.error(f"Error al crear el modelo: {e}")
+            raise
 
+    def load_data(self, data_dir: Path) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Carga y prepara los datos de entrenamiento.
 
-# Procesar cada video
-X_data = []
-y_data = []
+        Args:
+            data_dir: Directorio con las secuencias procesadas
 
-for phrase_idx, phrase in enumerate(phrases):
-    for sample_num in range(1, 11):
-        video_path = os.path.join(input_dir, f'{phrase}_sample_{sample_num}.avi')
-        if not os.path.exists(video_path):
-            print(f"Video no encontrado: {video_path}")
-            continue
+        Returns:
+            Tupla de (características, etiquetas)
+        """
+        try:
+            sequences = []
+            labels = []
 
-        print(f"Procesando video: {video_path}")
-        cap = cv2.VideoCapture(video_path)
+            for file_path in data_dir.glob("*_processed.npy"):
+                sequence = np.load(file_path)
+                label = file_path.stem.split('_')[1]  # Extraer letra del nombre
 
-        frames = []
-        frame_count = 0
+                sequences.append(sequence)
+                labels.append(label)
 
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if not ret:
-                break
+            # Convertir a arrays numpy
+            X = np.array(sequences)
+            y = np.array(labels)
 
-            if frame_count % frame_skip == 0:
-                skeleton_image = process_frame(frame)
-                frames.append(skeleton_image)
+            return X, y
 
-            frame_count += 1
-            if len(frames) >= sequence_length:
-                break
+        except Exception as e:
+            logger.error(f"Error al cargar los datos: {e}")
+            raise
 
-        cap.release()
+    def train(self, X: np.ndarray, y: np.ndarray) -> Dict[str, Any]:
+        """
+        Entrena el modelo con los datos proporcionados.
 
-        if len(frames) == sequence_length:
-            X_data.append(frames)
-            y_data.append(phrase_idx)
-        else:
-            print(f"Secuencia incompleta para {video_path}, descartada.")
+        Args:
+            X: Datos de características
+            y: Etiquetas
 
-# Convertir a arrays NumPy y guardar
-X_data = np.array(X_data)
-y_data = np.array(y_data)
+        Returns:
+            Diccionario con métricas del entrenamiento
+        """
+        try:
+            # Dividir datos en entrenamiento y validación
+            X_train, X_val, y_train, y_val = train_test_split(
+                X, y,
+                test_size=self.model_config.get('validation_split', 0.2),
+                random_state=42
+            )
 
-np.save(os.path.join(output_dir, 'X_lsp_phrase_sequences.npy'), X_data)
-np.save(os.path.join(output_dir, 'y_lsp_phrase_sequences.npy'), y_data)
+            # Crear el modelo
+            input_shape = (X.shape[1], X.shape[2])
+            num_classes = len(np.unique(y))
+            self.model = self.create_model(input_shape, num_classes)
 
-print(f"Preprocesamiento completo. Datos guardados en {output_dir}")
-print(f"Forma de X: {X_data.shape}, Forma de y: {y_data.shape}")
+            # Entrenar el modelo
+            self.history = self.model.fit(
+                X_train, y_train,
+                batch_size=self.model_config.get('batch_size', 32),
+                epochs=self.model_config.get('epochs', 100),
+                validation_data=(X_val, y_val),
+                callbacks=[
+                    tf.keras.callbacks.EarlyStopping(
+                        monitor='val_accuracy',
+                        patience=10,
+                        restore_best_weights=True
+                    )
+                ]
+            )
+
+            # Evaluar el modelo
+            test_loss, test_accuracy = self.model.evaluate(X_val, y_val)
+
+            metrics = {
+                'test_loss': test_loss,
+                'test_accuracy': test_accuracy,
+                'history': self.history.history
+            }
+
+            return metrics
+
+        except Exception as e:
+            logger.error(f"Error durante el entrenamiento: {e}")
+            raise
+
+    def save_model(self, save_path: Path):
+        """
+        Guarda el modelo entrenado.
+
+        Args:
+            save_path: Ruta donde guardar el modelo
+        """
+        try:
+            if self.model is None:
+                raise ValueError("No hay modelo para guardar")
+
+            model_path = save_path / "letter_model.h5"
+            self.model.save(str(model_path))
+            logger.info(f"Modelo guardado en: {model_path}")
+
+            # Guardar métricas y configuración
+            metrics_path = save_path / "letter_model_metrics.npy"
+            np.save(metrics_path, self.history.history)
+            logger.info(f"Métricas guardadas en: {metrics_path}")
+
+        except Exception as e:
+            logger.error(f"Error al guardar el modelo: {e}")
+            raise

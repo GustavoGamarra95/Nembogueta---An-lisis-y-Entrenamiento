@@ -1,19 +1,50 @@
-# Ignorar archivos de Python
-*.pyc
-*.pyo
-*.pyd
+# Python
 __pycache__/
-*.db
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Ignorar entorno virtual
-.venv/
-venv/
+# Virtual Environment
+.env
+.venv
 env/
+venv/
+ENV/
 
-# Ignorar archivos generados por IDE
+# IDE
 .idea/
 .vscode/
+*.swp
+*.swo
 
-# Archivos de dependencias
-*.egg-info/
-*.log
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Project specific
+data/
+models/
+logs/
+*.h5
+*.tflite
+*.mp4
+*.avi
+
+# Test coverage
+.coverage
+htmlcov/
