@@ -23,8 +23,7 @@ src_paths = ["src", "tests"]
 
 [tool.flake8]
 max-line-length = 79
-extend-ignore = "E203"  # Ignora E203 para compatibilidad con black
+extend-ignore = "E203"
 per-file-ignores = """
-    # Ignorar ciertas reglas en archivos específicos si es necesario
     tests/*:F401
 """
