@@ -1,18 +1,17 @@
-"""
-Módulo de configuración para el proyecto Ñemongueta.
-Contiene configuraciones para la conexión a PostgreSQL y otras variables.
-"""
-
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
 
 class Config:
     def __init__(self):
-        # Cargar variables de entorno desde un archivo .env (si existe)
         load_dotenv()
+        self._init_config()
+        self._ensure_project_structure()
 
+    def _init_config(self):
+        """Inicializa todas las configuraciones"""
         # Configuración de PostgreSQL
         self.postgres_config = {
             "host": os.getenv("DB_HOST", "localhost"),
@@ -71,6 +70,22 @@ class Config:
                 self._get_project_root(), "logs", "nembogueta.log"
             ),
         }
+
+    def _ensure_project_structure(self):
+        """Crea la estructura de directorios del proyecto si no existe"""
+        directories = [
+            # Directorios de datos
+            *self.data_config["video_path"].values(),
+            *self.data_config["processed_path"].values(),
+            # Directorios de modelos
+            self.model_config["save_path"],
+            self.model_config["tflite_path"],
+            # Directorio de logs
+            os.path.dirname(self.logging_config["log_file"]),
+        ]
+
+        for directory in directories:
+            Path(directory).mkdir(parents=True, exist_ok=True)
 
     def _get_project_root(self):
         """Obtiene la ruta raíz del proyecto."""
