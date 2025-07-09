@@ -1,9 +1,27 @@
-# Ñemongeta - Módulo Python
+# Ñemongeta - Python Module
+
+**Sistema de reconocimiento de lenguaje de señas paraguayo  
+Módulo de análisis y entrenamiento**
 
 ## Descripción
 
 Este módulo contiene los scripts necesarios para la recolección, preprocesamiento, análisis, entrenamiento y conversión de modelos CNN-LSTM para el reconocimiento de gestos en Lenguaje de Señas Paraguayo (LSPy). Los modelos han sido optimizados para alcanzar una precisión del 95% en las categorías de letras, palabras y frases.
 
+## Code Quality
+
+- **Linting:**  
+  Ejecuta `flake8 src/` para verificar el estilo y errores del código.
+
+- **Formatting:**  
+  Ejecuta `black src/` para autoformatear el código.
+
+- **Import Sorting:**  
+  Ejecuta `isort src/` para ordenar los imports.
+
+Instala estas herramientas con:
+```bash
+pip install flake8 black isort
+```
 ## Estructura del Directorio
 
 ```
@@ -25,12 +43,12 @@ nembogueta-python/
 │   ├── preprocess_lsp_letter_videos.py  # Preprocesamiento de videos de letras
 │   ├── preprocess_lsp_word_videos.py    # Preprocesamiento de videos de palabras
 │   ├── preprocess_lsp_phrase_videos.py  # Preprocesamiento de videos de frases
-│   ├── train_cnn_lstm_lsp_letters.py     # Entrenamiento del modelo para letras
-│   ├── train_cnn_lstm_lsp_words.py       # Entrenamiento del modelo para palabras
-│   ├── train_cnn_lstm_lsp_phrases.py     # Entrenamiento del modelo para frases
-│   ├── convert_to_tflite.py              # Conversión de modelos a TensorFlow Lite
-│   └── analyze_sequences.py              # Análisis de las secuencias preprocesadas
-└── README.md                             # Este archivo
+│   ├── train_cnn_lstm_lsp_letters.py    # Entrenamiento del modelo para letras
+│   ├── train_cnn_lstm_lsp_words.py      # Entrenamiento del modelo para palabras
+│   ├── train_cnn_lstm_lsp_phrases.py    # Entrenamiento del modelo para frases
+│   ├── convert_to_tflite.py             # Conversión de modelos a TensorFlow Lite
+│   └── analyze_sequences.py             # Análisis de las secuencias preprocesadas
+└── README.md                            # Este archivo           # Este archivo
 ```
 
 ## Requisitos
@@ -223,3 +241,4 @@ Luego, ejecuta los scripts dentro del contenedor como lo harías localmente.
 
 - Si no alcanzas la precisión del 95%, considera recolectar más videos o ajustar los hiperparámetros en los scripts de entrenamiento.
 - Asegúrate de copiar los modelos `.tflite` al módulo de la API (`nembogueta-api/src/main/resources/models/`) después de la conversión.
+
