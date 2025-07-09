@@ -1,7 +1,7 @@
 black==23.11.0
 click==8.1.8
 flake8==6.1.0
-fonttools>=4.58.5,<5.0.0
+fonttools>=4.58.5
 fqdn==1.5.1
 gast==0.4.0
 google-auth==2.40.3
