@@ -9,11 +9,23 @@ services:
       - ./src:/app/src
       - ./notebooks:/app/notebooks
       - ./requirements.txt:/app/requirements.txt
-    environment:
-      - PYTHONUNBUFFERED=1
-      - TZ=America/Asuncion
+    env_file:
+      - .env
     working_dir: /app
     tty: true
     stdin_open: true
     command: /bin/bash
 
+  nembogueta-test:
+    build: .
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./src:/app/src
+      - ./notebooks:/app/notebooks
+      - ./requirements.txt:/app/requirements.txt
+    env_file:
+      - .env
+    working_dir: /app
+    command: >
+      sh -c "pytest tests/ --cov=src/ --cov-report=xml"
