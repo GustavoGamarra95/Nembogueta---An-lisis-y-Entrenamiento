@@ -29,3 +29,22 @@ services:
     working_dir: /app
     command: >
       sh -c "pytest tests/ --cov=src/ --cov-report=xml"
+
+  nembogueta-ci:
+    build: .
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./src:/app/src
+      - ./notebooks:/app/notebooks
+      - ./requirements.txt:/app/requirements.txt
+    env_file:
+      - .env
+    working_dir: /app
+    command: >
+      sh -c "
+        flake8 src tests &&
+        black --check src tests &&
+        isort --check-only src tests &&
+        pytest tests/ --cov=src/ --cov-report=xml
+      "
