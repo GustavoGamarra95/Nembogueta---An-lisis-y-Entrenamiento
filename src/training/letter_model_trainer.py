@@ -164,7 +164,7 @@ class LetterModelTrainer:
             if self.model is None:
                 raise ValueError("No hay modelo para guardar")
 
-            model_path = save_path / "letter_model.h5"
+            model_path = save_path / "letter_model.keras"
             self.model.save(str(model_path))
             logger.info(f"Modelo guardado en: {model_path}")
 
