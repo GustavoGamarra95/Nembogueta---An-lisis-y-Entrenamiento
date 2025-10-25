@@ -48,3 +48,4 @@ logs/
 # Test coverage
 .coverage
 htmlcov/
+.claude
