@@ -1,7 +1,9 @@
 services:
+  # Servicio principal de desarrollo
   nembogueta:
     build: .
     container_name: nembogueta-dev
+    profiles: ["cpu"]  # Perfil por defecto (sin GPU)
     volumes:
       - ./data:/app/data
       - ./models:/app/models
@@ -9,42 +11,117 @@ services:
       - ./notebooks:/app/notebooks
       - ./requirements.txt:/app/requirements.txt
       - ./htmlcov:/app/htmlcov
-    env_file:
-      - .env
+      - ./tests:/app/tests
     working_dir: /app
     tty: true
     stdin_open: true
     command: /bin/bash
 
+  # Servicio principal con GPU
+  nembogueta-gpu:
+    build: .
+    container_name: nembogueta-dev-gpu
+    profiles: ["gpu"]
+    devices:
+      - /dev/nvidia0:/dev/nvidia0
+      - /dev/nvidiactl:/dev/nvidiactl
+      - /dev/nvidia-uvm:/dev/nvidia-uvm
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./src:/app/src
+      - ./notebooks:/app/notebooks
+      - ./requirements.txt:/app/requirements.txt
+      - ./htmlcov:/app/htmlcov
+      - ./tests:/app/tests
+    working_dir: /app
+    tty: true
+    stdin_open: true
+    command: /bin/bash
+
+  # Tests sin GPU
   nembogueta-test:
     build: .
+    profiles: ["cpu"]
     volumes:
       - ./data:/app/data
       - ./models:/app/models
       - ./src:/app/src
       - ./notebooks:/app/notebooks
       - ./requirements.txt:/app/requirements.txt
-    env_file:
-      - .env
+      - ./tests:/app/tests
+      - ./htmlcov:/app/htmlcov
     working_dir: /app
-    command: >
-      sh -c "pytest tests/ --cov=src/ --cov-report=html --cov-report=xml"
+    command: sh -c "pytest tests/ --cov=src/ --cov-report=html --cov-report=xml"
 
+  # Tests con GPU
+  nembogueta-test-gpu:
+    build: .
+    profiles: ["gpu"]
+    devices:
+      - /dev/nvidia0:/dev/nvidia0
+      - /dev/nvidiactl:/dev/nvidiactl
+      - /dev/nvidia-uvm:/dev/nvidia-uvm
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./src:/app/src
+      - ./notebooks:/app/notebooks
+      - ./requirements.txt:/app/requirements.txt
+      - ./tests:/app/tests
+      - ./htmlcov:/app/htmlcov
+    working_dir: /app
+    command: sh -c "pytest tests/ --cov=src/ --cov-report=html --cov-report=xml"
+
+  # CI sin GPU
   nembogueta-ci:
     build: .
+    profiles: ["cpu"]
     volumes:
       - ./data:/app/data
       - ./models:/app/models
       - ./src:/app/src
       - ./notebooks:/app/notebooks
       - ./requirements.txt:/app/requirements.txt
-    env_file:
-      - .env
+      - ./tests:/app/tests
     working_dir: /app
     command: >
       sh -c "
-        flake8 src tests &&
-        black --check src tests &&
-        isort --check-only src tests &&
-        pytest tests/ --cov=src/ --cov-report=xml
+      flake8 src tests &&
+      black --check src tests &&
+      isort --check-only src tests &&
+      pytest tests/ --cov=src/ --cov-report=xml
+      "
+
+  # CI con GPU
+  nembogueta-ci-gpu:
+    build: .
+    profiles: ["gpu"]
+    devices:
+      - /dev/nvidia0:/dev/nvidia0
+      - /dev/nvidiactl:/dev/nvidiactl
+      - /dev/nvidia-uvm:/dev/nvidia-uvm
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./src:/app/src
+      - ./notebooks:/app/notebooks
+      - ./requirements.txt:/app/requirements.txt
+      - ./tests:/app/tests
+    working_dir: /app
+    command: >
+      sh -c "
+      flake8 src tests &&
+      black --check src tests &&
+      isort --check-only src tests &&
+      pytest tests/ --cov=src/ --cov-report=xml
       "
