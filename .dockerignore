@@ -1,0 +1,65 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.venv/
+.venv-gpu/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Data (comentar si necesitas incluir datos en la imagen)
+# data/
+# models/*.h5
+# models/*.keras
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Docs
+docs/
+README.md
+*.md
+
+# CI/CD
+.github/
+.pre-commit-config.yaml
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Temporal
+tmp/
+temp/
+*.tmp
