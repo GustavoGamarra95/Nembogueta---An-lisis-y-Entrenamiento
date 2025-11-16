@@ -47,18 +47,44 @@ class LetterModelTrainer:
     ) -> tf.keras.Model:
         """
         Crea el modelo CNN-LSTM para clasificación de letras.
+
+        Arquitectura:
+        - Conv1D layers: Extraen características espaciales locales de landmarks
+        - LSTM layers: Capturan dependencias temporales en la secuencia
+        - Dense layers: Clasificación final
         """
         try:
             model = tf.keras.Sequential(
                 [
-                    # LSTM layers to process sequential landmark data
-                    tf.keras.layers.LSTM(
-                        256, input_shape=input_shape, return_sequences=True
+                    # Conv1D layers para extraer características espaciales
+                    tf.keras.layers.Conv1D(
+                        64, kernel_size=5, activation="relu",
+                        padding="same", input_shape=input_shape
                     ),
+                    tf.keras.layers.BatchNormalization(),
                     tf.keras.layers.Dropout(0.3),
+
+                    tf.keras.layers.Conv1D(
+                        128, kernel_size=5, activation="relu", padding="same"
+                    ),
+                    tf.keras.layers.BatchNormalization(),
+                    tf.keras.layers.Dropout(0.3),
+
+                    tf.keras.layers.Conv1D(
+                        256, kernel_size=3, activation="relu", padding="same"
+                    ),
+                    tf.keras.layers.BatchNormalization(),
+                    tf.keras.layers.Dropout(0.3),
+
+                    # LSTM layers para procesar secuencias temporales
+                    tf.keras.layers.LSTM(
+                        256, return_sequences=True
+                    ),
+                    tf.keras.layers.Dropout(0.4),
                     tf.keras.layers.LSTM(128),
-                    tf.keras.layers.Dropout(0.3),
-                    # Dense layers for classification
+                    tf.keras.layers.Dropout(0.4),
+
+                    # Dense layers para clasificación
                     tf.keras.layers.Dense(64, activation="relu"),
                     tf.keras.layers.Dropout(0.3),
                     tf.keras.layers.Dense(num_classes, activation="softmax"),
@@ -217,17 +243,36 @@ def train_model(
             X, y, test_size=0.2, random_state=42
         )
 
-        # Construir modelo
+        # Construir modelo CNN-LSTM
         model = tf.keras.Sequential(
             [
-                tf.keras.layers.LSTM(
-                    256,
-                    return_sequences=True,
-                    input_shape=(X.shape[1], X.shape[2]),
+                # Conv1D layers para características espaciales
+                tf.keras.layers.Conv1D(
+                    64, kernel_size=5, activation="relu",
+                    padding="same", input_shape=(X.shape[1], X.shape[2])
                 ),
+                tf.keras.layers.BatchNormalization(),
                 tf.keras.layers.Dropout(0.3),
+
+                tf.keras.layers.Conv1D(
+                    128, kernel_size=5, activation="relu", padding="same"
+                ),
+                tf.keras.layers.BatchNormalization(),
+                tf.keras.layers.Dropout(0.3),
+
+                tf.keras.layers.Conv1D(
+                    256, kernel_size=3, activation="relu", padding="same"
+                ),
+                tf.keras.layers.BatchNormalization(),
+                tf.keras.layers.Dropout(0.3),
+
+                # LSTM layers para dependencias temporales
+                tf.keras.layers.LSTM(256, return_sequences=True),
+                tf.keras.layers.Dropout(0.4),
                 tf.keras.layers.LSTM(128),
-                tf.keras.layers.Dropout(0.3),
+                tf.keras.layers.Dropout(0.4),
+
+                # Dense layers para clasificación
                 tf.keras.layers.Dense(64, activation="relu"),
                 tf.keras.layers.Dropout(0.3),
                 tf.keras.layers.Dense(
