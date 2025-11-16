@@ -165,35 +165,75 @@ def train_model(
 
         # Create and train model only if we have data
         if len(X_train) > 0 and len(y_train) > 0:
-            # Construir modelo
-            model = Sequential(
-                [
-                    # Capas CNN para extraer características espaciales
-                    TimeDistributed(
-                        Conv2D(64, (3, 3), activation="relu", padding="same"),
-                        input_shape=(15, 200, 200, 3),
-                    ),
-                    TimeDistributed(MaxPooling2D((2, 2))),
-                    TimeDistributed(
-                        Conv2D(128, (3, 3), activation="relu", padding="same")
-                    ),
-                    TimeDistributed(MaxPooling2D((2, 2))),
-                    TimeDistributed(
-                        Conv2D(256, (3, 3), activation="relu", padding="same")
-                    ),
-                    TimeDistributed(MaxPooling2D((2, 2))),
-                    TimeDistributed(Flatten()),
-                    # Capas LSTM para dependencias temporales
-                    LSTM(256, return_sequences=True),
-                    Dropout(0.3),
-                    LSTM(128, return_sequences=False),
-                    Dropout(0.3),
-                    # Capas densas para clasificación
-                    Dense(128, activation="relu"),
-                    Dropout(0.3),
-                    Dense(3, activation="softmax"),  # 3 clases para frases
-                ]
-            )
+            # Construir modelo CNN-LSTM para landmarks o video frames
+            # Detectar automáticamente el tipo de datos según la forma
+
+            if len(X.shape) == 3:
+                # Modelo para landmarks (sequence_length, feature_dim)
+                model = Sequential(
+                    [
+                        # Conv1D layers para extraer características espaciales de landmarks
+                        tf.keras.layers.Conv1D(
+                            64, kernel_size=5, activation="relu",
+                            padding="same", input_shape=(X.shape[1], X.shape[2])
+                        ),
+                        tf.keras.layers.BatchNormalization(),
+                        Dropout(0.3),
+
+                        tf.keras.layers.Conv1D(
+                            128, kernel_size=5, activation="relu", padding="same"
+                        ),
+                        tf.keras.layers.BatchNormalization(),
+                        Dropout(0.3),
+
+                        tf.keras.layers.Conv1D(
+                            256, kernel_size=3, activation="relu", padding="same"
+                        ),
+                        tf.keras.layers.BatchNormalization(),
+                        Dropout(0.3),
+
+                        # LSTM layers para dependencias temporales
+                        LSTM(256, return_sequences=True),
+                        Dropout(0.4),
+                        LSTM(128),
+                        Dropout(0.4),
+
+                        # Dense layers para clasificación
+                        Dense(128, activation="relu"),
+                        Dropout(0.3),
+                        Dense(3, activation="softmax"),  # 3 clases para frases
+                    ]
+                )
+            else:
+                # Modelo para video frames (15, 200, 200, 3)
+                model = Sequential(
+                    [
+                        # Capas CNN para extraer características espaciales
+                        TimeDistributed(
+                            Conv2D(64, (3, 3), activation="relu", padding="same"),
+                            input_shape=(15, 200, 200, 3),
+                        ),
+                        TimeDistributed(MaxPooling2D((2, 2))),
+                        TimeDistributed(
+                            Conv2D(128, (3, 3), activation="relu", padding="same")
+                        ),
+                        TimeDistributed(MaxPooling2D((2, 2))),
+                        TimeDistributed(
+                            Conv2D(256, (3, 3), activation="relu", padding="same")
+                        ),
+                        TimeDistributed(MaxPooling2D((2, 2))),
+                        TimeDistributed(Flatten()),
+                        # Capas LSTM para dependencias temporales
+                        LSTM(256, return_sequences=True),
+                        Dropout(0.3),
+                        LSTM(128, return_sequences=False),
+                        Dropout(0.3),
+                        # Capas densas para clasificación
+                        Dense(128, activation="relu"),
+                        Dropout(0.3),
+                        Dense(3, activation="softmax"),  # 3 clases para frases
+                    ]
+                )
 
             # Compilar
             optimizer = tf.keras.optimizers.AdamW(
