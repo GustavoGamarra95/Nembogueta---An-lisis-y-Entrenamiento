@@ -1,225 +1,450 @@
 # Ñemongeta - Python Module
 
-**Sistema de Reconocimiento de Lenguaje de Señas Paraguayo  
-Módulo de Análisis y Entrenamiento**
+**Sistema de Reconocimiento de Lenguaje de Señas Paraguayo (LSPy)**
+**Módulo de Análisis y Entrenamiento**
 
 ## Descripción
 
-El módulo `Ñemongeta - Python` contiene scripts para la recolección, preprocesamiento, análisis, entrenamiento y conversión de modelos CNN-LSTM para el reconocimiento de gestos en Lenguaje de Señas Paraguayo (LSPy). Los modelos están optimizados para alcanzar una precisión del 95% en las categorías de letras (a-z, ñ), palabras (ej. juicio, abogado) y frases (ej. acceso a la justicia).
+El módulo `Ñemongeta - Python` contiene scripts para la recolección, preprocesamiento, análisis, entrenamiento y conversión de modelos CNN-LSTM para el reconocimiento de gestos en **Lenguaje de Señas Paraguayo (LSPy)**. Los modelos están optimizados para alcanzar una precisión del 95% en las categorías de letras (a-z, ñ), palabras (ej. juicio, abogado) y frases (ej. acceso a la justicia).
 
-## Requisitos
+### Enfoque Principal del Proyecto
 
-- **Python**: 3.8 o superior (recomendado: 3.10.12)
-- **Hardware**: Cámara web para recolección de videos; GPU recomendada para entrenamiento (opcional)
-- **Dependencias** (instaladas con `pip install -r requirements.txt`):
-  - tensorflow
-  - mediapipe
-  - numpy
-  - opencv-python
-  - python-dotenv
-  - flake8
-  - black
-  - isort
-  - pre-commit (opcional, para hooks de calidad)
-  - pytest
-  - coverage
+Este proyecto está enfocado en el desarrollo de reconocimiento de lenguaje de señas para **Paraguay**, con soporte bilingüe para:
+- **Español paraguayo**
+- **Guaraní**
 
-## Instrucciones de Configuración
+El sistema utiliza técnicas de deep learning con arquitecturas CNN-LSTM para el reconocimiento en tiempo real de:
 
-1. **Clonar el Repositorio**
-   ```bash
-   git clone <repository-url>
-   cd nembogueta-python
-   ```
+- **Alfabeto dactilológico** (A-Z, Ñ): Reconocimiento de letras individuales
+- **Handshapes (Formas de mano)**: Clasificación de configuraciones manuales por orientación
+- **Palabras completas**: Reconocimiento de señas completas en LSPy
+- **Traducción bilingüe**: Conversión de texto Español/Guaraní a glosas LSPy
+- **Expresiones faciales**: Análisis de componentes no manuales
 
-2. **Configurar el Entorno de Python**
-   ```bash
-   pyenv install 3.10.12  # Si no está instalado
-   pyenv local 3.10.12
-   python -m venv venv
-   source venv/bin/activate  # En Windows: venv\Scripts\activate
-   ```
+### Trabajo con LIBRAS
 
-3. **Instalar Dependencias**
-   ```bash
-   pip install -r requirements.txt
-   ```
+Como parte del desarrollo y entrenamiento del sistema, se utiliza el dataset **V-LIBRASIL** (Lenguaje de Señas Brasileño) para:
+- Desarrollo y prueba de arquitecturas de modelos
+- Entrenamiento de modelos base que serán adaptados a LSPy
+- Validación de técnicas de preprocesamiento y extracción de features
+- Transfer learning para acelerar el entrenamiento de modelos LSPy
 
-4. **Crear Directorios de Datos**
-   ```bash
-   mkdir -p data/lsp_letter_videos data/lsp_word_videos data/lsp_phrase_videos
-   mkdir -p data/processed_lsp_letter_sequences data/processed_lsp_word_sequences data/processed_lsp_phrase_sequences
-   mkdir -p models/h5 models/tflite
-   ```
+El sistema utiliza **MediaPipe** para extracción de landmarks y modelos **CNN-LSTM** optimizados para alcanzar alta precisión en tiempo real.
 
-5. **Configurar Variables de Entorno**
-   Copia el archivo de ejemplo y ajusta según sea necesario:
-   ```bash
-   cp .env.example .env
-   ```
-   Ejemplo de `.env`:
-   ```
-   DATA_RAW_DIR=data/raw
-   DATA_PROCESSED_DIR=data/processed
-   MODELS_DIR=models/h5
-   TFLITE_DIR=models/tflite
-   FRAME_RATE=30
-   FRAME_COUNT=300
-   SEED=42
-   ```
+## 🎯 Características Principales
 
-## Calidad de Código
+### Sistema Unificado de Reconocimiento en Tiempo Real
 
-El proyecto utiliza herramientas para garantizar la calidad del código:
+**Estado Actual (usando dataset LIBRAS para desarrollo):**
 
-- **Black**: Formateo automático
-  ```bash
-  black src/
-  ```
-- **isort**: Ordenamiento de imports
-  ```bash
-  isort src/
-  ```
-- **Flake8**: Linting de código
-  ```bash
-  flake8 src/
-  ```
+- ✅ **Reconocimiento de Alfabeto**: 26 letras (A-Z) con 45.6% de precisión
+- ✅ **Handshapes por Orientación**: 4 modelos especializados (back, front, left, right) con 100 clases cada uno
+- ✅ **Detección de Ambas Manos**: Soporte simultáneo para mano izquierda y derecha
+- ✅ **Traducción multilingüe**: Modelo transformer para conversión texto-glosas
+  - Actualmente: PT-BR → LIBRAS (modelo base)
+  - Objetivo: Español/Guaraní → LSPy
+- ✅ **UI Optimizada**: Interfaz mejorada con mejor contraste y visualización clara
+- ✅ **Barras de Confianza**: Visualización en tiempo real de la confianza de predicciones
 
-Instala estas herramientas:
+**Próximos Pasos para LSPy:**
+- 🔄 Recolección de dataset LSPy (letras, palabras, frases)
+- 🔄 Entrenamiento de modelos específicos para LSPy
+- 🔄 Implementación de traducción Español → LSPy
+- 🔄 Implementación de traducción Guaraní → LSPy
+- 🔄 Letra Ñ para alfabeto paraguayo
+
+### Demo en Tiempo Real
+
 ```bash
-pip install flake8 black isort
+# Ejecutar sistema completo con cámara (actualmente con modelos LIBRAS)
+python scripts/demo_realtime_improved.py
+
+# Controles:
+# Q - Salir
+# T - Traducir texto (PT-BR → LIBRAS, futuro: ES/GN → LSPy)
+# L - Activar/desactivar visualización de landmarks
 ```
 
-Opcionalmente, configura **pre-commit** para ejecutar estas herramientas automáticamente:
+## Dependencias
+
+Este proyecto utiliza las siguientes dependencias principales:
+- Python 3.8 o superior
+- TensorFlow
+- MediaPipe
+- NumPy
+- OpenCV
+
+Para instalar todas las dependencias, ejecute:
 ```bash
-pip install pre-commit
-pre-commit install
-pre-commit run --all-files
+pip install -r requirements.txt
 ```
 
-## Estructura del Directorio
+## Estructura del Proyecto
+
+La estructura principal del proyecto es la siguiente:
 
 ```
-nembogueta-python/
-├── data/
-│   ├── lsp_letter_videos/               # Videos crudos de letras LSPy
-│   ├── lsp_word_videos/                 # Videos crudos de palabras LSPy
-│   ├── lsp_phrase_videos/               # Videos crudos de frases LSPy
-│   ├── processed_lsp_letter_sequences/  # Secuencias preprocesadas de letras
-│   ├── processed_lsp_word_sequences/    # Secuencias preprocesadas de palabras
-│   └── processed_lsp_phrase_sequences/  # Secuencias preprocesadas de frases
-├── models/
-│   ├── h5/                              # Modelos en formato .h5
-│   └── tflite/                          # Modelos convertidos a TensorFlow Lite
-├── scripts/
-│   ├── lsp_letter_video_collection.py   # Recolección de videos de letras
-│   ├── lsp_word_video_collection.py     # Recolección de videos de palabras
-│   ├── lsp_phrase_video_collection.py   # Recolección de videos de frases
-│   ├── preprocess_lsp_letter_videos.py  # Preprocesamiento de videos de letras
-│   ├── preprocess_lsp_word_videos.py    # Preprocesamiento de videos de palabras
-│   ├── preprocess_lsp_phrase_videos.py  # Preprocesamiento de videos de frases
-│   ├── train_cnn_lstm_lsp_letters.py    # Entrenamiento del modelo para letras
-│   ├── train_cnn_lstm_lsp_words.py      # Entrenamiento del modelo para palabras
-│   ├── train_cnn_lstm_lsp_phrases.py    # Entrenamiento del modelo para frases
-│   ├── convert_to_tflite.py             # Conversión de modelos a TensorFlow Lite
-│   └── analyze_sequences.py             # Análisis de secuencias preprocesadas
-├── src/
-│   ├── config/                          # Configuraciones del proyecto
-│   ├── data_collection/                 # Módulos de recolección de datos
-│   ├── preprocessing/                   # Módulos de preprocesamiento
-│   ├── training/                        # Módulos de entrenamiento
-│   └── utils/                           # Funciones utilitarias
-├── tests/                               # Pruebas unitarias
-├── notebooks/                           # Notebooks de Jupyter
-├── .env.example                         # Ejemplo de archivo de entorno
-├── docker-compose.yml                   # Configuración de Docker
-├── requirements.txt                     # Dependencias del proyecto
-└── README.md                            # Este archivo
+Nembogueta---An-lisis-y-Entrenamiento/
+├── data/                # Datos crudos y procesados
+├── docs/                # Documentación del proyecto
+├── models/              # Modelos entrenados
+├── notebooks/           # Jupyter notebooks para experimentación
+├── scripts/             # Scripts principales para procesamiento y demos
+├── src/                 # Código fuente principal
+├── tests/               # Pruebas unitarias
+└── README.md            # Documentación principal
 ```
 
-## Flujo de Trabajo
+## 🚀 Inicio Rápido
 
-### 1. Recolección de Datos
-Graba 10 videos por gesto (10 segundos, 300 frames a 30 fps) para cada categoría:
+### 1. Instalación
+
 ```bash
-python scripts/lsp_letter_video_collection.py  # Letras (a-z, ñ)
-python scripts/lsp_word_video_collection.py   # Palabras (ej. juicio, abogado)
-python scripts/lsp_phrase_video_collection.py # Frases (ej. acceso a la justicia)
+# Clonar el repositorio
+git clone <repository-url>
+cd Nembogueta---An-lisis-y-Entrenamiento
+
+# Crear entorno virtual
+python -m venv .venv
+source .venv/bin/activate  # En Windows: .venv\Scripts\activate
+
+# Instalar dependencias
+pip install -r requirements.txt
 ```
 
-### 2. Preprocesamiento
-Convierte videos en secuencias de esqueletos usando MediaPipe, generando arrays NumPy:
+### 2. Ejecutar Demo en Tiempo Real
+
 ```bash
-python scripts/preprocess_lsp_letter_videos.py
-python scripts/preprocess_lsp_word_videos.py
-python scripts/preprocess_lsp_phrase_videos.py
+# Demo mejorado con todas las funcionalidades
+python scripts/demo_realtime_improved.py
+
+# Opciones disponibles:
+python scripts/demo_realtime_improved.py --help
+
+# Especificar cámara y resolución
+python scripts/demo_realtime_improved.py --camera 0 --width 1280 --height 720
 ```
 
-### 3. Análisis de Datos
-Verifica la calidad de las secuencias preprocesadas:
+### 3. Entrenar Modelos
+
 ```bash
-python scripts/analyze_sequences.py
+# Entrenar modelo de alfabeto (A-Z)
+python scripts/train_alphabet.py \
+  --data-dir data/processed/alphabet-combined \
+  --output-dir data/models/alphabet \
+  --epochs 50 --batch-size 64
+
+# Entrenar modelo de handshapes
+python scripts/train_handshape.py \
+  --data-dir data/processed/lswh100 \
+  --output-dir data/models/handshape \
+  --epochs 100 --batch-size 32
+
+# Entrenar modelo de traducción
+python scripts/train_translation.py \
+  --data-dir data/processed/pt_br2libras \
+  --output-dir data/models/translation \
+  --epochs 30 --batch-size 32
+
+# Entrenar modelo de V-LIBRASIL
+python scripts/train_vlibrasil.py \
+  --data-dir data/processed/v-librasil-flat \
+  --output-dir data/models/vlibrasil \
+  --epochs 100 --batch-size 32
 ```
 
-### 4. Entrenamiento de Modelos
-Entrena modelos CNN-LSTM para cada categoría, guardándolos en `models/h5/`:
+## 📊 Modelos y Rendimiento
+
+### Alfabeto (Dactilología)
+
+- **Arquitectura**: CNN-LSTM
+- **Clases**: 26 letras (A-Z)
+- **Muestras**: 2,748
+- **Precisión**: 45.6% (validación)
+- **Features**: 63 (21 landmarks × 3 coordenadas)
+
+### Handshapes
+
+- **Arquitectura**: Dense Neural Network
+- **Modelos**: 4 (por orientación: back, front, left, right)
+- **Clases por modelo**: 100
+- **Precisión**: ~74% (por orientación)
+- **Features**: 63 (21 landmarks × 3 coordenadas)
+
+### Traducción PT-BR → LIBRAS
+
+- **Arquitectura**: Transformer (Encoder-Decoder)
+- **Vocabulario PT-BR**: Variable
+- **Vocabulario LIBRAS**: Glosas
+- **Precisión**: >99.9% (validación)
+- **Max sequence length**: 100 tokens
+
+### V-LIBRASIL
+
+- **Dataset**: Videos de LIBRAS
+- **Arquitectura**: LSTM
+- **Estado**: Modelo base entrenado
+
+## 🛠️ Scripts Disponibles
+
+### Preprocesamiento
+
 ```bash
-python scripts/train_cnn_lstm_lsp_letters.py  # 27 letras
-python scripts/train_cnn_lstm_lsp_words.py    # 10 palabras
-python scripts/train_cnn_lstm_lsp_phrases.py  # 3 frases
+# Alfabeto
+python scripts/preprocess_alphabet.py \
+  --data-dir data/raw/alphabet \
+  --output-dir data/processed/alphabet
+
+# Handshapes
+python scripts/preprocess_lswh100.py \
+  --data-dir data/raw/lswh100 \
+  --output-dir data/processed/lswh100
+
+# V-LIBRASIL
+python scripts/preprocess_vlibrasil.py \
+  --data-dir "data/raw/videos UFPE (V-LIBRASIL)/data" \
+  --output-dir data/processed/v-librasil-flat
 ```
 
-### 5. Conversión a TensorFlow Lite
-Convierte los modelos a formato `.tflite` para uso en API y app Android:
+### Evaluación
+
 ```bash
-python scripts/convert_to_tflite.py
+# Evaluar modelo de alfabeto
+python scripts/evaluate_alphabet.py \
+  --model-path data/models/alphabet/best_model.keras \
+  --test-data data/processed/alphabet-combined
+
+# Evaluar handshapes
+python scripts/evaluate_handshape.py \
+  --model-dir data/models/handshape \
+  --test-data data/processed/lswh100
+
+# Evaluar traducción
+python scripts/evaluate_translation.py \
+  --model-path data/models/translation/best_model.keras
 ```
 
-## Ejecución en Docker
+### Inferencia
 
-Construye y ejecuta el proyecto con Docker:
 ```bash
-docker-compose up --build
+# Inferencia en video individual
+python scripts/inference_alphabet.py \
+  --model-path data/models/alphabet/best_model.keras \
+  --video-path path/to/video.mp4
+
+# Tiempo real con cámara
+python scripts/realtime_alphabet.py \
+  --model-path data/models/alphabet/best_model.keras \
+  --camera 0
 ```
-Los volúmenes de datos y modelos se mapean automáticamente, y las variables de entorno se leen desde `.env`.
 
-## Pruebas
+## 🎨 Sistema Unificado de Predicción
 
-Ejecuta las pruebas unitarias:
+### Clase `LibrasUnifiedPredictor`
+
+Predictor centralizado que carga y gestiona todos los modelos:
+
+```python
+from src.libras_unified_predictor import LibrasUnifiedPredictor
+
+# Inicializar predictor
+predictor = LibrasUnifiedPredictor(models_dir="data/models")
+
+# Obtener predicciones desde un frame
+predictions = predictor.predict_from_frame(frame, draw_landmarks=True)
+
+# Resultados incluyen:
+# - hands: Lista de predicciones por cada mano detectada
+#   - handedness: "Left" o "Right"
+#   - orientation: "back", "front", "left", "right"
+#   - alphabet: Letra predicha con confianza
+#   - handshape: Forma de mano predicha con confianza
+# - facial_expression: Expresión facial (si disponible)
+# - landmarks_detected: Estado de detección
+
+# Traducir texto PT-BR a glosas LIBRAS
+glosas = predictor.translate_text_to_gloss("olá mundo")
+# Resultado: ['OLA', 'MUNDO']
+```
+
+### Características del Predictor
+
+- **Detección automática de orientación**: Clasifica la orientación de la mano
+- **Múltiples manos**: Soporta detección de mano izquierda y derecha simultáneamente
+- **Modelos especializados**: Usa el modelo de handshape apropiado según orientación
+- **MediaPipe integrado**: Extracción automática de landmarks
+- **Visualización opcional**: Dibuja landmarks sobre el frame
+
+## 📸 Demo en Tiempo Real - Características
+
+### UI Mejorada
+
+- **Fondos semi-transparentes**: Mejor legibilidad sin ocultar el video
+- **Paneles por mano**: Información separada para cada mano detectada
+- **Colores distintivos**: Naranja (mano derecha), Azul (mano izquierda)
+- **Barras de confianza**: Visualización gráfica de certeza de predicciones
+- **Controles claros**: Instrucciones siempre visibles
+
+### Información Mostrada
+
+Para cada mano detectada:
+- Tipo de mano (Izquierda/Derecha)
+- Orientación (back/front/left/right)
+- Letra del alfabeto con barra de confianza
+- Handshape con barra de confianza
+
+Adicional:
+- Expresión facial (si disponible)
+- Traducción PT-BR → LIBRAS (al presionar T)
+- FPS y rendimiento
+
+## 🐳 Ejecución en Docker
+
+### Iniciar Contenedor
+
 ```bash
-pytest tests/
+# Iniciar con GPU
+docker compose --profile gpu up -d nembogueta-gpu
+
+# Verificar estado
+docker ps
 ```
 
-Genera un informe de cobertura:
+### Ejecutar Scripts en Contenedor
+
 ```bash
-coverage run -m pytest
-coverage report
+# Entrenar modelo de alfabeto
+docker exec nembogueta-dev-gpu python scripts/train_alphabet.py \
+  --data-dir /app/data/processed/alphabet-combined \
+  --output-dir /app/data/models/alphabet \
+  --epochs 50
+
+# Demo en tiempo real (requiere X11 forwarding)
+docker exec nembogueta-dev-gpu python scripts/demo_realtime_improved.py
 ```
 
-## Resultados Esperados
+## 🔧 Solución de Problemas
 
-- **Precisión de Entrenamiento**:
-  - Letras: 95%
-  - Palabras: 95%
-  - Frases: 95%
+### Error: "No module named sklearn"
 
-## Solución de Problemas
+```bash
+pip install scikit-learn
+```
 
-Si no se alcanza la precisión del 95%:
-1. Verifica la calidad de los datos en el preprocesamiento.
-2. Ajusta hiperparámetros en los scripts de entrenamiento.
-3. Recolecta más videos de entrenamiento.
-4. Asegura condiciones consistentes de iluminación y posición de la cámara.
+### Error: "No se detecta la cámara"
 
-## Contribución
+```bash
+# Verificar cámaras disponibles
+python -c "import cv2; print(cv2.VideoCapture(0).isOpened())"
 
-1. Sigue las directrices de calidad de código (Black, isort, Flake8).
-2. Agrega pruebas unitarias para nueva funcionalidad.
-3. Actualiza la documentación según sea necesario.
-4. Envía pull requests para revisión.
+# Probar con ID diferente
+python scripts/demo_realtime_improved.py --camera 1
+```
 
-## Notas
+### Predicciones con baja confianza
 
-- Copia los modelos `.tflite` al módulo de la API (`nembogueta-api/src/main/resources/models/`) tras la conversión.
-- Asegúrate de agregar `.env` a `.gitignore` para proteger configuraciones sensibles.
-- Los scripts leen variables de entorno automáticamente usando `python-dotenv` para una configuración flexible.
+- Asegúrate de tener buena iluminación
+- Mantén las manos visibles y dentro del frame
+- Evita fondos complejos o con movimiento
+- Ajusta la posición para que MediaPipe detecte correctamente
+
+### Rendimiento lento
+
+- Usa `--width 640 --height 480` para menor resolución
+- Desactiva landmarks con `L` durante la ejecución
+- Considera usar GPU si está disponible
+
+## 📈 Hoja de Ruta - LSPy (Lenguaje de Señas Paraguayo)
+
+### Fase 1: Infraestructura y Modelos Base (Actual)
+- [x] Sistema de preprocesamiento universal
+- [x] Arquitectura CNN-LSTM para reconocimiento
+- [x] Predictor unificado multi-modelo
+- [x] UI en tiempo real con detección de múltiples manos
+- [x] Modelos base entrenados con LIBRAS
+
+### Fase 2: Recolección de Datos LSPy
+- [ ] **Alfabeto LSPy** (A-Z, Ñ)
+  - [ ] Recolección de videos para 27 letras
+  - [ ] 10 videos por letra mínimo
+  - [ ] Múltiples personas para diversidad
+- [ ] **Palabras legales** (jurídicas)
+  - [ ] Juicio, abogado, fiscal, defensor, etc.
+  - [ ] Términos específicos del sistema judicial paraguayo
+- [ ] **Frases completas**
+  - [ ] "Acceso a la justicia"
+  - [ ] Frases comunes en contexto legal
+  - [ ] Frases en español y guaraní
+
+### Fase 3: Entrenamiento LSPy
+- [ ] Transfer learning desde modelos LIBRAS a LSPy
+- [ ] Entrenamiento de alfabeto LSPy (incluyendo Ñ)
+- [ ] Entrenamiento de palabras jurídicas
+- [ ] Entrenamiento de frases completas
+- [ ] Fine-tuning para español y guaraní
+
+### Fase 4: Traducción Bilingüe
+- [ ] **Español → LSPy**
+  - [ ] Dataset de traducción Español-Glosas LSPy
+  - [ ] Modelo transformer Español → LSPy
+- [ ] **Guaraní → LSPy**
+  - [ ] Dataset de traducción Guaraní-Glosas LSPy
+  - [ ] Modelo transformer Guaraní → LSPy
+- [ ] Sistema unificado bilingüe
+
+### Fase 5: Optimización y Despliegue
+- [ ] Optimización de modelos para edge devices
+- [ ] Conversión a TensorFlow Lite
+- [ ] API REST para integración
+- [ ] App móvil Android/iOS
+- [ ] Integración con sistema judicial paraguayo
+
+### Fase 6: Expansión
+- [ ] Entrenamiento de modelo de expresiones faciales
+- [ ] Reconocimiento de contexto y gramática LSPy
+- [ ] Soporte para más dominios (educación, salud, etc.)
+- [ ] Sistema de retroalimentación y mejora continua
+
+## 🎯 Objetivos del Proyecto
+
+Este proyecto busca:
+
+1. **Democratizar el acceso a la justicia** en Paraguay mediante tecnología de reconocimiento de señas
+2. **Preservar y promover** el Lenguaje de Señas Paraguayo (LSPy)
+3. **Facilitar la comunicación** entre personas sordas y el sistema judicial
+4. **Apoyar el bilingüismo** paraguayo (Español y Guaraní) en el contexto de LSPy
+5. **Crear herramientas de código abierto** para la comunidad sorda paraguaya
+
+## 🤝 Contribución
+
+1. Sigue las directrices de calidad de código (Black, isort, Flake8)
+2. Agrega pruebas unitarias para nueva funcionalidad
+3. Actualiza la documentación según sea necesario
+4. Envía pull requests para revisión
+
+### Cómo Contribuir con Datos LSPy
+
+Si eres hablante de LSPy y quieres contribuir:
+- Contacta al equipo para participar en recolección de videos
+- Ayuda a validar las señas reconocidas
+- Proporciona feedback sobre la precisión del sistema
+
+## 📝 Licencia
+
+[Especificar licencia]
+
+## 📧 Contacto
+
+[Especificar información de contacto]
+
+## 🙏 Agradecimientos
+
+- Comunidad sorda paraguaya
+- Dataset V-LIBRASIL por proporcionar data base para desarrollo
+- Proyecto MediaPipe de Google por la tecnología de landmarks
+- Comunidad de código abierto
+
+---
+
+**Desarrollado con ❤️ para la comunidad sorda paraguaya**
+**Ñemongeta - Hablemos en señas**
