@@ -79,15 +79,22 @@ def load_processed_data(data_dir: Path) -> Tuple[np.ndarray, np.ndarray, List[st
             sequence = np.load(npy_file)
 
             # Extraer etiqueta del nombre del archivo
-            # Formato esperado: "palabra_articulador_processed.npy"
+            # Formato esperado: "Palabra_ArticuladorN.npy"
             filename = npy_file.stem  # Sin extensión
+
+            # Remover "_ArticuladorN" o "_processed" del final
+            # Ejemplos: "Abacaxi_Articulador1" -> "Abacaxi"
+            #           "Abacaxi_Articulador1_1" -> "Abacaxi"
             parts = filename.split('_')
 
-            # La palabra es todo antes del último _processed
-            if filename.endswith('_processed'):
-                label = '_'.join(parts[:-1])
-            else:
-                label = '_'.join(parts)
+            # Encontrar la posición de "Articulador" o "processed"
+            label_parts = []
+            for part in parts:
+                if part.startswith('Articulador') or part == 'processed':
+                    break
+                label_parts.append(part)
+
+            label = '_'.join(label_parts) if label_parts else filename
 
             sequences.append(sequence)
             labels.append(label)
@@ -269,11 +276,26 @@ def train(args):
         return
 
     # Split train/val/test
-    X_train, X_temp, y_train, y_temp = train_test_split(
-        X, y, test_size=0.3, random_state=42, stratify=y
-    )
+    # First split: train vs (val+test)
+    # Use stratify only if we have enough samples per class
+    min_samples_per_class = np.min(np.bincount(y))
+    use_stratify = min_samples_per_class >= 3  # Need at least 3 for 70/30 split
+
+    if use_stratify:
+        logger.info("Usando split estratificado")
+        X_train, X_temp, y_train, y_temp = train_test_split(
+            X, y, test_size=0.3, random_state=42, stratify=y
+        )
+    else:
+        logger.info(f"Split no estratificado (min_samples_per_class={min_samples_per_class})")
+        X_train, X_temp, y_train, y_temp = train_test_split(
+            X, y, test_size=0.3, random_state=42
+        )
+
+    # Second split: val vs test
+    # Don't stratify here as we have too many classes for the remaining samples
     X_val, X_test, y_val, y_test = train_test_split(
-        X_temp, y_temp, test_size=0.5, random_state=42, stratify=y_temp
+        X_temp, y_temp, test_size=0.5, random_state=42
     )
 
     logger.info(f"Train: {len(X_train)} | Val: {len(X_val)} | Test: {len(X_test)}")
