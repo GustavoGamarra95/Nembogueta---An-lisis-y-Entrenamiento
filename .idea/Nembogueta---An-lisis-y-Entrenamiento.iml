@@ -6,8 +6,9 @@
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
       <excludeFolder url="file://$MODULE_DIR$/venv" />
       <excludeFolder url="file://$MODULE_DIR$/.venv-gpu" />
+      <excludeFolder url="file://$MODULE_DIR$/..venv-gpu" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.10 (Nembogueta---An-lisis-y-Entrenamiento)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.8 (Nembogueta---An-lisis-y-Entrenamiento)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
