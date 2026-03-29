@@ -9,6 +9,10 @@ import numpy as np
 from dotenv import load_dotenv
 
 from src.config.config import Config
+from src.preprocessing.feature_engineering import (
+    engineer_frame_features,
+    TOTAL_FEATURES_PER_HAND,
+)
 
 from ..utils.validators import ProcessedSequence, VideoData
 
@@ -48,33 +52,54 @@ class LetterPreprocessor:
             min_detection_confidence=0.7,
         )
 
-    def extract_landmarks(self, frame: np.ndarray) -> Optional[np.ndarray]:
+    def _extract_raw_landmarks(
+        self, frame: np.ndarray
+    ) -> Optional[np.ndarray]:
         """
-        Extrae los puntos de referencia de las manos de un frame.
+        Extrae coordenadas crudas x,y,z de MediaPipe (126,).
+        Interno — usar extract_landmarks() para obtener features engineerizados.
         """
         try:
-            # Convertir BGR a RGB
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = self.hands.process(frame_rgb)
 
             if not results.multi_hand_landmarks:
                 return None
 
-            # Extraer coordenadas de landmarks
-            landmarks = []
-            for hand_landmarks in results.multi_hand_landmarks:
-                for landmark in hand_landmarks.landmark:
-                    landmarks.extend([landmark.x, landmark.y, landmark.z])
+            raw = []
+            for hand_lm in results.multi_hand_landmarks:
+                for lm in hand_lm.landmark:
+                    raw.extend([lm.x, lm.y, lm.z])
 
-            # Return None if no landmarks were extracted
-            if not landmarks:
+            if not raw:
                 return None
 
-            return np.array(landmarks)
+            raw_arr = np.array(raw, dtype=np.float32)
+            if len(raw_arr) == 63:
+                raw_arr = np.concatenate([raw_arr, np.zeros(63, dtype=np.float32)])
+
+            return raw_arr
 
         except Exception as e:
             logger.error(f"Error al extraer landmarks: {e}")
             return None
+
+    def extract_landmarks(
+        self,
+        frame: np.ndarray,
+        prev_raw: Optional[np.ndarray] = None,
+    ) -> Optional[np.ndarray]:
+        """
+        Extrae features engineerizados de las manos de un frame.
+
+        Returns:
+            Array (208,): posiciones(42×2) + distancias(12×2) +
+                          ángulos(30×2) + motion(20×2) por mano.
+        """
+        raw = self._extract_raw_landmarks(frame)
+        if raw is None:
+            return None
+        return engineer_frame_features(raw, prev_raw)
 
     def process_video(
         self, video_data: VideoData
@@ -88,17 +113,19 @@ class LetterPreprocessor:
                 return None
 
             sequences = []
+            prev_raw = None
             for frame in video_data.frames:
-                landmarks = self.extract_landmarks(frame)
-                if landmarks is not None:
-                    sequences.append(landmarks)
+                raw = self._extract_raw_landmarks(frame)
+                if raw is not None:
+                    features = engineer_frame_features(raw, prev_raw)
+                    sequences.append(features)
+                    prev_raw = raw
 
             # For test data with all-zero frames, create dummy sequence
             if not sequences and all(
                 np.all(frame == 0) for frame in video_data.frames
             ):
-                # Create dummy sequence for testing (1 frame, 63 landmarks)
-                sequences = [np.zeros(63)]
+                sequences = [np.zeros(208)]
 
             if not sequences:
                 logger.warning(
