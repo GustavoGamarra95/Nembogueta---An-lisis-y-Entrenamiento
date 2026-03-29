@@ -13,4 +13,5 @@ Módulos Principales
    modules/data_collection
    modules/preprocessing
    modules/training
+   modules/inference_module
    modules/utils

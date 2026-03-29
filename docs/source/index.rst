@@ -14,6 +14,7 @@ Bienvenido a la documentación de Ñemongeta
    modules/preprocessing_modules
    modules/training_modules_overview
    modules/srcTrainingModule
+   modules/inference_module
    modules/utility_modules_overview
    modules/utils_documentation
    ContributionGuide
