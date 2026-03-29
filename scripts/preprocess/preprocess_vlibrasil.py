@@ -15,6 +15,9 @@ import mediapipe as mp
 import numpy as np
 from tqdm import tqdm
 
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+from src.preprocessing.feature_engineering import engineer_frame_features  # noqa: E402
+
 # Configurar logging
 logging.basicConfig(
     level=logging.INFO,
@@ -143,13 +146,14 @@ class VLibrasilPreprocessor:
         video_path: Path
     ) -> Optional[np.ndarray]:
         """
-        Procesa un video completo.
+        Procesa un video completo con feature engineering.
 
         Args:
             video_path: Ruta al video
 
         Returns:
-            Secuencia de landmarks (target_length, 126) o None si falla
+            Secuencia de features (target_length, 208) o None si falla.
+            208 = 2 manos × (posiciones(42) + distancias(12) + ángulos(30) + motion(20))
         """
         try:
             cap = cv2.VideoCapture(str(video_path))
@@ -158,7 +162,7 @@ class VLibrasilPreprocessor:
                 logger.warning(f"No se pudo abrir: {video_path}")
                 return None
 
-            landmarks_sequence = []
+            raw_sequence = []
 
             while True:
                 ret, frame = cap.read()
@@ -167,22 +171,28 @@ class VLibrasilPreprocessor:
 
                 landmarks = self.extract_hand_landmarks(frame)
                 if landmarks is not None:
-                    landmarks_sequence.append(landmarks)
+                    raw_sequence.append(landmarks)
 
             cap.release()
 
-            # Si no se detectaron manos en ningún frame
-            if len(landmarks_sequence) == 0:
+            if len(raw_sequence) == 0:
                 logger.warning(f"No se detectaron manos en: {video_path.name}")
                 return None
 
-            # Normalizar longitud
-            sequence_array = np.array(landmarks_sequence)
+            # Aplicar feature engineering frame a frame con motion tracking
+            engineered = []
+            prev_landmarks = None
+            for raw in raw_sequence:
+                features = engineer_frame_features(raw, prev_landmarks)
+                engineered.append(features)
+                prev_landmarks = raw
+
+            sequence_array = np.array(engineered, dtype=np.float32)
             normalized = self.normalize_sequence_length(sequence_array)
 
             if normalized is None:
                 logger.warning(
-                    f"Secuencia muy corta ({len(landmarks_sequence)} frames): "
+                    f"Secuencia muy corta ({len(raw_sequence)} frames): "
                     f"{video_path.name}"
                 )
                 return None
