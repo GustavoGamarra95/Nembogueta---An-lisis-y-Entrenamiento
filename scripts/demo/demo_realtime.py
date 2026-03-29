@@ -10,9 +10,9 @@ from pathlib import Path
 import cv2
 
 # Agregar directorio src al path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from src.libras_unified_predictor import LibrasUnifiedPredictor
+from src.inference.unified_predictor import LibrasUnifiedPredictor
 
 # Configurar logging
 logging.basicConfig(
