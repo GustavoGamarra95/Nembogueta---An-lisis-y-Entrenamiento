@@ -19,7 +19,7 @@ then
     echo "✅ Iniciando procesamiento..."
     echo "📝 Log: vlibrasil_processing.log"
     echo ""
-    nohup python scripts/preprocess_vlibrasil.py --no-gpu > vlibrasil_processing.log 2>&1 &
+    nohup python scripts/preprocess/preprocess_vlibrasil.py --no-gpu > vlibrasil_processing.log 2>&1 &
     PID=$!
     echo "✅ Proceso iniciado con PID: $PID"
     echo ""
@@ -36,6 +36,6 @@ else
     echo "❌ Procesamiento cancelado"
     echo ""
     echo "Para probar con menos videos primero:"
-    echo "  python scripts/preprocess_vlibrasil.py --no-gpu --max-videos 50"
+    echo "  python scripts/preprocess/preprocess_vlibrasil.py --no-gpu --max-videos 50"
 fi
 

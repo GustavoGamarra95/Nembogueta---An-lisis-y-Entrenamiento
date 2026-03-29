@@ -85,7 +85,7 @@ if docker run --rm --gpus all nvidia/cuda:11.0.3-base-ubuntu20.04 nvidia-smi; th
     echo "  2. docker-compose build"
     echo "  3. docker-compose up -d nembogueta"
     echo "  4. docker exec -it nembogueta-dev bash"
-    echo "  5. python scripts/verify_gpu.py"
+    echo "  5. python scripts/utils/verify_gpu.py"
     echo ""
 else
     echo ""

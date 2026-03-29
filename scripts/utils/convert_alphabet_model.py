@@ -6,10 +6,10 @@ from pathlib import Path
 import tensorflow as tf
 
 # Agregar src al path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 # Importar la capa de atención desde train_alphabet
-from scripts.train_alphabet import AttentionLayer
+from scripts.train.train_alphabet import AttentionLayer
 
 
 def convert_model(h5_path: str, keras_path: str):
