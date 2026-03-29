@@ -1,450 +1,522 @@
-# Ñemongeta - Python Module
+# Nembogueta — Análisis y Entrenamiento
 
-**Sistema de Reconocimiento de Lenguaje de Señas Paraguayo (LSPy)**
-**Módulo de Análisis y Entrenamiento**
+**Sistema de Reconocimiento de Lengua de Señas Paraguaya (LSP)**
+**Módulo de Análisis, Preprocesamiento y Entrenamiento**
 
-## Descripción
+> "Nembogueta" deriva del guaraní *ñemongeta* (conversar, fazer falar) — GUASCH, 1948.
 
-El módulo `Ñemongeta - Python` contiene scripts para la recolección, preprocesamiento, análisis, entrenamiento y conversión de modelos CNN-LSTM para el reconocimiento de gestos en **Lenguaje de Señas Paraguayo (LSPy)**. Los modelos están optimizados para alcanzar una precisión del 95% en las categorías de letras (a-z, ñ), palabras (ej. juicio, abogado) y frases (ej. acceso a la justicia).
-
-### Enfoque Principal del Proyecto
-
-Este proyecto está enfocado en el desarrollo de reconocimiento de lenguaje de señas para **Paraguay**, con soporte bilingüe para:
-- **Español paraguayo**
-- **Guaraní**
-
-El sistema utiliza técnicas de deep learning con arquitecturas CNN-LSTM para el reconocimiento en tiempo real de:
-
-- **Alfabeto dactilológico** (A-Z, Ñ): Reconocimiento de letras individuales
-- **Handshapes (Formas de mano)**: Clasificación de configuraciones manuales por orientación
-- **Palabras completas**: Reconocimiento de señas completas en LSPy
-- **Traducción bilingüe**: Conversión de texto Español/Guaraní a glosas LSPy
-- **Expresiones faciales**: Análisis de componentes no manuales
-
-### Trabajo con LIBRAS
-
-Como parte del desarrollo y entrenamiento del sistema, se utiliza el dataset **V-LIBRASIL** (Lenguaje de Señas Brasileño) para:
-- Desarrollo y prueba de arquitecturas de modelos
-- Entrenamiento de modelos base que serán adaptados a LSPy
-- Validación de técnicas de preprocesamiento y extracción de features
-- Transfer learning para acelerar el entrenamiento de modelos LSPy
-
-El sistema utiliza **MediaPipe** para extracción de landmarks y modelos **CNN-LSTM** optimizados para alcanzar alta precisión en tiempo real.
-
-## 🎯 Características Principales
-
-### Sistema Unificado de Reconocimiento en Tiempo Real
-
-**Estado Actual (usando dataset LIBRAS para desarrollo):**
-
-- ✅ **Reconocimiento de Alfabeto**: 26 letras (A-Z) con 45.6% de precisión
-- ✅ **Handshapes por Orientación**: 4 modelos especializados (back, front, left, right) con 100 clases cada uno
-- ✅ **Detección de Ambas Manos**: Soporte simultáneo para mano izquierda y derecha
-- ✅ **Traducción multilingüe**: Modelo transformer para conversión texto-glosas
-  - Actualmente: PT-BR → LIBRAS (modelo base)
-  - Objetivo: Español/Guaraní → LSPy
-- ✅ **UI Optimizada**: Interfaz mejorada con mejor contraste y visualización clara
-- ✅ **Barras de Confianza**: Visualización en tiempo real de la confianza de predicciones
-
-**Próximos Pasos para LSPy:**
-- 🔄 Recolección de dataset LSPy (letras, palabras, frases)
-- 🔄 Entrenamiento de modelos específicos para LSPy
-- 🔄 Implementación de traducción Español → LSPy
-- 🔄 Implementación de traducción Guaraní → LSPy
-- 🔄 Letra Ñ para alfabeto paraguayo
-
-### Demo en Tiempo Real
-
-```bash
-# Ejecutar sistema completo con cámara (actualmente con modelos LIBRAS)
-python scripts/demo_realtime_improved.py
-
-# Controles:
-# Q - Salir
-# T - Traducir texto (PT-BR → LIBRAS, futuro: ES/GN → LSPy)
-# L - Activar/desactivar visualización de landmarks
-```
-
-## Dependencias
-
-Este proyecto utiliza las siguientes dependencias principales:
-- Python 3.8 o superior
-- TensorFlow
-- MediaPipe
-- NumPy
-- OpenCV
-
-Para instalar todas las dependencias, ejecute:
-```bash
-pip install -r requirements.txt
-```
-
-## Estructura del Proyecto
-
-La estructura principal del proyecto es la siguiente:
-
-```
-Nembogueta---An-lisis-y-Entrenamiento/
-├── data/                # Datos crudos y procesados
-├── docs/                # Documentación del proyecto
-├── models/              # Modelos entrenados
-├── notebooks/           # Jupyter notebooks para experimentación
-├── scripts/             # Scripts principales para procesamiento y demos
-├── src/                 # Código fuente principal
-├── tests/               # Pruebas unitarias
-└── README.md            # Documentación principal
-```
-
-## 🚀 Inicio Rápido
-
-### 1. Instalación
-
-```bash
-# Clonar el repositorio
-git clone <repository-url>
-cd Nembogueta---An-lisis-y-Entrenamiento
-
-# Crear entorno virtual
-python -m venv .venv
-source .venv/bin/activate  # En Windows: .venv\Scripts\activate
-
-# Instalar dependencias
-pip install -r requirements.txt
-```
-
-### 2. Ejecutar Demo en Tiempo Real
-
-```bash
-# Demo mejorado con todas las funcionalidades
-python scripts/demo_realtime_improved.py
-
-# Opciones disponibles:
-python scripts/demo_realtime_improved.py --help
-
-# Especificar cámara y resolución
-python scripts/demo_realtime_improved.py --camera 0 --width 1280 --height 720
-```
-
-### 3. Entrenar Modelos
-
-```bash
-# Entrenar modelo de alfabeto (A-Z)
-python scripts/train_alphabet.py \
-  --data-dir data/processed/alphabet-combined \
-  --output-dir data/models/alphabet \
-  --epochs 50 --batch-size 64
-
-# Entrenar modelo de handshapes
-python scripts/train_handshape.py \
-  --data-dir data/processed/lswh100 \
-  --output-dir data/models/handshape \
-  --epochs 100 --batch-size 32
-
-# Entrenar modelo de traducción
-python scripts/train_translation.py \
-  --data-dir data/processed/pt_br2libras \
-  --output-dir data/models/translation \
-  --epochs 30 --batch-size 32
-
-# Entrenar modelo de V-LIBRASIL
-python scripts/train_vlibrasil.py \
-  --data-dir data/processed/v-librasil-flat \
-  --output-dir data/models/vlibrasil \
-  --epochs 100 --batch-size 32
-```
-
-## 📊 Modelos y Rendimiento
-
-### Alfabeto (Dactilología)
-
-- **Arquitectura**: CNN-LSTM
-- **Clases**: 26 letras (A-Z)
-- **Muestras**: 2,748
-- **Precisión**: 45.6% (validación)
-- **Features**: 63 (21 landmarks × 3 coordenadas)
-
-### Handshapes
-
-- **Arquitectura**: Dense Neural Network
-- **Modelos**: 4 (por orientación: back, front, left, right)
-- **Clases por modelo**: 100
-- **Precisión**: ~74% (por orientación)
-- **Features**: 63 (21 landmarks × 3 coordenadas)
-
-### Traducción PT-BR → LIBRAS
-
-- **Arquitectura**: Transformer (Encoder-Decoder)
-- **Vocabulario PT-BR**: Variable
-- **Vocabulario LIBRAS**: Glosas
-- **Precisión**: >99.9% (validación)
-- **Max sequence length**: 100 tokens
-
-### V-LIBRASIL
-
-- **Dataset**: Videos de LIBRAS
-- **Arquitectura**: LSTM
-- **Estado**: Modelo base entrenado
-
-## 🛠️ Scripts Disponibles
-
-### Preprocesamiento
-
-```bash
-# Alfabeto
-python scripts/preprocess_alphabet.py \
-  --data-dir data/raw/alphabet \
-  --output-dir data/processed/alphabet
-
-# Handshapes
-python scripts/preprocess_lswh100.py \
-  --data-dir data/raw/lswh100 \
-  --output-dir data/processed/lswh100
-
-# V-LIBRASIL
-python scripts/preprocess_vlibrasil.py \
-  --data-dir "data/raw/videos UFPE (V-LIBRASIL)/data" \
-  --output-dir data/processed/v-librasil-flat
-```
-
-### Evaluación
-
-```bash
-# Evaluar modelo de alfabeto
-python scripts/evaluate_alphabet.py \
-  --model-path data/models/alphabet/best_model.keras \
-  --test-data data/processed/alphabet-combined
-
-# Evaluar handshapes
-python scripts/evaluate_handshape.py \
-  --model-dir data/models/handshape \
-  --test-data data/processed/lswh100
-
-# Evaluar traducción
-python scripts/evaluate_translation.py \
-  --model-path data/models/translation/best_model.keras
-```
-
-### Inferencia
-
-```bash
-# Inferencia en video individual
-python scripts/inference_alphabet.py \
-  --model-path data/models/alphabet/best_model.keras \
-  --video-path path/to/video.mp4
-
-# Tiempo real con cámara
-python scripts/realtime_alphabet.py \
-  --model-path data/models/alphabet/best_model.keras \
-  --camera 0
-```
-
-## 🎨 Sistema Unificado de Predicción
-
-### Clase `LibrasUnifiedPredictor`
-
-Predictor centralizado que carga y gestiona todos los modelos:
-
-```python
-from src.libras_unified_predictor import LibrasUnifiedPredictor
-
-# Inicializar predictor
-predictor = LibrasUnifiedPredictor(models_dir="data/models")
-
-# Obtener predicciones desde un frame
-predictions = predictor.predict_from_frame(frame, draw_landmarks=True)
-
-# Resultados incluyen:
-# - hands: Lista de predicciones por cada mano detectada
-#   - handedness: "Left" o "Right"
-#   - orientation: "back", "front", "left", "right"
-#   - alphabet: Letra predicha con confianza
-#   - handshape: Forma de mano predicha con confianza
-# - facial_expression: Expresión facial (si disponible)
-# - landmarks_detected: Estado de detección
-
-# Traducir texto PT-BR a glosas LIBRAS
-glosas = predictor.translate_text_to_gloss("olá mundo")
-# Resultado: ['OLA', 'MUNDO']
-```
-
-### Características del Predictor
-
-- **Detección automática de orientación**: Clasifica la orientación de la mano
-- **Múltiples manos**: Soporta detección de mano izquierda y derecha simultáneamente
-- **Modelos especializados**: Usa el modelo de handshape apropiado según orientación
-- **MediaPipe integrado**: Extracción automática de landmarks
-- **Visualización opcional**: Dibuja landmarks sobre el frame
-
-## 📸 Demo en Tiempo Real - Características
-
-### UI Mejorada
-
-- **Fondos semi-transparentes**: Mejor legibilidad sin ocultar el video
-- **Paneles por mano**: Información separada para cada mano detectada
-- **Colores distintivos**: Naranja (mano derecha), Azul (mano izquierda)
-- **Barras de confianza**: Visualización gráfica de certeza de predicciones
-- **Controles claros**: Instrucciones siempre visibles
-
-### Información Mostrada
-
-Para cada mano detectada:
-- Tipo de mano (Izquierda/Derecha)
-- Orientación (back/front/left/right)
-- Letra del alfabeto con barra de confianza
-- Handshape con barra de confianza
-
-Adicional:
-- Expresión facial (si disponible)
-- Traducción PT-BR → LIBRAS (al presionar T)
-- FPS y rendimiento
-
-## 🐳 Ejecución en Docker
-
-### Iniciar Contenedor
-
-```bash
-# Iniciar con GPU
-docker compose --profile gpu up -d nembogueta-gpu
-
-# Verificar estado
-docker ps
-```
-
-### Ejecutar Scripts en Contenedor
-
-```bash
-# Entrenar modelo de alfabeto
-docker exec nembogueta-dev-gpu python scripts/train_alphabet.py \
-  --data-dir /app/data/processed/alphabet-combined \
-  --output-dir /app/data/models/alphabet \
-  --epochs 50
-
-# Demo en tiempo real (requiere X11 forwarding)
-docker exec nembogueta-dev-gpu python scripts/demo_realtime_improved.py
-```
-
-## 🔧 Solución de Problemas
-
-### Error: "No module named sklearn"
-
-```bash
-pip install scikit-learn
-```
-
-### Error: "No se detecta la cámara"
-
-```bash
-# Verificar cámaras disponibles
-python -c "import cv2; print(cv2.VideoCapture(0).isOpened())"
-
-# Probar con ID diferente
-python scripts/demo_realtime_improved.py --camera 1
-```
-
-### Predicciones con baja confianza
-
-- Asegúrate de tener buena iluminación
-- Mantén las manos visibles y dentro del frame
-- Evita fondos complejos o con movimiento
-- Ajusta la posición para que MediaPipe detecte correctamente
-
-### Rendimiento lento
-
-- Usa `--width 640 --height 480` para menor resolución
-- Desactiva landmarks con `L` durante la ejecución
-- Considera usar GPU si está disponible
-
-## 📈 Hoja de Ruta - LSPy (Lenguaje de Señas Paraguayo)
-
-### Fase 1: Infraestructura y Modelos Base (Actual)
-- [x] Sistema de preprocesamiento universal
-- [x] Arquitectura CNN-LSTM para reconocimiento
-- [x] Predictor unificado multi-modelo
-- [x] UI en tiempo real con detección de múltiples manos
-- [x] Modelos base entrenados con LIBRAS
-
-### Fase 2: Recolección de Datos LSPy
-- [ ] **Alfabeto LSPy** (A-Z, Ñ)
-  - [ ] Recolección de videos para 27 letras
-  - [ ] 10 videos por letra mínimo
-  - [ ] Múltiples personas para diversidad
-- [ ] **Palabras legales** (jurídicas)
-  - [ ] Juicio, abogado, fiscal, defensor, etc.
-  - [ ] Términos específicos del sistema judicial paraguayo
-- [ ] **Frases completas**
-  - [ ] "Acceso a la justicia"
-  - [ ] Frases comunes en contexto legal
-  - [ ] Frases en español y guaraní
-
-### Fase 3: Entrenamiento LSPy
-- [ ] Transfer learning desde modelos LIBRAS a LSPy
-- [ ] Entrenamiento de alfabeto LSPy (incluyendo Ñ)
-- [ ] Entrenamiento de palabras jurídicas
-- [ ] Entrenamiento de frases completas
-- [ ] Fine-tuning para español y guaraní
-
-### Fase 4: Traducción Bilingüe
-- [ ] **Español → LSPy**
-  - [ ] Dataset de traducción Español-Glosas LSPy
-  - [ ] Modelo transformer Español → LSPy
-- [ ] **Guaraní → LSPy**
-  - [ ] Dataset de traducción Guaraní-Glosas LSPy
-  - [ ] Modelo transformer Guaraní → LSPy
-- [ ] Sistema unificado bilingüe
-
-### Fase 5: Optimización y Despliegue
-- [ ] Optimización de modelos para edge devices
-- [ ] Conversión a TensorFlow Lite
-- [ ] API REST para integración
-- [ ] App móvil Android/iOS
-- [ ] Integración con sistema judicial paraguayo
-
-### Fase 6: Expansión
-- [ ] Entrenamiento de modelo de expresiones faciales
-- [ ] Reconocimiento de contexto y gramática LSPy
-- [ ] Soporte para más dominios (educación, salud, etc.)
-- [ ] Sistema de retroalimentación y mejora continua
-
-## 🎯 Objetivos del Proyecto
-
-Este proyecto busca:
-
-1. **Democratizar el acceso a la justicia** en Paraguay mediante tecnología de reconocimiento de señas
-2. **Preservar y promover** el Lenguaje de Señas Paraguayo (LSPy)
-3. **Facilitar la comunicación** entre personas sordas y el sistema judicial
-4. **Apoyar el bilingüismo** paraguayo (Español y Guaraní) en el contexto de LSPy
-5. **Crear herramientas de código abierto** para la comunidad sorda paraguaya
-
-## 🤝 Contribución
-
-1. Sigue las directrices de calidad de código (Black, isort, Flake8)
-2. Agrega pruebas unitarias para nueva funcionalidad
-3. Actualiza la documentación según sea necesario
-4. Envía pull requests para revisión
-
-### Cómo Contribuir con Datos LSPy
-
-Si eres hablante de LSPy y quieres contribuir:
-- Contacta al equipo para participar en recolección de videos
-- Ayuda a validar las señas reconocidas
-- Proporciona feedback sobre la precisión del sistema
-
-## 📝 Licencia
-
-[Especificar licencia]
-
-## 📧 Contacto
-
-[Especificar información de contacto]
-
-## 🙏 Agradecimientos
-
-- Comunidad sorda paraguaya
-- Dataset V-LIBRASIL por proporcionar data base para desarrollo
-- Proyecto MediaPipe de Google por la tecnología de landmarks
-- Comunidad de código abierto
+Desarrollado en **UniAmérica**, Foz do Iguaçu/PR — directamente en la frontera con Paraguay.
+**Gustavo Ariel Gamarra Rojas** | TCC I — Março 2026
 
 ---
 
-**Desarrollado con ❤️ para la comunidad sorda paraguaya**
-**Ñemongeta - Hablemos en señas**
+## Descripción
+
+Este módulo contiene los pipelines completos de preprocesamiento, entrenamiento y evaluación de modelos de reconocimiento de Lengua de Señas Paraguaya (LSP), con salida **trilíngue** según selección del usuario:
+
+- **Español paraguayo**
+- **Guaraní**
+- **Português (Brasil)**
+
+El proyecto está orientado a la región de **tríplice fronteira**:
+Ciudad del Este (PY) / Foz do Iguaçu (BR) / Puerto Iguazú (AR).
+
+### Trabajo con LIBRAS
+
+Como base de desarrollo se utilizan dos datasets de LIBRAS (Língua Brasileira de Sinais):
+- **V-LIBRASIL** (UFPE) — frases completas, 1361 clases
+- **LIBRAS-HC-RGBDS** (UFPR) — formas de mano (handshapes), 61 clases
+
+Estos modelos base serán adaptados a LSP mediante transfer learning y nuevos datos de colecta.
+
+---
+
+## Estado Actual del Sistema
+
+| Modelo | Dataset | Clases | Test Acc | Estado |
+|--------|---------|--------|----------|--------|
+| V-LIBRASIL v2 (frases) | V-LIBRASIL (UFPE) | 1361 | **99.4%** | ✅ Entrenado |
+| UFPR Handshapes | LIBRAS-HC-RGBDS | 61 | **70.3%** | ✅ Entrenado |
+| LibrAI Alphabet | LIBRAS alphabet | 21 letras | **~100%** | ✅ Entrenado |
+| LSP letters | Pendente | — | — | ❌ Aguardando dados |
+
+---
+
+## Arquitectura de Modelos
+
+### Feature Engineering — 208 features por frame
+
+Todos los modelos usan el mismo pipeline de extracción de features sobre los 21 landmarks de MediaPipe Hands:
+
+```
+MediaPipe Hands → 126 coords brutas (21 lm × 2 manos × 3 xyz)
+    ↓  src/preprocessing/feature_engineering.py
+208 features por frame:
+  - 42 posición (21 lm × 2 xy)
+  - 12 distancias entre landmarks clave
+  - 30 ángulos (sin/cos)
+  - 20 features de movimiento
+  = 104 features × 2 manos = 208
+```
+
+### V-LIBRASIL v2 — DNN (mean+std pooling)
+
+```
+Secuencia (T, 208)
+    → mean pooling + std pooling → (416,)
+    → normalizar con norm_mean.npy / norm_std.npy
+    → Dense(512) → Dense(512) → Dense(256) → Dense(256) → Dense(1361, softmax)
+```
+
+### UFPR Handshapes — DNN (mean pooling)
+
+```
+Secuencia (T, 208)
+    → mean pooling → (208,)
+    → Dense layers → Dense(61, softmax)
+```
+
+### LibrAI Alphabet — CNN-LSTM
+
+```
+Secuencia (T, 208)
+    → Conv1D(64) → BatchNorm → Dropout(0.3)
+    → Conv1D(128) → BatchNorm → Dropout(0.3)
+    → Conv1D(256) → BatchNorm → Dropout(0.3)
+    → LSTM(256, return_sequences=True) → Dropout(0.4)
+    → LSTM(128) → Dropout(0.4)
+    → Dense(64, ReLU) → Dropout(0.3)
+    → Dense(21, softmax)
+```
+
+---
+
+## Estructura del Proyecto
+
+```
+Nembogueta---An-lisis-y-Entrenamiento/
+│
+├── src/                              # Librería principal (importable)
+│   ├── config/config.py              # Parámetros globales y rutas
+│   ├── preprocessing/
+│   │   ├── feature_engineering.py   # 208 features por frame (núcleo del pipeline)
+│   │   ├── letter_preprocessor.py   # LetterPreprocessor (alfabeto)
+│   │   ├── phrase_processor.py
+│   │   └── word_processor.py
+│   ├── training/
+│   │   ├── letter_model_trainer.py  # CNN-LSTM trainer
+│   │   ├── phrase_model_trainer.py
+│   │   └── word_model_trainer.py
+│   ├── inference/
+│   │   └── unified_predictor.py     # LibrasUnifiedPredictor
+│   ├── data_collection/             # Colecta de datos en tiempo real
+│   └── utils/                       # Validadores y conversores
+│
+├── scripts/                         # Entry points ejecutables
+│   ├── preprocess/                  # Extracción de features: video → .npy
+│   ├── train/                       # Entrenamiento de modelos
+│   ├── evaluate/                    # Evaluación y métricas
+│   ├── demo/                        # Demos en tiempo real (cámara)
+│   ├── inference/                   # Inferencia sobre archivos
+│   ├── docker/                      # Helpers de Docker
+│   └── utils/                       # Utilidades varias
+│
+├── data/
+│   ├── models/
+│   │   ├── vlibrasil-v2/            # best_model.keras + norm_*.npy + metadata.json
+│   │   ├── ufpr-handshape/          # best_model.keras + metadata.json
+│   │   └── librai-alphabet/         # best_model.keras + norm_*.npy + model_info.json
+│   └── processed/
+│       └── librai_alphabet/         # Features .npy por letra (A/, B/, ...)
+│
+├── src/                             # Datasets (en host, no en git)
+│   ├── "videos UFPE (V-LIBRASIL)/data/"
+│   └── LIBRAS-HC-RGBDS-2011/
+│
+├── tests/
+├── docs/source/                     # Documentación Sphinx
+├── Dockerfile
+├── docker-compose.yml               # Container GPU: nembogueta-dev-gpu
+├── requirements.txt
+└── pyproject.toml
+```
+
+---
+
+## Inicio Rápido
+
+### 1. Instalación (desarrollo local)
+
+```bash
+git clone <repository-url>
+cd Nembogueta---An-lisis-y-Entrenamiento
+
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+
+pip install -r requirements.txt
+```
+
+### 2. Entorno Docker (recomendado para entrenamiento con GPU)
+
+```bash
+# Build del container
+docker compose --profile gpu build
+
+# Entrar al container interactivo
+docker compose --profile gpu run nembogueta-dev-gpu bash
+
+# Permitir display para demos con cámara (en el host, antes del demo)
+xhost +local:docker
+```
+
+---
+
+## Flujo Completo: Preprocesamiento → Entrenamiento → Evaluación
+
+### V-LIBRASIL (frases, 1361 clases)
+
+```bash
+# 1. Preprocesar videos → features .npy
+python scripts/preprocess/preprocess_vlibrasil.py \
+  --data-dir "/app/src/videos UFPE (V-LIBRASIL)/data" \
+  --output-dir /data/processed/v-librasil-flat
+
+# 2. Entrenar modelo v2 (DNN + mean+std pooling)
+python scripts/train/train_vlibrasil.py \
+  --data-dir /data/processed/v-librasil-flat \
+  --output-dir /data/models/vlibrasil-v2
+
+# 3. Evaluar
+python scripts/evaluate/test_vlibrasil_v2.py \
+  --model-dir /data/models/vlibrasil-v2 \
+  --data-dir /data/processed/v-librasil-flat \
+  --n-samples 50
+```
+
+### UFPR Handshapes (61 clases)
+
+```bash
+# 1. Convertir archivos .oni a .mp4 (si es necesario)
+python scripts/utils/convert_oni_to_mp4.py \
+  --input-dir /app/src/LIBRAS-HC-RGBDS-2011
+
+# 2. Preprocesar
+python scripts/preprocess/preprocess_ufpr.py \
+  --data-dir /app/src/LIBRAS-HC-RGBDS-2011 \
+  --output-dir /data/processed/ufpr-handshape
+
+# 3. Entrenar
+python scripts/train/train_ufpr.py \
+  --data-dir /data/processed/ufpr-handshape \
+  --output-dir /data/models/ufpr-handshape
+
+# 4. Evaluar
+python scripts/evaluate/evaluate_handshape.py \
+  --model-dir /data/models/ufpr-handshape \
+  --data-dir /data/processed/ufpr-handshape \
+  --view all
+```
+
+### LibrAI Alphabet (21 letras)
+
+```bash
+# 1. Preprocesar videos de letras
+python scripts/preprocess/preprocess_alphabet_videos.py \
+  --data-dir /data/lsp_letter_videos \
+  --output-dir /data/processed/librai_alphabet
+
+# 2. Entrenar
+python scripts/train/train_alphabet.py \
+  --data-dir /data/processed/librai_alphabet \
+  --output-dir /data/models/librai-alphabet
+
+# 3. Evaluar
+python scripts/evaluate/evaluate_alphabet.py \
+  --model /data/models/librai-alphabet/best_model.keras \
+  --model-info /data/models/librai-alphabet/model_info.json \
+  --data-dir /data/processed/librai_alphabet \
+  --output-dir /data/models/librai-alphabet/evaluation
+```
+
+---
+
+## Scripts de Evaluación — Flujo Detallado
+
+### `test_vlibrasil_v2.py` — V-LIBRASIL v2 (modelo actual)
+
+Pipeline interno:
+```
+NPY (T, 208) → mean+std pooling → (416,) → normalizar → predict → top-5
+```
+
+```bash
+# Modo 1: probar un NPY específico
+python scripts/evaluate/test_vlibrasil_v2.py \
+  --npy /data/processed/v-librasil-flat/Amigo/Amigo_Articulador1.npy
+
+# Modo 2: N muestras aleatorias del dataset
+python scripts/evaluate/test_vlibrasil_v2.py \
+  --model-dir /data/models/vlibrasil-v2 \
+  --data-dir /data/processed/v-librasil-flat \
+  --n-samples 50
+```
+
+Salida: top-1 / top-5 accuracy por muestra y resumen final.
+
+---
+
+### `evaluate_vlibrasil.py` — V-LIBRASIL (runs anteriores / legacy)
+
+Pipeline interno:
+```
+NPYs planos (data_dir/*.npy) → normalización interna → train_test_split(seed=42) → predict
+```
+
+```bash
+python scripts/evaluate/evaluate_vlibrasil.py \
+  --model /data/models/vlibrasil/run_20260226_001428/best_model.keras \
+  --model-info /data/models/vlibrasil/run_20260226_001428/model_info.json \
+  --data-dir /data/processed/v-librasil-flat \
+  --output-dir /data/models/vlibrasil/run_20260226_001428/evaluation
+```
+
+Archivos generados en `--output-dir`:
+- `summary_metrics.json` — accuracy, top-3, top-5, precision/recall/F1 macro
+- `classification_report.json` / `.txt` — métricas por clase
+- `confusion_matrix.npy` + `confusion_matrix.png` / `_normalized.png`
+- `error_analysis.json` — top 100 errores con mayor confianza
+- `confidence_distribution.png` — histograma predicciones correctas vs incorrectas
+- `per_class_performance.json` — accuracy por clase (top 10 mejores/peores)
+
+---
+
+### `evaluate_alphabet.py` — Alfabeto LibrAI
+
+Pipeline interno:
+```
+NPYs (data_dir/A_000.npy, ...) → extrae letra del nombre → normalización → split(seed=42) → predict
+```
+
+```bash
+python scripts/evaluate/evaluate_alphabet.py \
+  --model /data/models/librai-alphabet/best_model.keras \
+  --model-info /data/models/librai-alphabet/model_info.json \
+  --data-dir /data/processed/librai_alphabet \
+  --output-dir /data/models/librai-alphabet/evaluation
+```
+
+Archivos generados (adicionales al estándar):
+- `letter_confusions.json` — pares de letras confundidas (ej. U→V)
+- `per_letter_performance.json` — accuracy por letra
+- `per_letter_performance.png` — barras: verde ≥90%, naranja ≥70%, rojo <70%
+- `confusion_matrix_normalized.png` + `_absolute.png`
+
+---
+
+### `evaluate_handshape.py` — UFPR Handshapes
+
+Pipeline interno:
+```
+NPYs en test_dir/view/class_XX/*.npy → model.evaluate() + predict → top-5 manual
+```
+
+```bash
+# Evaluar una vista específica con análisis completo
+python scripts/evaluate/evaluate_handshape.py \
+  --model-dir /data/models/ufpr-handshape \
+  --data-dir /data/processed/ufpr-handshape \
+  --view front \
+  --confusion-matrix \
+  --analyze-errors \
+  --output-dir /data/models/ufpr-handshape/evaluation
+
+# Comparar todas las vistas (front/back/left/right)
+python scripts/evaluate/evaluate_handshape.py \
+  --model-dir /data/models/ufpr-handshape \
+  --data-dir /data/processed/ufpr-handshape \
+  --view all
+```
+
+Salida: classification report (macro avg), `confusion_matrix_{view}_top20.png`, análisis de errores con mayor confianza.
+
+---
+
+### `evaluate_translation.py` — Traducción PT-BR → LIBRAS
+
+Pipeline interno:
+```
+test.json (token IDs) → padding → decodificación autoregresiva token a token (hasta <EOS>) → métricas
+```
+
+```bash
+python scripts/evaluate/evaluate_translation.py \
+  --model-dir /data/models/translation \
+  --data-dir /data/processed/pt_br2libras \
+  --examples 10
+```
+
+Métricas calculadas:
+- `sequence_accuracy` — secuencia completa exactamente correcta
+- `token_accuracy` — accuracy por token individual
+- `bleu_simple` — BLEU unigrama (precisión de tokens en común)
+- Estadísticas de longitud promedio predicción vs target
+
+> Nota: el modelo de traducción aún no ha sido entrenado — requiere dataset PT-BR→LIBRAS.
+
+---
+
+## Demos en Tiempo Real
+
+```bash
+# Habilitar display en el host
+xhost +local:docker
+
+# Demo V-LIBRASIL v2 (frases)
+docker compose --profile gpu run nembogueta-dev-gpu \
+  python scripts/demo/realtime_vlibrasil.py
+
+# Demo alfabeto LibrAI
+docker compose --profile gpu run nembogueta-dev-gpu \
+  python scripts/demo/realtime_librai_alphabet.py
+```
+
+---
+
+## Predictor Unificado
+
+```python
+from src.inference.unified_predictor import LibrasUnifiedPredictor
+
+predictor = LibrasUnifiedPredictor(models_dir="data/models")
+
+# Predicción desde un frame de video (numpy array BGR)
+predictions = predictor.predict_from_frame(frame, draw_landmarks=True)
+# predictions incluye: letra, handshape, frase, confianzas
+```
+
+---
+
+## Ejecución en Docker — Referencia Rápida
+
+```bash
+# Build
+docker compose --profile gpu build
+
+# Entrar al container
+docker compose --profile gpu run nembogueta-dev-gpu bash
+
+# Verificar GPU disponible
+docker compose --profile gpu run nembogueta-dev-gpu python scripts/utils/verify_gpu.py
+
+# Ejecutar script directamente
+docker compose --profile gpu run nembogueta-dev-gpu \
+  python scripts/evaluate/test_vlibrasil_v2.py
+```
+
+Rutas dentro del container:
+- Código: `/app/`
+- Datos/modelos: `/data/`
+- Dataset V-LIBRASIL: `/app/src/videos UFPE (V-LIBRASIL)/data/`
+- Dataset UFPR: `/app/src/LIBRAS-HC-RGBDS-2011/`
+
+---
+
+## Dependencias Principales
+
+| Componente | Tecnología |
+|---|---|
+| Extracción de landmarks | MediaPipe Hands |
+| Procesamiento de video | OpenCV 4.8 |
+| Lenguaje | Python 3.10+ |
+| Framework de DL | TensorFlow 2.10 / Keras |
+| Métricas | scikit-learn |
+| Manipulación de datos | NumPy / Pandas |
+| Visualización | Matplotlib / Seaborn |
+| API de inferencia | FastAPI |
+| Entorno de entrenamiento | Docker + NVIDIA GPU |
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## Solución de Problemas
+
+### GPU no detectada en Docker
+
+```bash
+# Verificar NVIDIA Container Toolkit instalado
+nvidia-smi
+docker compose --profile gpu run nembogueta-dev-gpu python scripts/utils/verify_gpu.py
+```
+
+### Error con archivos .oni (dataset UFPR)
+
+OpenNI2 puede crashear después de ~200 archivos. Usar `--skip-existing` para retomar:
+```bash
+python scripts/utils/convert_oni_to_mp4.py \
+  --input-dir /app/src/LIBRAS-HC-RGBDS-2011 \
+  --skip-existing
+```
+
+### Cámara no detectada en el demo
+
+```bash
+# Verificar dispositivos disponibles en el host
+ls /dev/video*
+
+# Asegurarse que docker-compose.yml tenga los devices montados
+# devices: ["/dev/video0:/dev/video0", "/dev/video1:/dev/video1"]
+```
+
+---
+
+## Hoja de Ruta
+
+### Fase 1 — Infraestructura y modelos base (completada)
+- [x] Pipeline de feature engineering (208 features/frame)
+- [x] Modelo V-LIBRASIL v2 (99.4% test, 1361 clases)
+- [x] Modelo UFPR handshapes (70.3% test, 61 clases)
+- [x] Modelo alfabeto LibrAI (~100% test, 21 letras)
+- [x] Predictor unificado multi-modelo
+- [x] Entorno Docker con GPU
+
+### Fase 2 — Datos y modelos LSP
+- [ ] Colecta de videos de letras LSP (A-Z, Ñ)
+- [ ] Entrenamiento de modelo de letras LSP
+- [ ] Colecta de palabras y frases LSP (tríplice fronteira)
+- [ ] Entrenamiento con datos propios LSP
+
+### Fase 3 — Salida trilíngue
+- [ ] Integración de traducción Español paraguayo → LSP
+- [ ] Integración de traducción Guaraní → LSP
+- [ ] Integración de traducción Português BR → LSP
+- [ ] Sistema de selección de idioma de salida
+
+### Fase 4 — Despliegue
+- [ ] API REST de inferencia (FastAPI)
+- [ ] Optimización para edge devices / TFLite
+- [ ] Interface de usuario final
+
+---
+
+## Contribución
+
+1. Sigue las directrices de calidad (Black, isort, Flake8 — ver `.pre-commit-config.yaml`)
+2. Agrega pruebas unitarias en `tests/` para nueva funcionalidad
+3. Actualiza este README al cambiar el estado de modelos o pipelines
+
+---
+
+## Agradecimientos
+
+- Dataset **V-LIBRASIL** (UFPE) — base para desarrollo de frases
+- Dataset **LIBRAS-HC-RGBDS** (UFPR) — base para handshapes
+- **MediaPipe** (Google) — extracción de landmarks de mano
+- Comunidad sorda de la tríplice fronteira
+
+---
+
+*Nembogueta — fazer falar, conversar. Desenvolvido na tríplice fronteira.*
