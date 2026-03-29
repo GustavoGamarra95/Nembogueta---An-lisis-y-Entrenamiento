@@ -19,7 +19,7 @@ Scripts para entrenar modelos CNN-LSTM para reconocimiento de lenguaje de señas
 docker exec -it nembogueta-dev-gpu bash
 
 # Procesar dataset completo
-python /app/scripts/preprocess_sign_language.py \
+python /app/scripts/preprocess/preprocess_sign_language.py \
   --videos-dir "/app/src/data/videos UFPE (V-LIBRASIL)/data" \
   --output-dir /data/vlibrasil_processed \
   --preset holistic \
@@ -36,7 +36,7 @@ python /app/scripts/preprocess_sign_language.py \
 #### Opción A: V-LIBRASIL (Específico)
 
 ```bash
-python /app/scripts/train_vlibrasil.py \
+python /app/scripts/train/train_vlibrasil.py \
   --data-dir /data/vlibrasil_processed \
   --output-dir /models/vlibrasil \
   --epochs 100 \
@@ -48,7 +48,7 @@ python /app/scripts/train_vlibrasil.py \
 
 ```bash
 # Para letras
-python /app/scripts/train_sign_language.py \
+python /app/scripts/train/train_sign_language.py \
   --data-dir /data/processed_letters \
   --output-dir /models/letters \
   --task-type letters \
@@ -56,7 +56,7 @@ python /app/scripts/train_sign_language.py \
   --batch-size 32
 
 # Para palabras
-python /app/scripts/train_sign_language.py \
+python /app/scripts/train/train_sign_language.py \
   --data-dir /data/processed_words \
   --output-dir /models/words \
   --task-type words \
@@ -64,7 +64,7 @@ python /app/scripts/train_sign_language.py \
   --batch-size 16
 
 # Para frases
-python /app/scripts/train_sign_language.py \
+python /app/scripts/train/train_sign_language.py \
   --data-dir /data/processed_phrases \
   --output-dir /models/phrases \
   --task-type phrases \
@@ -219,14 +219,14 @@ python -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU')
 docker exec -it nembogueta-dev-gpu bash
 
 # 2. Preprocesar (solo primera vez)
-python /app/scripts/preprocess_sign_language.py \
+python /app/scripts/preprocess/preprocess_sign_language.py \
   --videos-dir "/app/src/data/videos UFPE (V-LIBRASIL)/data" \
   --output-dir /data/vlibrasil_processed \
   --preset holistic \
   --auto-infer
 
 # 3. Entrenar
-python /app/scripts/train_vlibrasil.py \
+python /app/scripts/train/train_vlibrasil.py \
   --data-dir /data/vlibrasil_processed \
   --output-dir /models/vlibrasil \
   --epochs 100 \
@@ -241,7 +241,7 @@ cat /models/vlibrasil/run_*/model_info.json
 Después del entrenamiento, convierte el modelo para deployment:
 
 ```bash
-python /app/scripts/convert_to_tflite.py \
+python /app/scripts/utils/convert_alphabet_model.py \
   --model-path /models/vlibrasil/run_XXXXXX/best_model.h5 \
   --output-path /models/vlibrasil/model.tflite
 ```

@@ -19,7 +19,7 @@ echo ""
 
 # 2. Preprocesar 100 videos
 echo -e "${YELLOW}[2/4] Preprocesando 100 videos...${NC}"
-python /app/scripts/preprocess_sign_language.py \
+python /app/scripts/preprocess/preprocess_sign_language.py \
   --videos-dir "/app/src/data/videos UFPE (V-LIBRASIL)/data" \
   --output-dir /data/quick_test \
   --preset hands \
@@ -34,7 +34,7 @@ echo ""
 
 # 3. Entrenar modelo pequeño
 echo -e "${YELLOW}[3/4] Entrenando modelo de prueba...${NC}"
-python /app/scripts/train_sign_language.py \
+python /app/scripts/train/train_sign_language.py \
   --data-dir /data/quick_test \
   --output-dir /models/quick_test \
   --task-type letters \
