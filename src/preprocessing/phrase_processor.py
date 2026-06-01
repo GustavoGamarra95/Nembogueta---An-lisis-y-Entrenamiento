@@ -1,4 +1,3 @@
-"""Módulo para procesar videos de frases en LSPy."""
 import os
 
 import cv2
@@ -6,16 +5,13 @@ import mediapipe as mp
 import numpy as np
 from dotenv import load_dotenv
 
-# Cargar variables de entorno
 load_dotenv()
 
-# Directorios de entrada y salida desde .env
 input_dir = os.getenv("DATA_RAW_DIR", "data/lsp_phrase_videos")
 output_dir = os.getenv(
     "DATA_PROCESSED_DIR", "data/processed_lsp_phrase_sequences"
 )
 
-# Configurar rutas de directorios
 input_dir = (
     os.path.join(input_dir, "phrases")
     if os.path.isdir(os.path.join(input_dir, "phrases"))
@@ -28,27 +24,16 @@ output_dir = (
 )
 os.makedirs(output_dir, exist_ok=True)
 
-# Configuración de MediaPipe
 mp_holistic = mp.solutions.holistic
 mp_drawing = mp.solutions.drawing_utils
 holistic = mp_holistic.Holistic(
     static_image_mode=False, min_detection_confidence=0.5
 )
 
-# Create processor instance and expose process_data at module level
-_processor = holistic  # Use existing holistic instance
+_processor = holistic
 
 
 def process_data(video_path: str):
-    """
-    Procesa un video de frase y devuelve la secuencia procesada.
-
-    Args:
-        video_path: Ruta al archivo de video
-
-    Returns:
-        Secuencia procesada
-    """
     try:
         cap = cv2.VideoCapture(video_path)
         frames = []
@@ -79,23 +64,18 @@ def process_data(video_path: str):
         return None
 
 
-# Lista de frases
 phrases = [
     "acceso_a_la_justicia",
     "derecho_a_la_defensa",
     "igualdad_ante_la_ley",
 ]
 
-# Parámetros de la secuencia
 sequence_length = 15
 frame_size = (200, 200)
 frame_skip = 20
 
 
 def process_frame(frame):
-    """
-    Procesa un frame para extraer landmarks y dibujar el esqueleto.
-    """
     skeleton_image = np.zeros(
         (frame_size[0], frame_size[1], 3), dtype=np.uint8
     )
@@ -126,7 +106,6 @@ def process_frame(frame):
     return skeleton_image
 
 
-# Procesar cada video
 X_data = []
 y_data = []
 
@@ -166,7 +145,6 @@ for phrase_idx, phrase in enumerate(phrases):
         else:
             print(f"Secuencia incompleta para {video_path}, descartada.")
 
-# Convertir a arrays NumPy y guardar
 X_data = np.array(X_data)
 y_data = np.array(y_data)
 

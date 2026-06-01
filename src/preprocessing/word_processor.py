@@ -1,4 +1,3 @@
-"""Módulo para procesar videos de palabras en LSPy."""
 import os
 
 import cv2
@@ -6,16 +5,13 @@ import mediapipe as mp
 import numpy as np
 from dotenv import load_dotenv
 
-# Cargar variables de entorno
 load_dotenv()
 
-# Directorios de entrada y salida desde .env
 input_dir = os.getenv("DATA_RAW_DIR", "data/lsp_word_videos")
 output_dir = os.getenv(
     "DATA_PROCESSED_DIR", "data/processed_lsp_word_sequences"
 )
 
-# Configurar rutas de directorios
 input_dir = (
     os.path.join(input_dir, "words")
     if os.path.isdir(os.path.join(input_dir, "words"))
@@ -28,14 +24,12 @@ output_dir = (
 )
 os.makedirs(output_dir, exist_ok=True)
 
-# Configuración de MediaPipe
 mp_holistic = mp.solutions.holistic
 mp_drawing = mp.solutions.drawing_utils
 holistic = mp_holistic.Holistic(
     static_image_mode=False, min_detection_confidence=0.5
 )
 
-# Lista de palabras
 words = [
     "juicio",
     "abogado",
@@ -49,16 +43,12 @@ words = [
     "veredicto",
 ]
 
-# Parámetros de la secuencia
 sequence_length = 15
 frame_size = (200, 200)
 frame_skip = 20
 
 
 def process_frame(frame):
-    """
-    Procesa un frame para extraer landmarks y dibujar el esqueleto.
-    """
     skeleton_image = np.zeros(
         (frame_size[0], frame_size[1], 3), dtype=np.uint8
     )
@@ -88,17 +78,7 @@ def process_frame(frame):
     return skeleton_image
 
 
-# Create process_data at module level
 def process_data(video_path: str):
-    """
-    Procesa los datos de un video de palabra.
-
-    Args:
-        video_path: Ruta al archivo de video
-
-    Returns:
-        Secuencia procesada de landmarks
-    """
     try:
         cap = cv2.VideoCapture(video_path)
         frames = []
@@ -115,7 +95,6 @@ def process_data(video_path: str):
             print(f"No se pudieron leer frames del video: {video_path}")
             return None
 
-        # Initialize MediaPipe Hands
         mp_hands = mp.solutions.hands
         hands = mp_hands.Hands(
             static_image_mode=False,
@@ -123,17 +102,14 @@ def process_data(video_path: str):
             min_detection_confidence=0.7,
         )
 
-        # Process frames
         sequences = []
         for frame in frames:
-            # Convert BGR to RGB
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = hands.process(frame_rgb)
 
             if not results.multi_hand_landmarks:
                 continue
 
-            # Extract landmarks
             landmarks = []
             for hand_landmarks in results.multi_hand_landmarks:
                 for landmark in hand_landmarks.landmark:
@@ -152,7 +128,6 @@ def process_data(video_path: str):
         return None
 
 
-# Procesar cada video
 X_data = []
 y_data = []
 
@@ -189,7 +164,6 @@ for word_idx, word in enumerate(words):
         else:
             print(f"Secuencia incompleta para {video_path}, descartada.")
 
-# Convertir a arrays NumPy y guardar
 X_data = np.array(X_data)
 y_data = np.array(y_data)
 
