@@ -3,11 +3,9 @@ import time
 
 import cv2
 
-# Directorio donde se guardarán los videos de palabras
 output_dir = "data/lsp_word_videos"
 os.makedirs(output_dir, exist_ok=True)
 
-# Lista de palabras LSPy
 words = [
     "juicio",
     "abogado",
@@ -21,24 +19,19 @@ words = [
     "veredicto",
 ]
 
-# Configuración de la cámara
 cap = cv2.VideoCapture(0)
 if not cap.isOpened():
     print("Error: No se puede abrir la cámara.")
     exit()
 
-# Configuración del video
 fps = 30
 frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-frame_count = 300  # 10 segundos a 30 fps
-video_duration = 10  # segundos
+frame_count = 300
+video_duration = 10
 
 
 def record_video(word: str, sample_num: int) -> None:
-    """
-    Graba un video para una palabra específica.
-    """
     output_path = os.path.join(output_dir, f"{word}_sample_{sample_num}.avi")
     fourcc = cv2.VideoWriter_fourcc(*"XVID")
     out = cv2.VideoWriter(
@@ -76,17 +69,14 @@ def record_video(word: str, sample_num: int) -> None:
 
 
 def main():
-    """Función principal para la recolección de videos."""
     try:
-        # Grabar 10 muestras por palabra
         for word in words:
-            for sample_num in range(1, 11):  # 10 muestras por palabra
+            for sample_num in range(1, 11):
                 print(f"\nPróxima palabra: '{word}', muestra {sample_num}")
                 input("Presiona Enter para comenzar la grabación...")
                 record_video(word, sample_num)
 
     finally:
-        # Liberar la cámara
         cap.release()
         print("Recolección de videos completa.")
 

@@ -20,16 +20,13 @@ class LetterDataCollector:
         self.output_path = Path(self.data_config["video_path"]["letters"])
         self.output_path.mkdir(parents=True, exist_ok=True)
 
-        # Forzar backend de OpenCV
         os.environ[
             "OPENCV_VIDEOIO_PRIORITY_BACKEND"
-        ] = "2"  # Usar V4L2 en Linux
+        ] = "2"  # V4L2 en Linux
 
     def _init_camera(self):
-        """Inicializa y prueba la cámara con diferentes índices"""
         logger.info("Intentando inicializar la cámara...")
 
-        # Probar diferentes índices de cámara
         for camera_index in range(2):
             logger.info(f"Probando cámara índice {camera_index}")
             cap = cv2.VideoCapture(camera_index)
@@ -54,11 +51,7 @@ class LetterDataCollector:
     def collect_video(
         self, letter: str, sample_num: int
     ) -> Optional[VideoData]:
-        """
-        Recolecta un video para una letra específica.
-        """
         try:
-            # Inicializar cámara
             cap = self._init_camera()
             if cap is None:
                 logger.error("No se pudo inicializar la cámara")
@@ -68,8 +61,7 @@ class LetterDataCollector:
             output_file = self.output_path / filename
             logger.info(f"Guardando video en: {output_file}")
 
-            # Configurar el escritor de video
-            fourcc = cv2.VideoWriter_fourcc(*"MJPG")  # Cambiar codec a MJPG
+            fourcc = cv2.VideoWriter_fourcc(*"MJPG")
             fps = self.video_config.get("fps", 30)
             frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
             frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -103,7 +95,6 @@ class LetterDataCollector:
                 writer.write(frame)
                 frame_count += 1
 
-                # Mostrar el frame con información
                 info_text = (
                     f"Recording letter {letter}: {frame_count}/{total_frames}"
                 )
@@ -154,12 +145,25 @@ class LetterDataCollector:
             cv2.destroyAllWindows()
             return None
 
+    # Letras estáticas do alfabeto LIBRAS (handshapes sem movimento).
+    # H J K X Z são dinâmicas (requerem modelo temporal) — excluídas aqui.
+    # Ñ pertence ao espanhol, não ao português/LIBRAS.
+    STATIC_LETTERS = list("ABCDEFGILMNOPQRSTUVWY") + ["Ç"]
+
     def collect_all_letters(self):
-        """Recolecta videos para todas las letras del alfabeto con 'ñ'"""
-        letters = list("abcdefghijklmnñopqrstuvwxyz")
+        self._collect_letters(self.STATIC_LETTERS)
+
+    def collect_specific_letters(self, letters: list):
+        """Coleta apenas as letras informadas. Útil para completar letras faltantes."""
+        unknown = [l for l in letters if l not in self.STATIC_LETTERS]
+        if unknown:
+            logger.warning(f"Letras fora do alfabeto estático LIBRAS: {unknown}")
+        self._collect_letters(letters)
+
+    def _collect_letters(self, letters: list):
         samples_per_letter = self.video_config.get("num_samples", 10)
 
-        logger.info("Iniciando recolección de todas las letras")
+        logger.info("Iniciando recolección de letras")
         logger.info(f"Letras a grabar: {letters}")
         logger.info(f"Muestras por letra: {samples_per_letter}")
 
@@ -181,23 +185,35 @@ class LetterDataCollector:
 
 
 if __name__ == "__main__":
-    # Configurar logging detallado
+    import argparse
+
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
         stream=sys.stdout,
     )
 
-    # Configurar backend de OpenCV
-    os.environ["QT_QPA_PLATFORM"] = "xcb"  # Forzar XCB para Qt
+    os.environ["QT_QPA_PLATFORM"] = "xcb"
+
+    parser = argparse.ArgumentParser(description="Coleta vídeos do alfabeto LIBRAS")
+    parser.add_argument(
+        "--letters",
+        nargs="+",
+        default=None,
+        help="Letras específicas a coletar (ex: --letters Ç). "
+             "Se omitido, coleta todo o alfabeto estático.",
+    )
+    args = parser.parse_args()
 
     logger.info("=== Iniciando programa de recolección de letras ===")
     logger.info(f"OpenCV version: {cv2.__version__}")
-    logger.info(f"Backend de video: {cv2.getBuildInformation()}")
 
     try:
         collector = LetterDataCollector()
-        collector.collect_all_letters()
+        if args.letters:
+            collector.collect_specific_letters(args.letters)
+        else:
+            collector.collect_all_letters()
     except KeyboardInterrupt:
         logger.info("Programa interrumpido por el usuario")
     except Exception as e:
