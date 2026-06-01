@@ -10,36 +10,26 @@ class ProcessedSequence:
     def __init__(
         self, sequence: np.ndarray, label: str, metadata: Dict[str, Any]
     ):
-        """
-        Constructor de ProcessedSequence.
-        """
         self.sequence = sequence
         self.label = label
         self.metadata = metadata
 
     def validate(self) -> bool:
-        """
-        Valida que la secuencia tenga el formato correcto.
-        """
         try:
-            # Validar secuencia no vacía
             if self.sequence.size == 0:
                 logger.warning("Secuencia vacía")
                 return False
 
-            # Validar dimensiones
             if len(self.sequence.shape) != 2:
                 logger.warning(
                     f"Forma de secuencia incorrecta: {self.sequence.shape}"
                 )
                 return False
 
-            # Validar etiqueta
             if not self.label or not isinstance(self.label, str):
                 logger.warning("Etiqueta inválida")
                 return False
 
-            # Validar metadata
             if not self.metadata or not isinstance(self.metadata, dict):
                 logger.warning("Metadata inválida")
                 return False
@@ -60,9 +50,6 @@ class ProcessedSequence:
             return False
 
     def to_dict(self) -> Dict[str, Any]:
-        """
-        Convierte la secuencia a diccionario.
-        """
         return {
             "sequence": self.sequence.tolist(),
             "label": self.label,
@@ -71,9 +58,6 @@ class ProcessedSequence:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "ProcessedSequence":
-        """
-        Crea una secuencia desde un diccionario.
-        """
         return cls(
             sequence=np.array(data["sequence"]),
             label=data["label"],
@@ -81,9 +65,6 @@ class ProcessedSequence:
         )
 
     def get_stats(self) -> Dict[str, Any]:
-        """
-        Calcula estadísticas de la secuencia.
-        """
         if not self.validate():
             return {}
 
@@ -97,14 +78,12 @@ class ProcessedSequence:
         }
 
     def __str__(self) -> str:
-        """String representation."""
         return (
             f"ProcessedSequence(label={self.label}, "
             f"frames={len(self.sequence)})"
         )
 
     def __repr__(self) -> str:
-        """Detailed string representation."""
         return (
             f"ProcessedSequence(label='{self.label}', "
             f"shape={self.sequence.shape}, "

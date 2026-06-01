@@ -1,4 +1,3 @@
-"""Módulo para análisis de secuencias de landmarks."""
 import logging
 import os
 from typing import Any, Dict
@@ -8,25 +7,14 @@ from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 
-# Cargar variables de entorno
 load_dotenv()
 
-# Directorio de secuencias procesadas desde .env
 SEQUENCE_DIR = os.getenv(
     "DATA_PROCESSED_DIR", "data/processed_lsp_letter_sequences"
 )
 
 
 def analyze(sequence: np.ndarray) -> Dict[str, Any]:
-    """
-    Analiza una secuencia de landmarks para extraer características.
-
-    Args:
-        sequence: Array numpy con la secuencia de landmarks
-
-    Returns:
-        Dict con estadísticas y características de la secuencia
-    """
     try:
         if sequence.size == 0:
             return {}
