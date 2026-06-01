@@ -46,64 +46,55 @@ if gpus:
         logger.error(f"Error configurando GPU: {e}")
 
 
-def load_processed_data(data_dir: Path) -> Tuple[np.ndarray, np.ndarray, List[str]]:
-    """
-    Carga los datos procesados del alfabeto.
-
-    Args:
-        data_dir: Directorio con archivos .npy
-
-    Returns:
-        Tupla (X, y, label_names)
-    """
-    logger.info(f"Cargando datos desde {data_dir}...")
-
-    sequences = []
-    labels = []
-
-    # Buscar archivos .npy
-    npy_files = list(data_dir.glob("*.npy")) if data_dir.is_file() == False else list(data_dir.parent.glob("*.npy"))
-
-    if not npy_files:
-        # Intentar buscar en subdirectorios
-        npy_files = list(data_dir.rglob("*.npy"))
-
-    if not npy_files:
-        raise FileNotFoundError(f"No se encontraron archivos .npy en {data_dir}")
-
-    logger.info(f"Encontrados {len(npy_files)} archivos procesados")
-
+def load_npy_dir(data_dir: Path) -> Tuple[List[np.ndarray], List[str]]:
+    """Carga todos los .npy de un directorio (raíz o subdirectorios por letra)."""
+    npy_files = list(data_dir.rglob("*.npy"))
+    sequences, labels = [], []
     for npy_file in npy_files:
         try:
-            sequence = np.load(npy_file)
-
-            # Extraer etiqueta del nombre del archivo
-            # Formato: "A_0001.npy" -> "A"
-            filename = npy_file.stem
-            letter = filename.split('_')[0]
-
-            sequences.append(sequence)
+            seq = np.load(npy_file)
+            letter = npy_file.stem.split("_")[0]
+            sequences.append(seq)
             labels.append(letter)
-
         except Exception as e:
             logger.warning(f"Error cargando {npy_file}: {e}")
-            continue
+    return sequences, labels
+
+
+def load_processed_data(
+    data_dir: Path,
+    personal_dir: Path | None = None,
+    personal_repeat: int = 10,
+) -> Tuple[np.ndarray, np.ndarray, List[str]]:
+    """
+    Carga datos del dataset base y, opcionalmente, datos personales.
+    Los datos personales se repiten personal_repeat veces para compensar
+    el desbalance frente al dataset base.
+    """
+    logger.info(f"Cargando datos base desde {data_dir}...")
+    sequences, labels = load_npy_dir(data_dir)
+    logger.info(f"  Base: {len(sequences)} muestras")
+
+    if personal_dir and personal_dir.exists():
+        p_seq, p_lab = load_npy_dir(personal_dir)
+        if p_seq:
+            # Repetir datos personales para darles más peso
+            sequences += p_seq * personal_repeat
+            labels    += p_lab * personal_repeat
+            logger.info(f"  Personal: {len(p_seq)} muestras × {personal_repeat} = {len(p_seq)*personal_repeat} añadidas")
+        else:
+            logger.warning(f"  Personal: directorio vacío en {personal_dir}")
 
     if not sequences:
         raise ValueError("No se pudieron cargar secuencias válidas")
 
-    # Convertir a arrays
     X = np.array(sequences, dtype=np.float32)
-
-    # Codificar labels
     label_encoder = LabelEncoder()
     y = label_encoder.fit_transform(labels)
     label_names = label_encoder.classes_.tolist()
 
-    logger.info(f"Datos cargados: {X.shape[0]} muestras")
-    logger.info(f"Shape de secuencias: {X.shape}")
-    logger.info(f"Número de clases: {len(label_names)}")
-    logger.info(f"Clases: {sorted(label_names)}")
+    logger.info(f"Total muestras: {X.shape[0]}")
+    logger.info(f"Clases ({len(label_names)}): {sorted(label_names)}")
 
     return X, y, label_names
 
@@ -179,22 +170,49 @@ def augment_sequence(sequence: np.ndarray) -> np.ndarray:
     return augmented
 
 
+def create_dnn_model(
+    num_features: int,
+    num_classes: int,
+    learning_rate: float = 0.001,
+) -> tf.keras.Model:
+    """DNN para datos per-frame (2D): input shape = (num_features,)."""
+    inputs = tf.keras.Input(shape=(num_features,))
+
+    x = tf.keras.layers.Dense(512, activation='relu',
+                               kernel_regularizer=tf.keras.regularizers.l2(0.001))(inputs)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Dropout(0.3)(x)
+
+    x = tf.keras.layers.Dense(256, activation='relu',
+                               kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Dropout(0.3)(x)
+
+    x = tf.keras.layers.Dense(128, activation='relu',
+                               kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Dropout(0.2)(x)
+
+    x = tf.keras.layers.Dense(64, activation='relu')(x)
+    x = tf.keras.layers.Dropout(0.2)(x)
+
+    outputs = tf.keras.layers.Dense(num_classes, activation='softmax')(x)
+
+    model = tf.keras.Model(inputs=inputs, outputs=outputs, name='DNN_Alphabet')
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
+        loss='sparse_categorical_crossentropy',
+        metrics=['accuracy'],
+    )
+    return model
+
+
 def create_alphabet_model(
     input_shape: Tuple[int, int],
     num_classes: int,
     learning_rate: float = 0.001
 ) -> tf.keras.Model:
-    """
-    Crea modelo CNN-LSTM mejorado con atención para alfabeto.
-
-    Args:
-        input_shape: (sequence_length, feature_dim)
-        num_classes: Número de letras (26 para A-Z)
-        learning_rate: Tasa de aprendizaje
-
-    Returns:
-        Modelo compilado
-    """
+    """CNN-LSTM para datos de secuencias (3D): input shape = (timesteps, features)."""
     inputs = tf.keras.Input(shape=input_shape)
 
     # Bloque Conv1D 1 - Extracción de características de bajo nivel
@@ -357,8 +375,9 @@ def train(args):
     logger.info(f"Directorio de salida: {run_dir}")
 
     # Cargar datos
-    data_dir = Path(args.data_dir)
-    X, y, label_names = load_processed_data(data_dir)
+    data_dir     = Path(args.data_dir)
+    personal_dir = Path(args.personal_dir) if args.personal_dir else None
+    X, y, label_names = load_processed_data(data_dir, personal_dir, personal_repeat=10)
 
     # Verificar datos
     if len(X) < 10:
@@ -375,19 +394,40 @@ def train(args):
 
     logger.info(f"Train: {len(X_train)} | Val: {len(X_val)} | Test: {len(X_test)}")
 
-    # Crear modelo
-    input_shape = (X.shape[1], X.shape[2])
     num_classes = len(label_names)
+    is_per_frame = X.ndim == 2  # True → DNN, False → CNN-LSTM
 
-    logger.info(f"Creando modelo CNN-LSTM para alfabeto...")
-    logger.info(f"Input shape: {input_shape}")
-    logger.info(f"Número de clases: {num_classes}")
+    # Normalización: ajustar sobre train, aplicar a todos los splits
+    norm_mean = X_train.mean(axis=0)
+    norm_std  = X_train.std(axis=0) + 1e-8
+    X_train = (X_train - norm_mean) / norm_std
+    X_val   = (X_val   - norm_mean) / norm_std
+    X_test  = (X_test  - norm_mean) / norm_std
 
-    model = create_alphabet_model(
-        input_shape=input_shape,
-        num_classes=num_classes,
-        learning_rate=args.learning_rate
-    )
+    # Guardar stats para inferencia (mismo formato que usa realtime_librai_alphabet.py)
+    np.save(run_dir / 'norm_mean.npy', norm_mean)
+    np.save(run_dir / 'norm_std.npy',  norm_std)
+    np.save(run_dir / 'label_classes.npy', np.array(label_names))
+    logger.info("Estadísticas de normalización guardadas")
+
+    if is_per_frame:
+        logger.info(f"Datos per-frame detectados → modelo DNN")
+        logger.info(f"Input shape: ({X.shape[1]},)")
+        model = create_dnn_model(
+            num_features=X.shape[1],
+            num_classes=num_classes,
+            learning_rate=args.learning_rate,
+        )
+        input_shape = (X.shape[1],)
+    else:
+        logger.info(f"Datos de secuencia detectados → modelo CNN-LSTM")
+        input_shape = (X.shape[1], X.shape[2])
+        logger.info(f"Input shape: {input_shape}")
+        model = create_alphabet_model(
+            input_shape=input_shape,
+            num_classes=num_classes,
+            learning_rate=args.learning_rate,
+        )
 
     # Mostrar resumen
     model.summary(print_fn=logger.info)
@@ -501,16 +541,20 @@ def train(args):
     # Guardar historial
     plot_training_history(history.history, run_dir)
 
-    # Guardar modelo final
+    # Guardar modelo final (h5 + keras — keras es el que usa la demo)
     model.save(run_dir / 'final_model.h5')
-    logger.info(f"Modelo final guardado en {run_dir / 'final_model.h5'}")
+    model.save(run_dir / 'best_model.keras')
+    logger.info(f"Modelos guardados en {run_dir}")
 
     # Guardar información del modelo
     model_info = {
         'timestamp': timestamp,
-        'input_shape': input_shape,
+        'input_shape': list(input_shape),
+        'num_features': int(input_shape[0]) if is_per_frame else int(input_shape[1]),
         'num_classes': num_classes,
+        'classes': label_names,
         'label_names': label_names,
+        'model_type': 'dnn' if is_per_frame else 'cnn_lstm',
         'train_samples': len(X_train),
         'val_samples': len(X_val),
         'test_samples': len(X_test),
@@ -580,6 +624,13 @@ def main():
         type=int,
         default=15,
         help='Paciencia para early stopping'
+    )
+
+    parser.add_argument(
+        '--personal-dir',
+        type=str,
+        default=None,
+        help='Directorio con datos personales capturados por guided_calibration.py'
     )
 
     args = parser.parse_args()
