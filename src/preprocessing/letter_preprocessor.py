@@ -18,16 +18,13 @@ from ..utils.validators import ProcessedSequence, VideoData
 
 logger = logging.getLogger(__name__)
 
-# Cargar variables de entorno
 load_dotenv()
 
-# Directorios de entrada y salida desde .env
 input_dir = os.getenv("DATA_RAW_DIR", "data/lsp_letter_videos")
 output_dir = os.getenv(
     "DATA_PROCESSED_DIR", "data/processed_lsp_letter_sequences"
 )
 
-# Configurar rutas de directorios
 input_dir = (
     os.path.join(input_dir, "letters")
     if os.path.isdir(os.path.join(input_dir, "letters"))
@@ -43,7 +40,6 @@ os.makedirs(output_dir, exist_ok=True)
 
 class LetterPreprocessor:
     def __init__(self):
-        """Inicializa el preprocesador de letras."""
         self.config = Config()
         self.mp_hands = mp.solutions.hands
         self.hands = self.mp_hands.Hands(
@@ -55,10 +51,6 @@ class LetterPreprocessor:
     def _extract_raw_landmarks(
         self, frame: np.ndarray
     ) -> Optional[np.ndarray]:
-        """
-        Extrae coordenadas crudas x,y,z de MediaPipe (126,).
-        Interno — usar extract_landmarks() para obtener features engineerizados.
-        """
         try:
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = self.hands.process(frame_rgb)
@@ -89,13 +81,6 @@ class LetterPreprocessor:
         frame: np.ndarray,
         prev_raw: Optional[np.ndarray] = None,
     ) -> Optional[np.ndarray]:
-        """
-        Extrae features engineerizados de las manos de un frame.
-
-        Returns:
-            Array (208,): posiciones(42×2) + distancias(12×2) +
-                          ángulos(30×2) + motion(20×2) por mano.
-        """
         raw = self._extract_raw_landmarks(frame)
         if raw is None:
             return None
@@ -104,11 +89,7 @@ class LetterPreprocessor:
     def process_video(
         self, video_data: VideoData
     ) -> Optional[ProcessedSequence]:
-        """
-        Procesa un video y extrae la secuencia de landmarks.
-        """
         try:
-            # Return None if no frames provided
             if not video_data.frames:
                 return None
 
@@ -121,7 +102,6 @@ class LetterPreprocessor:
                     sequences.append(features)
                     prev_raw = raw
 
-            # For test data with all-zero frames, create dummy sequence
             if not sequences and all(
                 np.all(frame == 0) for frame in video_data.frames
             ):
@@ -133,17 +113,14 @@ class LetterPreprocessor:
                 )
                 return None
 
-            # Normalizar y convertir a array numpy
             sequence_array = np.array(sequences)
 
-            # Crear metadata
             metadata = {
                 "original_video": str(video_data.path),
                 "num_frames": len(sequences),
                 "shape": sequence_array.shape,
             }
 
-            # For test data, add test flag
             if all(np.all(frame == 0) for frame in video_data.frames):
                 metadata["test"] = "data"
 
@@ -163,19 +140,7 @@ class LetterPreprocessor:
             return None
 
     def process_data(self, video_path: str) -> Optional[ProcessedSequence]:
-        """
-        Procesa los datos de un video de letra y devuelve la secuencia
-        procesada.
-
-        Args:
-            video_path: Ruta al archivo de video
-
-        Returns:
-            ProcessedSequence opcional con los landmarks procesados y
-            metadata
-        """
         try:
-            # Leer video
             cap = cv2.VideoCapture(video_path)
             frames = []
 
@@ -202,9 +167,6 @@ class LetterPreprocessor:
             return None
 
     def process_all_videos(self, input_dir: Path, output_dir: Path):
-        """
-        Procesa todos los videos en el directorio de entrada.
-        """
         try:
             input_dir = Path(input_dir)
             output_dir = Path(output_dir)
@@ -213,7 +175,6 @@ class LetterPreprocessor:
             for video_file in input_dir.glob("*.mp4"):
                 logger.info(f"Procesando video: {video_file}")
 
-                # Leer video
                 cap = cv2.VideoCapture(str(video_file))
                 frames = []
                 while cap.isOpened():
@@ -223,19 +184,15 @@ class LetterPreprocessor:
                     frames.append(frame)
                 cap.release()
 
-                # Crear VideoData
                 video_data = VideoData(
                     path=video_file,
                     frames=frames,
-                    # Extraer letra del nombre
                     label=video_file.stem.split("_")[1],
-                    duration=len(frames) / 30,  # Asumiendo 30 fps
+                    duration=len(frames) / 30,  # assumes 30 fps
                 )
 
-                # Procesar video
                 processed_sequence = self.process_video(video_data)
                 if processed_sequence:
-                    # Guardar secuencia procesada
                     output_file = (
                         output_dir / f"{video_file.stem}_processed.npy"
                     )
@@ -249,9 +206,5 @@ class LetterPreprocessor:
 
 
 def process_data():
-    """
-    Función principal para procesar los datos de letras.
-    Crea un preprocesador y procesa todos los videos de letras.
-    """
     preprocessor = LetterPreprocessor()
     return preprocessor.process_all_videos(input_dir, output_dir)
