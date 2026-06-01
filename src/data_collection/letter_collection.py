@@ -154,10 +154,12 @@ class LetterDataCollector:
         self._collect_letters(self.STATIC_LETTERS)
 
     def collect_specific_letters(self, letters: list):
-        """Coleta apenas as letras informadas. Útil para completar letras faltantes."""
-        unknown = [l for l in letters if l not in self.STATIC_LETTERS]
+        """Coleta apenas as letras informadas."""
+        unknown = [ltr for ltr in letters if ltr not in self.STATIC_LETTERS]
         if unknown:
-            logger.warning(f"Letras fora do alfabeto estático LIBRAS: {unknown}")
+            logger.warning(
+                f"Letras fora do alfabeto estático LIBRAS: {unknown}"
+            )
         self._collect_letters(letters)
 
     def _collect_letters(self, letters: list):
@@ -195,7 +197,9 @@ if __name__ == "__main__":
 
     os.environ["QT_QPA_PLATFORM"] = "xcb"
 
-    parser = argparse.ArgumentParser(description="Coleta vídeos do alfabeto LIBRAS")
+    parser = argparse.ArgumentParser(
+        description="Coleta vídeos do alfabeto LIBRAS"
+    )
     parser.add_argument(
         "--letters",
         nargs="+",

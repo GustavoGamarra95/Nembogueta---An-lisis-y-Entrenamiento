@@ -9,10 +9,7 @@ import numpy as np
 from dotenv import load_dotenv
 
 from src.config.config import Config
-from src.preprocessing.feature_engineering import (
-    engineer_frame_features,
-    TOTAL_FEATURES_PER_HAND,
-)
+from src.preprocessing.feature_engineering import engineer_frame_features
 
 from ..utils.validators import ProcessedSequence, VideoData
 
@@ -68,7 +65,9 @@ class LetterPreprocessor:
 
             raw_arr = np.array(raw, dtype=np.float32)
             if len(raw_arr) == 63:
-                raw_arr = np.concatenate([raw_arr, np.zeros(63, dtype=np.float32)])
+                raw_arr = np.concatenate(
+                [raw_arr, np.zeros(63, dtype=np.float32)]
+            )
 
             return raw_arr
 
