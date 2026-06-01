@@ -10,7 +10,13 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 import tensorflow as tf
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import (
+    classification_report,
+    confusion_matrix,
+    f1_score,
+    precision_score,
+    recall_score,
+)
 from tensorflow import keras
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -111,10 +117,32 @@ class HandshapeEvaluator:
                 top5_correct += 1
         top5_acc = top5_correct / len(y_test)
 
+        # Precision, Recall/Sensitivity, F1 macro
+        precision_macro = precision_score(y_test, y_pred, average='macro', zero_division=0)
+        recall_macro = recall_score(y_test, y_pred, average='macro', zero_division=0)
+        f1_macro = f1_score(y_test, y_pred, average='macro', zero_division=0)
+
+        # Especificidade por clase (one-vs-rest) a partir da matriz de confusão
+        cm = confusion_matrix(y_test, y_pred)
+        n_classes = cm.shape[0]
+        specificities = []
+        for i in range(n_classes):
+            tp = cm[i, i]
+            fp = cm[:, i].sum() - tp
+            fn = cm[i, :].sum() - tp
+            tn = cm.sum() - tp - fp - fn
+            spec = tn / (tn + fp) if (tn + fp) > 0 else 0.0
+            specificities.append(float(spec))
+        specificity_macro = float(np.mean(specificities))
+
         metrics = {
             'loss': results[0],
             'accuracy': results[1],
             'top5_accuracy': top5_acc,
+            'precision_macro': float(precision_macro),
+            'recall_macro': float(recall_macro),
+            'specificity_macro': specificity_macro,
+            'f1_macro': float(f1_macro),
             'predictions': y_pred,
             'probabilities': y_pred_probs,
             'true_labels': y_test
@@ -280,6 +308,10 @@ def compare_views(model_dir: Path, data_dir: Path, views: List[str]):
             'view': view,
             'accuracy': metrics['accuracy'],
             'top5_accuracy': metrics['top5_accuracy'],
+            'precision_macro': metrics['precision_macro'],
+            'recall_macro': metrics['recall_macro'],
+            'specificity_macro': metrics['specificity_macro'],
+            'f1_macro': metrics['f1_macro'],
             'loss': metrics['loss'],
             'n_test': len(X_test)
         })
@@ -289,16 +321,19 @@ def compare_views(model_dir: Path, data_dir: Path, views: List[str]):
         return
 
     # Imprimir tabla comparativa
-    print("\n" + "=" * 80)
+    print("\n" + "=" * 100)
     print("TABLA COMPARATIVA")
-    print("=" * 80)
-    print(f"{'Vista':<10} {'Test Samples':<15} {'Accuracy':<12} {'Top-5 Acc':<12} {'Loss':<10}")
-    print("-" * 80)
+    print("=" * 100)
+    print(f"{'Vista':<10} {'Samples':<10} {'Accuracy':<11} {'Top-5':<11} "
+          f"{'Precision':<11} {'Recall':<11} {'Specificity':<13} {'F1':<10} {'Loss':<8}")
+    print("-" * 100)
 
     for res in sorted(results, key=lambda x: x['accuracy'], reverse=True):
-        print(f"{res['view']:<10} {res['n_test']:<15} "
-              f"{res['accuracy']:<12.4f} {res['top5_accuracy']:<12.4f} "
-              f"{res['loss']:<10.4f}")
+        print(f"{res['view']:<10} {res['n_test']:<10} "
+              f"{res['accuracy']:<11.4f} {res['top5_accuracy']:<11.4f} "
+              f"{res['precision_macro']:<11.4f} {res['recall_macro']:<11.4f} "
+              f"{res['specificity_macro']:<13.4f} {res['f1_macro']:<10.4f} "
+              f"{res['loss']:<8.4f}")
 
     # Mejor modelo
     best = max(results, key=lambda x: x['accuracy'])
@@ -385,9 +420,30 @@ def main():
         print("\n" + "=" * 80)
         print(f"RESULTADOS DE EVALUACIÓN - Vista {args.view.upper()}")
         print("=" * 80)
-        print(f"Loss: {metrics['loss']:.4f}")
-        print(f"Accuracy: {metrics['accuracy']:.4f} ({100 * metrics['accuracy']:.2f}%)")
-        print(f"Top-5 Accuracy: {metrics['top5_accuracy']:.4f} ({100 * metrics['top5_accuracy']:.2f}%)")
+        print(f"Loss:                      {metrics['loss']:.4f}")
+        print(f"Accuracy:                  {metrics['accuracy']*100:.2f}%")
+        print(f"Top-5 Accuracy:            {metrics['top5_accuracy']*100:.2f}%")
+        print(f"Precision (macro):         {metrics['precision_macro']*100:.2f}%")
+        print(f"Recall / Sensitivity (macro): {metrics['recall_macro']*100:.2f}%")
+        print(f"Specificity (macro):       {metrics['specificity_macro']*100:.2f}%")
+        print(f"F1-Score (macro):          {metrics['f1_macro']*100:.2f}%")
+        print("=" * 80)
+
+        # Guardar métricas en JSON
+        summary = {
+            'view': args.view,
+            'loss': metrics['loss'],
+            'accuracy': metrics['accuracy'],
+            'top5_accuracy': metrics['top5_accuracy'],
+            'precision_macro': metrics['precision_macro'],
+            'recall_macro': metrics['recall_macro'],
+            'specificity_macro': metrics['specificity_macro'],
+            'f1_macro': metrics['f1_macro'],
+        }
+        summary_path = args.output_dir / f"summary_metrics_{args.view}.json"
+        with open(summary_path, 'w', encoding='utf-8') as f:
+            json.dump(summary, f, indent=2, ensure_ascii=False)
+        print(f"\n✓ Métricas guardadas en: {summary_path}")
 
         # Reporte de clasificación
         evaluator.print_classification_report(
