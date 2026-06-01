@@ -228,7 +228,7 @@ def train_model(
 
                 tf.keras.layers.Dense(64, activation="relu"),
                 tf.keras.layers.Dropout(0.3),
-                tf.keras.layers.Dense(27, activation="softmax"),  # 27 letters: a-z + ñ
+                tf.keras.layers.Dense(27, activation="softmax"),  # a-z + ñ
             ]
         )
 

@@ -137,19 +137,22 @@ def train_model(
                     [
                         tf.keras.layers.Conv1D(
                             64, kernel_size=5, activation="relu",
-                            padding="same", input_shape=(X.shape[1], X.shape[2])
+                            padding="same",
+                            input_shape=(X.shape[1], X.shape[2])
                         ),
                         tf.keras.layers.BatchNormalization(),
                         Dropout(0.3),
 
                         tf.keras.layers.Conv1D(
-                            128, kernel_size=5, activation="relu", padding="same"
+                            128, kernel_size=5,
+                            activation="relu", padding="same"
                         ),
                         tf.keras.layers.BatchNormalization(),
                         Dropout(0.3),
 
                         tf.keras.layers.Conv1D(
-                            256, kernel_size=3, activation="relu", padding="same"
+                            256, kernel_size=3,
+                            activation="relu", padding="same"
                         ),
                         tf.keras.layers.BatchNormalization(),
                         Dropout(0.3),
@@ -168,16 +171,19 @@ def train_model(
                 model = Sequential(
                     [
                         TimeDistributed(
-                            Conv2D(64, (3, 3), activation="relu", padding="same"),
+                            Conv2D(64, (3, 3), activation="relu",
+                                   padding="same"),
                             input_shape=(15, 200, 200, 3),
                         ),
                         TimeDistributed(MaxPooling2D((2, 2))),
                         TimeDistributed(
-                            Conv2D(128, (3, 3), activation="relu", padding="same")
+                            Conv2D(128, (3, 3), activation="relu",
+                                   padding="same")
                         ),
                         TimeDistributed(MaxPooling2D((2, 2))),
                         TimeDistributed(
-                            Conv2D(256, (3, 3), activation="relu", padding="same")
+                            Conv2D(256, (3, 3), activation="relu",
+                                   padding="same")
                         ),
                         TimeDistributed(MaxPooling2D((2, 2))),
                         TimeDistributed(Flatten()),
