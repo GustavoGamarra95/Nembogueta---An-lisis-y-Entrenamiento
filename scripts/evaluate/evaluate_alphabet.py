@@ -62,6 +62,9 @@ def load_processed_data(data_dir: Path) -> Tuple[np.ndarray, np.ndarray, List[st
     npy_files = list(data_dir.glob("*.npy"))
 
     if not npy_files:
+        npy_files = list(data_dir.rglob("*.npy"))
+
+    if not npy_files:
         raise FileNotFoundError(f"No se encontraron archivos .npy en {data_dir}")
 
     logger.info(f"Encontrados {len(npy_files)} archivos procesados")
@@ -88,11 +91,6 @@ def load_processed_data(data_dir: Path) -> Tuple[np.ndarray, np.ndarray, List[st
 
     # Convertir a arrays
     X = np.array(sequences, dtype=np.float32)
-
-    # Normalizar
-    X_mean = np.mean(X, axis=(0, 1), keepdims=True)
-    X_std = np.std(X, axis=(0, 1), keepdims=True) + 1e-8
-    X = (X - X_mean) / X_std
 
     # Codificar labels (letras)
     label_encoder = LabelEncoder()
@@ -174,6 +172,18 @@ def evaluate_model(
     recall_macro = recall_score(y_test, y_pred, average='macro', zero_division=0)
     f1_macro = f1_score(y_test, y_pred, average='macro', zero_division=0)
 
+    # Especificidade por clase (one-vs-rest) a partir da matriz de confusão
+    cm = confusion_matrix(y_test, y_pred)
+    specificities = []
+    for i in range(len(label_names)):
+        tp = cm[i, i]
+        fp = cm[:, i].sum() - tp
+        fn = cm[i, :].sum() - tp
+        tn = cm.sum() - tp - fp - fn
+        spec = tn / (tn + fp) if (tn + fp) > 0 else 0.0
+        specificities.append(float(spec))
+    specificity_macro = float(np.mean(specificities))
+
     # Top-k accuracy (útil para alfabeto)
     top_3_acc = top_k_accuracy_score(y_test, y_pred_probs, k=min(3, len(label_names)))
     top_5_acc = top_k_accuracy_score(y_test, y_pred_probs, k=min(5, len(label_names)))
@@ -188,7 +198,8 @@ def evaluate_model(
     logger.info(f"Top-3 Accuracy: {top_3_acc*100:.2f}%")
     logger.info(f"Top-5 Accuracy: {top_5_acc*100:.2f}%")
     logger.info(f"Precision (macro): {precision_macro*100:.2f}%")
-    logger.info(f"Recall (macro): {recall_macro*100:.2f}%")
+    logger.info(f"Recall / Sensitivity (macro): {recall_macro*100:.2f}%")
+    logger.info(f"Specificity (macro): {specificity_macro*100:.2f}%")
     logger.info(f"F1-Score (macro): {f1_macro*100:.2f}%")
     logger.info("="*80 + "\n")
 
@@ -202,6 +213,7 @@ def evaluate_model(
         'top_5_accuracy': float(top_5_acc),
         'precision_macro': float(precision_macro),
         'recall_macro': float(recall_macro),
+        'specificity_macro': specificity_macro,
         'f1_macro': float(f1_macro)
     }
 
@@ -231,7 +243,6 @@ def evaluate_model(
 
     # Matriz de confusión
     logger.info("Generando matriz de confusión...")
-    cm = confusion_matrix(y_test, y_pred)
     np.save(output_dir / 'confusion_matrix.npy', cm)
 
     # Visualizar matriz de confusión (alfabeto suele tener pocas clases)
@@ -244,8 +255,8 @@ def evaluate_model(
     # Distribución de confianza
     plot_confidence_distribution(y_pred_probs, y_test, y_pred, output_dir)
 
-    # Análisis por letra
-    analyze_per_letter_performance(y_test, y_pred, label_names, output_dir)
+    # Análisis por letra (inclui especificidade por letra)
+    analyze_per_letter_performance(y_test, y_pred, label_names, specificities, output_dir)
 
     logger.info(f"\nEvaluación completa guardada en {output_dir}")
 
@@ -375,6 +386,7 @@ def analyze_per_letter_performance(
     y_true: np.ndarray,
     y_pred: np.ndarray,
     labels: List[str],
+    specificities: List[float],
     output_dir: Path
 ):
     """Analiza performance por cada letra."""
@@ -389,6 +401,7 @@ def analyze_per_letter_performance(
                 'letter_idx': int(i),
                 'samples': int(mask.sum()),
                 'accuracy': float(accuracy),
+                'specificity': specificities[i],
                 'correct': int((y_pred[mask] == i).sum()),
                 'incorrect': int((y_pred[mask] != i).sum())
             })
@@ -499,6 +512,18 @@ def main():
 
     # Obtener test set
     X_test, y_test = get_test_set(X, y)
+
+    # Aplicar normalización del entrenamiento (norm_mean / norm_std guardados en model_dir)
+    model_dir = Path(args.model).parent
+    norm_mean_path = model_dir / 'norm_mean.npy'
+    norm_std_path  = model_dir / 'norm_std.npy'
+    if norm_mean_path.exists() and norm_std_path.exists():
+        norm_mean = np.load(norm_mean_path)
+        norm_std  = np.load(norm_std_path)
+        X_test = (X_test - norm_mean) / norm_std
+        logger.info("Normalización aplicada desde norm_mean.npy / norm_std.npy")
+    else:
+        logger.warning("No se encontraron archivos de normalización — evaluando sin normalizar")
 
     # Evaluar
     output_dir = Path(args.output_dir)
