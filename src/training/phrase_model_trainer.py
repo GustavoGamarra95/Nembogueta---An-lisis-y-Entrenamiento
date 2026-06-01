@@ -20,22 +20,17 @@ from tensorflow.keras.layers import (
 )
 from tensorflow.keras.models import Sequential
 
-# Configurar logger
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-# Establecer una semilla para reproducibilidad
 tf.random.set_seed(42)
 np.random.seed(42)
 
-# Cargar variables de entorno
 load_dotenv()
 
-# Directorios de entrada y salida desde .env
 input_dir = os.getenv("DATA_RAW_DIR", "data/raw/phrases")
 output_dir = os.getenv("DATA_PROCESSED_DIR", "data/processed/phrases")
 
-# Configurar rutas de directorios
 input_dir = (
     os.path.join(input_dir, "phrases")
     if os.path.isdir(os.path.join(input_dir, "phrases"))
@@ -48,21 +43,17 @@ output_dir = (
 )
 os.makedirs(output_dir, exist_ok=True)
 
-# Rutas a los datos preprocesados
 processed_dir = "data/processed_lsp_phrase_sequences"
 X_path = os.path.join(processed_dir, "X_lsp_phrase_sequences.npy")
 y_path = os.path.join(processed_dir, "y_lsp_phrase_sequences.npy")
 
-# Crear archivos vacíos para pruebas si no existen
 if not os.path.exists(processed_dir):
     os.makedirs(processed_dir)
 
-# Cargar los datos si existen, sino crear arrays vacíos para pruebas
 try:
     X = np.load(X_path)  # Forma: (muestras, 15, 200, 200, 3)
     y = np.load(y_path)  # Forma: (muestras,)
 except FileNotFoundError:
-    # Crear arrays vacíos para pruebas
     X = np.zeros((0, 15, 200, 200, 3))
     y = np.zeros((0,))
     np.save(X_path, X)
@@ -72,24 +63,18 @@ print(f"Forma de X: {X.shape}, Forma de y: {y.shape}")
 
 
 def augment_sequence(sequence):
-    """
-    Aplica aumento de datos con rotación y escalado aleatorios.
-    """
     augmented_sequence = np.zeros_like(sequence)
     for i in range(sequence.shape[0]):
         frame = sequence[i]
-        # Rotación aleatoria (-15 a 15 grados)
         angle = np.random.uniform(-15, 15)
         M = cv2.getRotationMatrix2D(
             (frame.shape[1] // 2, frame.shape[0] // 2), angle, 1
         )
         rotated = cv2.warpAffine(frame, M, (frame.shape[1], frame.shape[0]))
-        # Escalado aleatorio (0.9 a 1.1)
         scale = np.random.uniform(0.9, 1.1)
         scaled = cv2.resize(
             rotated, None, fx=scale, fy=scale, interpolation=cv2.INTER_LINEAR
         )
-        # Asegurar que la forma de salida coincida con la entrada
         scaled = cv2.resize(
             scaled,
             (frame.shape[1], frame.shape[0]),
@@ -102,20 +87,10 @@ def augment_sequence(sequence):
 def train_model(
     config: Dict[str, Any] = None
 ) -> Tuple[tf.keras.Model, Dict[str, Any]]:
-    """
-    Entrena el modelo de reconocimiento de frases.
-
-    Args:
-        config: Configuración opcional para el entrenamiento
-
-    Returns:
-        Tupla con el modelo entrenado y el historial de entrenamiento
-    """
     if config is None:
         config = {}
 
     try:
-        # Cargar datos
         X_path = os.path.join(processed_dir, "X_lsp_phrase_sequences.npy")
         y_path = os.path.join(processed_dir, "y_lsp_phrase_sequences.npy")
 
@@ -123,7 +98,7 @@ def train_model(
             X = np.load(X_path)
             y = np.load(y_path)
             logger.info(
-                f"Datos cargados: X shape {X.shape}, y shape {y.shape}"
+                f"Dados carregados: X shape {X.shape}, y shape {y.shape}"
             )
         except FileNotFoundError:
             logger.error("Archivos de datos no encontrados")
@@ -133,28 +108,20 @@ def train_model(
             logger.error("No hay datos para entrenar")
             return None, {}
 
-        # Dividir datos
         X_train, X_val, y_train, y_val = train_test_split(
             X, y, test_size=0.2, random_state=42
         )
 
-        # Check if we have data before splitting
         if len(X) == 0 or len(y) == 0:
             print("No hay datos para entrenar.")
             X_train = X_val = y_train = y_val = np.array([])
         else:
-            # Aplicar aumento de datos
             X_augmented = np.array([augment_sequence(seq) for seq in X])
-
-            # Normalizar los datos
             X_augmented = X_augmented / 255.0
-
-            # Dividir los datos
             X_train, X_val, y_train, y_val = train_test_split(
                 X_augmented, y, test_size=0.2, random_state=42
             )
 
-        # Calcular pesos de clase solo si hay datos
         if len(y_train) > 0:
             class_weights = class_weight.compute_class_weight(
                 "balanced", classes=np.unique(y_train), y=y_train
@@ -163,16 +130,11 @@ def train_model(
         else:
             class_weights_dict = {}
 
-        # Create and train model only if we have data
         if len(X_train) > 0 and len(y_train) > 0:
-            # Construir modelo CNN-LSTM para landmarks o video frames
-            # Detectar automáticamente el tipo de datos según la forma
-
+            # X.shape == 3: landmark sequences; X.shape == 5: raw video frames
             if len(X.shape) == 3:
-                # Modelo para landmarks (sequence_length, feature_dim)
                 model = Sequential(
                     [
-                        # Conv1D layers para extraer características espaciales de landmarks
                         tf.keras.layers.Conv1D(
                             64, kernel_size=5, activation="relu",
                             padding="same", input_shape=(X.shape[1], X.shape[2])
@@ -192,23 +154,19 @@ def train_model(
                         tf.keras.layers.BatchNormalization(),
                         Dropout(0.3),
 
-                        # LSTM layers para dependencias temporales
                         LSTM(256, return_sequences=True),
                         Dropout(0.4),
                         LSTM(128),
                         Dropout(0.4),
 
-                        # Dense layers para clasificación
                         Dense(128, activation="relu"),
                         Dropout(0.3),
                         Dense(3, activation="softmax"),  # 3 clases para frases
                     ]
                 )
             else:
-                # Modelo para video frames (15, 200, 200, 3)
                 model = Sequential(
                     [
-                        # Capas CNN para extraer características espaciales
                         TimeDistributed(
                             Conv2D(64, (3, 3), activation="relu", padding="same"),
                             input_shape=(15, 200, 200, 3),
@@ -223,19 +181,16 @@ def train_model(
                         ),
                         TimeDistributed(MaxPooling2D((2, 2))),
                         TimeDistributed(Flatten()),
-                        # Capas LSTM para dependencias temporales
                         LSTM(256, return_sequences=True),
                         Dropout(0.3),
                         LSTM(128, return_sequences=False),
                         Dropout(0.3),
-                        # Capas densas para clasificación
                         Dense(128, activation="relu"),
                         Dropout(0.3),
                         Dense(3, activation="softmax"),  # 3 clases para frases
                     ]
                 )
 
-            # Compilar
             optimizer = tf.keras.optimizers.AdamW(
                 learning_rate=config.get("learning_rate", 0.0005),
                 weight_decay=config.get("weight_decay", 0.01),
@@ -246,14 +201,12 @@ def train_model(
                 metrics=["accuracy"],
             )
 
-            # Early stopping
             early_stopping = EarlyStopping(
                 monitor="val_accuracy",
                 patience=config.get("patience", 10),
                 restore_best_weights=True,
             )
 
-            # Entrenar
             history = model.fit(
                 X_train,
                 y_train,
@@ -265,10 +218,9 @@ def train_model(
                 verbose=1,
             )
 
-            # Guardar modelo
             model_path = os.path.join(
                 output_dir,
-                "cnn_lstm_lsp_phrases_model.h5",  # Corrected indentation
+                "cnn_lstm_lsp_phrases_model.h5",
             )
             model.save(model_path)
             logger.info(f"Modelo guardado en {model_path}")
@@ -280,4 +232,4 @@ def train_model(
 
     except Exception as e:
         logger.error(f"Error en el entrenamiento: {e}")
-        return None, {}  # Corrected comment spacing and ensured single line
+        return None, {}
