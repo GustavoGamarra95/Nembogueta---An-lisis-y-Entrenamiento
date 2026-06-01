@@ -26,11 +26,14 @@ import argparse
 import json
 import logging
 import sys
+import urllib.request
 from pathlib import Path
 
 import cv2
 import mediapipe as mp
 import numpy as np
+from mediapipe.tasks import python as mp_python
+from mediapipe.tasks.python import vision as mp_vision
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from preprocessing.feature_engineering import engineer_frame_features
@@ -43,6 +46,25 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 IMAGE_EXTENSIONS = ("*.png", "*.jpg", "*.jpeg", "*.PNG", "*.JPG")
+MODEL_URL = "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task"
+MODEL_PATH = Path(__file__).resolve().parents[2] / "hand_landmarker.task"
+
+
+def ensure_model() -> Path:
+    if not MODEL_PATH.exists():
+        logger.info(f"Descargando modelo MediaPipe → {MODEL_PATH}")
+        urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
+    return MODEL_PATH
+
+
+def build_detector() -> mp_vision.HandLandmarker:
+    base_options = mp_python.BaseOptions(model_asset_path=str(ensure_model()))
+    options = mp_vision.HandLandmarkerOptions(
+        base_options=base_options,
+        num_hands=2,
+        min_hand_detection_confidence=0.3,
+    )
+    return mp_vision.HandLandmarker.create_from_options(options)
 
 
 def get_images(letter_dir: Path) -> list[Path]:
@@ -52,9 +74,9 @@ def get_images(letter_dir: Path) -> list[Path]:
     return sorted(images)
 
 
-def extract_features(image_path: Path, hands) -> np.ndarray | None:
+def extract_features(image_path: Path, detector) -> np.ndarray | None:
     """
-    Extrae vector (208,) desde una imagen usando MediaPipe.
+    Extrae vector (208,) desde una imagen usando MediaPipe Tasks API.
     Retorna None si no se detecta ninguna mano.
     """
     img = cv2.imread(str(image_path))
@@ -62,18 +84,17 @@ def extract_features(image_path: Path, hands) -> np.ndarray | None:
         return None
 
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    results = hands.process(img_rgb)
+    mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=img_rgb)
+    result = detector.detect(mp_image)
 
-    if not results.multi_hand_landmarks:
+    if not result.hand_landmarks:
         return None
 
     raw_126 = np.zeros(126, dtype=np.float32)
-    for hand_lm, handedness in zip(
-        results.multi_hand_landmarks, results.multi_handedness
-    ):
-        label = handedness.classification[0].label  # "Left" o "Right"
+    for hand_lm, handedness in zip(result.hand_landmarks, result.handedness):
+        label = handedness[0].display_name  # "Left" o "Right"
         offset = 0 if label == "Right" else 63
-        for i, lm in enumerate(hand_lm.landmark):
+        for i, lm in enumerate(hand_lm):
             raw_126[offset + i * 3 + 0] = lm.x
             raw_126[offset + i * 3 + 1] = lm.y
             raw_126[offset + i * 3 + 2] = lm.z
@@ -117,17 +138,12 @@ def preprocess_dataset(
     max_per_letter: int = 0,
     skip_existing: bool = True,
 ):
-    mp_hands = mp.solutions.hands
-    hands = mp_hands.Hands(
-        static_image_mode=True,
-        max_num_hands=2,
-        min_detection_confidence=0.3,
-    )
+    detector = build_detector()
 
     letter_dirs = collect_letter_dirs(input_dir)
     if not letter_dirs:
         logger.error("No se encontraron carpetas de letras en el directorio de entrada.")
-        hands.close()
+        detector.close()
         return
 
     # Agrupar por letra (puede haber train + test para la misma letra)
@@ -159,7 +175,7 @@ def preprocess_dataset(
             all_images = all_images[:max_per_letter]
 
         for img_path in all_images:
-            features = extract_features(img_path, hands)
+            features = extract_features(img_path, detector)
             if features is None:
                 skipped += 1
                 continue
@@ -174,7 +190,7 @@ def preprocess_dataset(
         total_saved += saved
         total_skipped += skipped
 
-    hands.close()
+    detector.close()
 
     detection_rate = total_saved / max(1, total_saved + total_skipped) * 100
     logger.info("=" * 50)
