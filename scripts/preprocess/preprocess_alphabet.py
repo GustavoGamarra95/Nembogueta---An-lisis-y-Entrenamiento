@@ -1,13 +1,3 @@
-"""
-Script de preprocesamiento para landmarks del alfabeto (A-Z).
-Convierte archivos CSV a formato NPY normalizado para entrenamiento.
-
-Uso:
-    python scripts/preprocess_alphabet.py --input-dir data/landmarks \
-                                          --output-dir data/processed/alphabet \
-                                          --sequence-length 30
-"""
-
 import argparse
 import logging
 import sys
@@ -30,15 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 def load_csv_landmarks(csv_path: Path) -> np.ndarray:
-    """
-    Carga landmarks desde archivo CSV.
 
-    Args:
-        csv_path: Ruta al archivo CSV
-
-    Returns:
-        Array de landmarks (n_frames, 63)
-    """
     # Leer CSV sin headers
     df = pd.read_csv(csv_path, header=None)
     landmarks = df.values.astype(np.float32)
@@ -51,16 +33,7 @@ def normalize_sequence_length(
     sequence: np.ndarray,
     target_length: int
 ) -> np.ndarray:
-    """
-    Normaliza la longitud de una secuencia.
 
-    Args:
-        sequence: Secuencia original (n_frames, features)
-        target_length: Longitud objetivo
-
-    Returns:
-        Secuencia normalizada (target_length, features)
-    """
     current_length = len(sequence)
 
     if current_length == target_length:
@@ -77,14 +50,7 @@ def process_letter_directory(
     output_dir: Path,
     sequence_length: int = 30
 ):
-    """
-    Procesa un archivo CSV de una letra.
 
-    Args:
-        letter_csv: Ruta al archivo CSV de la letra
-        output_dir: Directorio de salida
-        sequence_length: Longitud de secuencia objetivo
-    """
     letter = letter_csv.stem  # A, B, C, etc.
     letter_output_dir = output_dir / letter
     letter_output_dir.mkdir(parents=True, exist_ok=True)
@@ -94,11 +60,6 @@ def process_letter_directory(
     # Cargar landmarks
     landmarks = load_csv_landmarks(letter_csv)
 
-    # landmarks shape: (n_samples, 63) donde cada fila es un frame
-    # Cada muestra es un solo frame, necesitamos crear secuencias
-
-    # Estrategia: crear secuencias deslizantes
-    # Por ejemplo, cada 30 frames consecutivos forman una muestra
 
     if len(landmarks) < sequence_length:
         logger.warning(f"Letra {letter} tiene {len(landmarks)} frames, menos que {sequence_length}")
@@ -136,14 +97,7 @@ def create_flat_structure(
     output_dir: Path,
     sequence_length: int = 30
 ):
-    """
-    Crea estructura plana con todos los archivos .npy.
 
-    Args:
-        input_dir: Directorio con CSVs
-        output_dir: Directorio de salida plano
-        sequence_length: Longitud de secuencia
-    """
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Buscar archivos CSV
