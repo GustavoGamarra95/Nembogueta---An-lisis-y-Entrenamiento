@@ -1,0 +1,15 @@
+{
+  "subject_id": "S02-extra",
+  "timestamp": "2026-06-14T23:37:02.366792Z",
+  "age": "31",
+  "dominant_hand": "L",
+  "libras_experience_0_5": "0",
+  "lighting_1_5": "5",
+  "background": "cluttered",
+  "hand_to_camera_cm": "30",
+  "camera_height": "mesa",
+  "notes": "",
+  "model_dir": "/data/models/librai-alphabet-robust/run_20260614_021834",
+  "model_test_accuracy": 0.9895652173913043,
+  "model_num_features": 120
+}

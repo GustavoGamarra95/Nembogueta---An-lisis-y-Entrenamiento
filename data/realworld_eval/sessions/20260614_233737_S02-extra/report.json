@@ -1,0 +1,96 @@
+{
+  "model": {
+    "test_accuracy_holdout": 0.9895652173913043,
+    "num_features": 120,
+    "num_classes": 22
+  },
+  "per_letter": {
+    "A": {
+      "reps": 10,
+      "frames_detected": 600,
+      "frames_total": 600,
+      "top1_accuracy": 0.9266666666666666,
+      "top5_accuracy": 0.9983333333333333,
+      "mean_confidence_on_target": 0.9001201016568015
+    },
+    "C": {
+      "reps": 10,
+      "frames_detected": 597,
+      "frames_total": 600,
+      "top1_accuracy": 1.0,
+      "top5_accuracy": 1.0,
+      "mean_confidence_on_target": 0.9998386307577392
+    },
+    "D": {
+      "reps": 10,
+      "frames_detected": 577,
+      "frames_total": 600,
+      "top1_accuracy": 0.6949740034662045,
+      "top5_accuracy": 0.8509532062391681,
+      "mean_confidence_on_target": 0.5787517884196465
+    },
+    "G": {
+      "reps": 10,
+      "frames_detected": 589,
+      "frames_total": 600,
+      "top1_accuracy": 0.5551782682512734,
+      "top5_accuracy": 0.8964346349745331,
+      "mean_confidence_on_target": 0.5197055410843214
+    },
+    "R": {
+      "reps": 10,
+      "frames_detected": 590,
+      "frames_total": 600,
+      "top1_accuracy": 0.7423728813559322,
+      "top5_accuracy": 0.988135593220339,
+      "mean_confidence_on_target": 0.5991396574454453
+    },
+    "S": {
+      "reps": 10,
+      "frames_detected": 542,
+      "frames_total": 600,
+      "top1_accuracy": 0.7380073800738007,
+      "top5_accuracy": 0.9760147601476015,
+      "mean_confidence_on_target": 0.6998521080945473
+    },
+    "Ç": {
+      "reps": 10,
+      "frames_detected": 600,
+      "frames_total": 600,
+      "top1_accuracy": 0.0,
+      "top5_accuracy": 0.9983333333333333,
+      "mean_confidence_on_target": 0.005448814487565414
+    }
+  },
+  "global": {
+    "frames_detected": 4095,
+    "top1_accuracy": 0.663980463980464,
+    "top5_accuracy": 0.9587301587301588,
+    "letters_evaluated": 7,
+    "gap_vs_holdout": 0.32558475341084037
+  },
+  "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "I",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "Y",
+    "Ç"
+  ]
+}
