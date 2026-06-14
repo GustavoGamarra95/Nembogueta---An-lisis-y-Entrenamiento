@@ -1,0 +1,122 @@
+{
+  "timestamp": "2026-06-14T23:51:30.328983Z",
+  "num_features": 120,
+  "num_classes": 22,
+  "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "I",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "Y",
+    "Ç"
+  ],
+  "label_names": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "I",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "Y",
+    "Ç"
+  ],
+  "model_type": "dnn_robust",
+  "training_data": {
+    "librai": {
+      "train": 32197,
+      "val": 6900,
+      "test": 6900
+    },
+    "operator": {
+      "train": 7788,
+      "val": 1233,
+      "test": 1246
+    },
+    "op_weight": 4.1341807909604515
+  },
+  "augmentation": {
+    "palm_rot_deg": 20.0,
+    "jitter_sigma": 0.5,
+    "flip_prob": 0.5,
+    "dropout": 0.4
+  },
+  "hyperparameters": {
+    "lr": 0.001,
+    "batch_size": 128,
+    "epochs_max": 120,
+    "epochs_trained": 48
+  },
+  "test_accuracy": 0.9904347826086957,
+  "results": {
+    "base_v4": {
+      "librai_test": {
+        "name": "base_librai_test",
+        "top1": 0.9986956521739131,
+        "top5": 0.9998550724637681,
+        "n": 6900
+      },
+      "operator_test": {
+        "name": "base_op_test",
+        "top1": 0.21348314606741572,
+        "top5": 0.6428571428571429,
+        "n": 1246
+      },
+      "operator_all": {
+        "name": "base_op_all",
+        "top1": 0.23946856772521063,
+        "top5": 0.5917044718081659,
+        "n": 6172
+      }
+    },
+    "robust_new": {
+      "librai_test": {
+        "name": "robust_librai_test",
+        "top1": 0.9904347826086957,
+        "top5": 0.9992753623188406,
+        "n": 6900
+      },
+      "operator_test": {
+        "name": "robust_op_test",
+        "top1": 0.8138041733547352,
+        "top5": 0.9847512038523274,
+        "n": 1246
+      },
+      "operator_all": {
+        "name": "robust_op_all",
+        "top1": 0.9244977316915101,
+        "top5": 0.9953013609850939,
+        "n": 6172
+      }
+    }
+  }
+}
