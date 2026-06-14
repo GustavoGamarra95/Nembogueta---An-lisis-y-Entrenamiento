@@ -24,7 +24,7 @@ setup(
         "matplotlib",
         "seaborn",
     ],
-    python_requires=">=3.8",
+    python_requires=">=3.10",
     description=(
         "Sistema de reconocimiento de lenguaje de señas paraguayo"
         "Módulo de análisis y entrenamiento"
@@ -34,7 +34,7 @@ setup(
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.10",
     ],
 )
 
