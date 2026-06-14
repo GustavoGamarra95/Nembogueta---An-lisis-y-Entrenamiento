@@ -1,0 +1,15 @@
+{
+  "subject_id": "S01",
+  "timestamp": "2026-06-14T01:18:01.968153Z",
+  "age": "n/a",
+  "dominant_hand": "R",
+  "libras_experience_0_5": "0",
+  "lighting_1_5": "3",
+  "background": "uniforme",
+  "hand_to_camera_cm": "50",
+  "camera_height": "pecho",
+  "notes": "",
+  "model_dir": "/data/models/librai-alphabet-v4/run_20260601_015641",
+  "model_test_accuracy": 0.997826099395752,
+  "model_num_features": 120
+}
