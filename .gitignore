@@ -37,8 +37,11 @@ ENV/
 .ipynb_checkpoints
 
 # Project specific
-data/
-models/
+data/processed/
+data/personal/
+data/raw/
+data/models/*/
+!data/models/librai-alphabet-robust/
 logs/
 *.h5
 *.tflite
@@ -63,3 +66,5 @@ src/videos UFPE (V-LIBRASIL)/
 coversacion.txt
 hand_landmarker.task
 *.keras
+!data/models/librai-alphabet-robust/**/*.keras
+!data/realworld_eval/**/*.keras
