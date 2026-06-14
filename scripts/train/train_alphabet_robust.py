@@ -208,6 +208,24 @@ def run(args):
     Xo_te, yo_te = sess["test"]
     print(f"Operador: train={len(Xo_tr)}  val={len(Xo_va)}  test={len(Xo_te)}")
 
+    # Sesiones extra: TODAS sus reps van al train (no se splittean)
+    extra_X, extra_y = [], []
+    for extra_dir in (args.extra_sessions or []):
+        extra_sess = load_session(Path(extra_dir), classes)
+        for split in ("train", "val", "test"):
+            X_e, y_e = extra_sess[split]
+            if len(X_e):
+                extra_X.append(X_e)
+                extra_y.append(y_e)
+        n_extra = sum(
+            len(extra_sess[s][0]) for s in ("train", "val", "test")
+        )
+        print(f"Extra session {Path(extra_dir).name}: {n_extra} frames → train")
+    if extra_X:
+        Xo_tr = np.vstack([Xo_tr] + extra_X)
+        yo_tr = np.concatenate([yo_tr] + extra_y)
+        print(f"Operador (con extras): train={len(Xo_tr)}")
+
     # Combinar train con sample_weight
     n_lib = len(Xl_tr)
     n_op = len(Xo_tr)
@@ -415,7 +433,10 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--librai-dir", type=Path,
                    default=Path("/data/processed/librai_alphabet_v4"))
-    p.add_argument("--session-dir", type=Path, required=True)
+    p.add_argument("--session-dir", type=Path, required=True,
+                   help="Sesión primaria (splittea por rep en train/val/test)")
+    p.add_argument("--extra-sessions", type=Path, nargs="*", default=[],
+                   help="Sesiones adicionales que van enteras al training")
     p.add_argument("--base-model-dir", type=Path,
                    default=Path(
                        "/data/models/librai-alphabet-v4/run_20260601_015641"
