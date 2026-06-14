@@ -47,6 +47,19 @@ logs/
 
 # Test coverage
 .coverage
+coverage.xml
 htmlcov/
 .claude
 src/data/*
+
+# Datasets sueltos dentro de src/ (no versionar)
+src/LibrAI/
+src/LibrAI_extra/
+src/LIBRAS-HC-RGBDS-2011/
+src/videos UFPE (V-LIBRASIL)/
+
+# Artefactos temporales / archivos sueltos
+\004
+coversacion.txt
+hand_landmarker.task
+*.keras
