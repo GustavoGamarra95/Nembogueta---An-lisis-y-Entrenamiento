@@ -41,12 +41,22 @@ nuevos datos de colecta.
 
 ### Modelos del alfabeto (pipeline actual, 120 features)
 
-| Modelo | LibrAI test | Cámara real (rep 4 holdout) | Recomendación |
-|---|---|---|---|
-| `librai-alphabet-v4` (base) | **99.78%** | 21% | Histórico, NO usar en cámara |
-| `librai-alphabet-v4-ft` (1 fold) | 88.51% | 88% | Personalizado a un operador |
-| `librai-alphabet-robust` ⭐ | **97.74%** | **79%** | **Recomendado** — base mejorada |
-| `librai-alphabet-robust-ft` | 96.41% | 84% | Personalizado al operador (op. S01) |
+| Modelo | LibrAI test | S01 holdout | S02 (sujeto nuevo) | Recomendación |
+|---|---|---|---|---|
+| `librai-alphabet-v4` (base) | **99.78%** | 21% | — | Histórico, NO usar en cámara |
+| `librai-alphabet-v4-ft` | 88.51% | 88% | — | Sobreajustado a S01 |
+| `librai-alphabet-robust` ⭐ | **97.74%** | **79%** | **80%** | **Recomendado** — generaliza |
+| `librai-alphabet-robust-ft` | 96.41% | 84% | — | Personalizado al operador S01 |
+
+**Validación inter-sujeto del `robust`** (sesión S02 grabada con sujeto no
+visto durante training):
+
+- Top-1 global S01 holdout: 79% · S02: **80%** → modelo generaliza
+- Gap dominio consistente: ~19 pp en ambos sujetos
+- 9 letras estables entre sujetos con >90%: `B, C, F, L, M, O, P, Q, U`
+- Letras con fuerte variabilidad inter-sujeto: `G, Ç, A, D, R, S` —
+  sugieren necesidad de dataset multi-sujeto para letras con
+  configuración fina de pulgar.
 
 Lineage:
 ```
@@ -407,6 +417,7 @@ echo $DISPLAY        # debe ser :0 o similar
 - [x] Modelo `robust` con augmentation + datos operador (gap 19 pp)
 - [x] Fine-tuning + cross-validation 5-fold para operador específico
 - [x] Análisis de catastrophic forgetting
+- [x] Validación inter-sujeto del `robust` con sujeto no visto (80% top-1)
 
 ### Fase 3 — Datos y modelos LSP
 - [ ] Colecta de videos de letras LSP (A–Z, Ñ) — Sprint 4 del roadmap interno
