@@ -45,8 +45,9 @@ nuevos datos de colecta.
 |---|---|---|---|---|
 | `librai-alphabet-v4` (base) | **99.78%** | 21% | — | Histórico, NO usar en cámara |
 | `librai-alphabet-v4-ft` | 88.51% | 88% | — | Sobreajustado a S01 |
-| `librai-alphabet-robust` ⭐ | **97.74%** | **79%** | **80%** | **Recomendado** — generaliza |
+| `librai-alphabet-robust` ⭐ | **97.74%** | **79%** | **80%** | Recomendado — generaliza |
 | `librai-alphabet-robust-ft` | 96.41% | 84% | — | Personalizado al operador S01 |
+| `librai-alphabet-robust-v2` 🧪 | **99.04%** | — | **83.66%** | Experimental — S01 + S02 parcial |
 
 **Validación inter-sujeto del `robust`** (sesión S02 grabada con sujeto no
 visto durante training):
@@ -57,6 +58,23 @@ visto durante training):
 - Letras con fuerte variabilidad inter-sujeto: `G, Ç, A, D, R, S` —
   sugieren necesidad de dataset multi-sujeto para letras con
   configuración fina de pulgar.
+
+**Experimento multi-sujeto parcial (`robust-v2`)** — S02 capturó 7 letras
+inestables × 10 reps (sesión `20260614_233737_S02-extra`), añadidas al
+training. Evaluado sobre S02 full session sin tocar:
+
+| Grupo | Δ top-1 promedio |
+|---|---|
+| 7 letras CON extra training | **+22.7 pp** (G: 21→80, Ç: 8→44, A: 60→98) |
+| 15 letras SIN extra training | -4.9 pp (caso aislado: U colapsó -90 pp) |
+| Global S02 | +3.6 pp (80.03% → 83.66%) |
+
+**Hallazgo académico**: agregar data multi-sujeto selectivamente para
+letras "difíciles" puede romper letras vecinas en feature space — U se
+colapsó porque su frontera con R se desplazó al ver más ejemplos de R
+del estilo de S02. Para producción, multi-sujeto debe ser balanceado
+por cluster semántico (R-V-U-W se mueven juntas), no solo por
+dificultad individual.
 
 Lineage:
 ```
