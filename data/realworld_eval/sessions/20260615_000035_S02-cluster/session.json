@@ -1,0 +1,15 @@
+{
+  "subject_id": "S02-cluster",
+  "timestamp": "2026-06-15T00:00:04.104911Z",
+  "age": "31",
+  "dominant_hand": "l",
+  "libras_experience_0_5": "5",
+  "lighting_1_5": "3",
+  "background": "cluttered",
+  "hand_to_camera_cm": "30",
+  "camera_height": "mesa",
+  "notes": "",
+  "model_dir": "/data/models/librai-alphabet-robust-v2/run_20260614_235050",
+  "model_test_accuracy": 0.9904347826086957,
+  "model_num_features": 120
+}
