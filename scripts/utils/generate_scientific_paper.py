@@ -229,12 +229,19 @@ def build(analysis_dir: Path, styles):
         "treinamento multi-sujeito balanceado, alcançou-se 91,81% de "
         "acurácia em sessão de câmera real com sujeito não visto no "
         "treinamento, superando a meta de 80% estabelecida nas hipóteses "
-        "do TCC I. O experimento revelou ainda um princípio metodológico "
-        "novo: <b>o dataset multi-sujeito parcial é intrinsecamente "
-        "instável</b> — cada adição seletiva desloca fronteiras de decisão "
-        "e degrada letras semanticamente vizinhas; somente o dataset "
-        "completo e balanceado produz resultado estável. Este achado "
-        "orienta a Etapa 3 (coleta de dados primários da LSP).",
+        "do TCC I. Os experimentos iterativos evidenciam que adições "
+        "parciais de dados multi-sujeito (seletivas por classe) podem "
+        "deslocar fronteiras de decisão e degradar classes semanticamente "
+        "vizinhas — comportamento consistente com dinâmicas conhecidas em "
+        "literatura mais ampla de desbalanceamento de classes e "
+        "esquecimento catastrófico em aprendizagem incremental. A "
+        "contribuição metodológica deste trabalho é a demonstração "
+        "empírica do fenômeno no contexto específico de reconhecimento de "
+        "língua de sinais via <i>landmarks</i> de mão, e a recomendação "
+        "prática de balanceamento simultâneo de todas as classes para cada "
+        "sujeito recrutado em coletas de dados de línguas com baixa "
+        "disponibilidade, orientando a Etapa 3 do cronograma (coleta de "
+        "dados primários da LSP).",
         "abstract",
     )
     SP(8)
@@ -270,9 +277,13 @@ def build(analysis_dir: Path, styles):
         "(de 208 para 120 atributos invariantes a transformações rígidas); "
         "(ii) demonstração experimental de que arquitetura DNN sobre frame "
         "único é suficiente para o caso de letras estáticas, simplificando "
-        "a CNN-LSTM proposta; e (iii) descoberta empírica do princípio de "
-        "balanceamento multi-sujeito para coleta de dados em línguas de "
-        "sinais com escassez de amostras."
+        "a CNN-LSTM proposta; e (iii) demonstração empírica, em contexto "
+        "de língua de sinais, de que coletas multi-sujeito parciais "
+        "(seletivas por classe) podem desestabilizar o classificador, "
+        "ilustrando no domínio específico um fenômeno bem documentado em "
+        "literaturas relacionadas (desbalanceamento de classes, "
+        "esquecimento catastrófico), e fundamentando recomendação prática "
+        "para coleta balanceada na Etapa 3."
     )
 
     # ----- 2. Trabalhos Relacionados ----- #
@@ -801,26 +812,41 @@ def build(analysis_dir: Path, styles):
         "visto no treinamento."
     )
 
-    P("5.2 Princípio do balanceamento multi-sujeito", "h2")
+    P("5.2 Balanceamento multi-sujeito como recomendação prática", "h2")
     P(
-        "O resultado central deste trabalho, não previsto pela "
-        "literatura consultada, é a observação empírica de que <b>"
-        "datasets multi-sujeito parciais (seletivos por letra) são "
-        "intrinsecamente instáveis</b>: cada adição de dados para um "
-        "subconjunto de letras desloca as fronteiras de decisão e "
-        "degrada classes semanticamente vizinhas. A instabilidade não "
-        "permanece em um cluster fixo de letras, mas se move a cada "
-        "iteração de treinamento."
+        "Os experimentos iterativos (v1 → v2 → v3 → v4) demonstram que, "
+        "neste pipeline e nesta tarefa, adições parciais e seletivas de "
+        "dados multi-sujeito desestabilizam o classificador: cada iteração "
+        "deslocou as fronteiras de decisão e degradou classes "
+        "semanticamente vizinhas, com a instabilidade migrando entre "
+        "iterações (U colapsou em v2; V e classes vizinhas em v3). Esta "
+        "dinâmica é consistente com fenômenos amplamente documentados "
+        "na literatura geral de aprendizagem de máquina: a teoria de "
+        "desbalanceamento de classes descreve como a representação "
+        "diferencial entre classes afeta a fronteira aprendida (He e "
+        "Garcia, 2009; Krawczyk, 2016); a literatura de aprendizagem "
+        "incremental e contínua caracteriza o esquecimento catastrófico "
+        "que ocorre quando o modelo é exposto sequencialmente a "
+        "subconjuntos de classes (Kirkpatrick et al., 2017; Parisi et "
+        "al., 2019); a teoria de adaptação de domínio fundamenta "
+        "matematicamente o efeito de distribuições de treino "
+        "desbalanceadas sobre o desempenho em distribuições alvo "
+        "(Ben-David et al., 2010)."
     )
     P(
-        "A única estratégia experimentalmente estável foi o dataset "
-        "multi-sujeito <b>completo e balanceado</b>: todas as classes "
-        "representadas para todos os sujeitos, com volumes comparáveis "
-        "de amostras por classe. Esta observação tem implicação direta "
-        "para a Etapa 3 do cronograma (coleta de dados primários da "
-        "LSP): a coleta deve cobrir o vocabulário-alvo completo para "
-        "cada sujeito recrutado, evitando a tentação metodológica de "
-        "focalizar apenas sinais 'difíceis' identificados em pilotos."
+        "A contribuição empírica deste trabalho não é, portanto, a "
+        "descoberta do fenômeno em si, mas sua <b>demonstração "
+        "quantitativa no contexto específico de reconhecimento de "
+        "alfabeto LIBRAS via <i>landmarks</i> de mão</b>, com magnitudes "
+        "concretas (oscilações entre +89,7 pp e −89,7 pp em letras "
+        "individuais, segundo o subconjunto adicionado ao treinamento). "
+        "A implicação prática para a Etapa 3 do cronograma (coleta de "
+        "dados primários da LSP) é direta: priorizar coberturas "
+        "<b>completas e balanceadas</b> do vocabulário-alvo por sujeito "
+        "recrutado, evitando coletas focadas em sinais identificados "
+        "como difíceis em pilotos parciais — preferência justificada "
+        "empiricamente e alinhada à teoria pré-existente sobre "
+        "desbalanceamento de classes."
     )
 
     P("5.3 Limitações", "h2")
@@ -850,13 +876,18 @@ def build(analysis_dir: Path, styles):
         "de 80% estabelecida nas hipóteses do projeto. As contribuições "
         "específicas são: (i) pipeline de extração de 120 features "
         "biomecânicas invariantes; (ii) protocolo padronizado de avaliação "
-        "em câmera real com artefatos reusáveis; (iii) descoberta empírica "
-        "do princípio de balanceamento multi-sujeito para coleta de "
-        "datasets em línguas de sinais com escassez de amostras."
+        "em câmera real com artefatos reusáveis; (iii) demonstração "
+        "empírica, com magnitudes quantitativas, da instabilidade "
+        "induzida por coletas multi-sujeito parciais no domínio de "
+        "alfabeto LIBRAS — fenômeno que ilustra, no caso específico de "
+        "reconhecimento via <i>landmarks</i> de mão, dinâmicas conhecidas "
+        "em literaturas de desbalanceamento de classes, esquecimento "
+        "catastrófico e adaptação de domínio."
     )
     P(
         "Trabalhos futuros incluem: (i) coleta de dataset primário da "
-        "LSP seguindo o princípio metodológico descoberto, com 3–5 "
+        "LSP seguindo a recomendação prática derivada destes "
+        "experimentos (cobertura balanceada por sujeito), com 3–5 "
         "sujeitos cobrindo o vocabulário-alvo completo; (ii) extensão "
         "do pipeline para sinais dinâmicos com arquitetura temporal "
         "(LSTM ou Transformer) e revalidação da invariância das "
@@ -886,6 +917,10 @@ def build(analysis_dir: Path, styles):
         "Recognition Using Deep Learning. <i>Electronics</i>, v. 11, "
         "n. 11, p. 1780, 2022. DOI: 10.3390/electronics11111780.",
 
+        "BEN-DAVID, S. et al. A theory of learning from different "
+        "domains. <i>Machine Learning</i>, v. 79, n. 1-2, p. 151-175, "
+        "2010. DOI: 10.1007/s10994-009-5152-4.",
+
         "CAMGOZ, N. C. et al. Sign Language Transformers: Joint "
         "End-to-end Sign Language Recognition and Translation. In: "
         "IEEE/CVF Conference on Computer Vision and Pattern "
@@ -901,6 +936,10 @@ def build(analysis_dir: Path, styles):
         "using Machine Learning. In: International Multi-Conference "
         "on Complexity, Informatics and Cybernetics, 2024.",
 
+        "HE, H.; GARCIA, E. A. Learning from Imbalanced Data. <i>IEEE "
+        "Transactions on Knowledge and Data Engineering</i>, v. 21, "
+        "n. 9, p. 1263-1284, 2009. DOI: 10.1109/TKDE.2008.239.",
+
         "HOCHREITER, S.; SCHMIDHUBER, J. Long Short-Term Memory. "
         "<i>Neural Computation</i>, v. 9, n. 8, p. 1735-1780, 1997.",
 
@@ -912,10 +951,24 @@ def build(analysis_dir: Path, styles):
         "KINGMA, D. P.; BA, J. Adam: A Method for Stochastic "
         "Optimization. arXiv:1412.6980, 2014.",
 
+        "KIRKPATRICK, J. et al. Overcoming catastrophic forgetting in "
+        "neural networks. <i>Proceedings of the National Academy of "
+        "Sciences</i>, v. 114, n. 13, p. 3521-3526, 2017. DOI: "
+        "10.1073/pnas.1611835114.",
+
         "KOLLER, O. et al. Weakly Supervised Learning with Multi-stream "
         "CNN-LSTM-HMMs to Discover Sequential Parallelism in Sign "
         "Language Videos. <i>IEEE Transactions on Pattern Analysis and "
         "Machine Intelligence</i>, v. 42, n. 9, p. 2306-2320, 2020.",
+
+        "KRAWCZYK, B. Learning from imbalanced data: open challenges "
+        "and future directions. <i>Progress in Artificial "
+        "Intelligence</i>, v. 5, n. 4, p. 221-232, 2016. DOI: "
+        "10.1007/s13748-016-0094-0.",
+
+        "PARISI, G. I. et al. Continual lifelong learning with neural "
+        "networks: A review. <i>Neural Networks</i>, v. 113, p. 54-71, "
+        "2019. DOI: 10.1016/j.neunet.2019.01.012.",
 
         "PORFÍRIO, A.; WIGGERS, K.; OLIVEIRA, L. E. S.; WEINGAERTNER, D. "
         "LIBRAS sign language hand configuration recognition based on "
