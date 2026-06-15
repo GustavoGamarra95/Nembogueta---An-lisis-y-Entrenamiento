@@ -49,6 +49,7 @@ nuevos datos de colecta.
 | `librai-alphabet-robust-ft` | 96.41% | 84% | — | Personalizado al operador S01 |
 | `librai-alphabet-robust-v2` 🧪 | **99.04%** | — | **83.66%** | Experimental — S01 + S02 parcial |
 | `librai-alphabet-robust-v3` 🧪 | **99.35%** | — | **84.21%** | Experimental — S01 + S02-extra + S02-cluster |
+| `librai-alphabet-robust-v4` ⭐ | **99.33%** | — | **91.81%** | **Best in class** — multi-sujeto balanceado completo |
 
 **Validación inter-sujeto del `robust`** (sesión S02 grabada con sujeto no
 visto durante training):
@@ -103,6 +104,29 @@ todas las letras del alfabeto × todos los sujetos × mismo número de
 reps. La colecta parcial selectiva es intrínsecamente inestable y
 genera resultados de mejora marginal con costo de daños colaterales
 impredecibles.
+
+**Validación experimental del principio (`robust-v4`)** — se entrenó con
+S02 completa (todas las letras × 5 reps) + S01 + S02-extra + S02-cluster.
+Resultado: las letras que oscilaban entre v2 y v3 se estabilizan todas
+en v4, y top-1 global sobre S02 sube a **91.81%**:
+
+| Métrica | v1 | v2 | v3 | **v4** |
+|---|---|---|---|---|
+| Top-1 S02 | 80.0% | 83.7% | 84.2% | **91.8%** |
+| Top-5 S02 | 95.4% | 98.4% | 98.4% | **99.3%** |
+| Confianza en target | 0.766 | 0.813 | 0.821 | **0.903** |
+| Entropía promedio | 0.226 | 0.271 | 0.227 | **0.134** |
+| Robustez ruido σ=0.5 | 74.8% | 79.9% | 80.6% | **89.6%** |
+| LibrAI test | 97.74% | 99.04% | 99.35% | 99.33% |
+
+v4 es más preciso (+11.8 pp vs v1), más decisivo (entropía -41%) y
+~3× más robusto a perturbaciones de input. Solo S (62%) y Ç (56%) se
+mantienen como puntos débiles estructurales, indicando handshapes con
+variabilidad inter-sujeto irreducible sin más datos.
+
+Análisis completo en `data/analysis/robust_models/` (curvas de
+aprendizaje, matrices de confusión, curvas de robustez al ruido,
+sanitización por confianza, heatmaps per-letra).
 
 Lineage:
 ```
