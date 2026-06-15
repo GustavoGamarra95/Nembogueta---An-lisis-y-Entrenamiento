@@ -307,7 +307,52 @@ def build(analysis_dir: Path, styles):
     # ----- 3. Metodologia ----- #
     P("3 METODOLOGIA", "h1")
 
-    P("3.1 Pipeline de extração de características", "h2")
+    P("3.1 Visão geral do pipeline", "h2")
+    P(
+        "O pipeline completo de reconhecimento (Figura 1) processa cada "
+        "<i>frame</i> RGB capturado pela câmara web em quatro estágios "
+        "sequenciais: (i) <b>detecção da palma</b> via modelo BlazePalm-SSD "
+        "do MediaPipe; (ii) <b>recorte e alinhamento</b> da região de "
+        "interesse para orientação pulso→dedos; (iii) <b>regressão dos 21 "
+        "landmarks tridimensionais</b> por rede convolucional pré-treinada; "
+        "e (iv) <b>engenharia de características biomecânicas</b> que "
+        "converte as 63 coordenadas brutas (21 pontos × 3 dimensões) em "
+        "60 atributos invariantes por mão. Para duas mãos, o vetor final "
+        "tem 120 atributos."
+    )
+    pipeline = analysis_dir.parent / "paper_figures" / "mediapipe_pipeline.png"
+    if pipeline.exists():
+        story.extend(figure_block(
+            pipeline,
+            "<b>Figura 1.</b> Pipeline completo desde o frame RGB até o "
+            "vetor de 120 atributos invariantes. Os estágios em laranja "
+            "(palm detection, ROI crop, landmark regression) são executados "
+            "por modelos pré-treinados do MediaPipe Hands; o estágio verde "
+            "é a engenharia de características desenvolvida neste trabalho.",
+            S, width=15 * cm,
+        ))
+    SP(4)
+    P(
+        "A Figura 2 apresenta a estrutura canônica dos 21 landmarks "
+        "produzidos pelo MediaPipe Hands sobre a mão direita. A numeração "
+        "segue convenção fixa (pulso = 0, ponta dos dedos = 4, 8, 12, "
+        "16, 20), permitindo identificar articulações específicas "
+        "(metacarpofalangeana — MCP, interfalangeana proximal — PIP, "
+        "interfalangeana distal — DIP) que serão referidas nas fórmulas "
+        "das próximas subseções."
+    )
+    landmarks = analysis_dir.parent / "paper_figures" / "landmarks_schematic.png"
+    if landmarks.exists():
+        story.extend(figure_block(
+            landmarks,
+            "<b>Figura 2.</b> Os 21 landmarks da mão extraídos pelo "
+            "MediaPipe Hands, com numeração canônica e codificação cromática "
+            "por dedo. As conexões cinza correspondem ao esqueleto "
+            "topológico padrão.",
+            S, width=12 * cm,
+        ))
+
+    P("3.2 Pipeline de extração de características", "h2")
     P(
         "A biblioteca MediaPipe Hands (Zhang et al., 2020) fornece 21 "
         "<i>landmarks</i> tridimensionais por mão. Sobre essa representação "
@@ -336,7 +381,20 @@ def build(analysis_dir: Path, styles):
         "a posição e escala da mão no frame."
     )
 
-    P("3.1.1 Distâncias inter-articulares (21 atributos por mão)", "h2")
+    feat_cats = analysis_dir.parent / "paper_figures" / "feature_categories.png"
+    if feat_cats.exists():
+        story.extend(figure_block(
+            feat_cats,
+            "<b>Figura 3.</b> Categorias dos 60 atributos extraídos por mão. "
+            "(a) 21 distâncias entre articulações, (b) 15 ângulos "
+            "articulares codificados como par (sin, cos), (c) 5 atributos "
+            "de curvatura baseados na diferença em z entre ponta e base "
+            "de cada dedo, (d) 4 atributos da orientação 3D da palma "
+            "(pitch e yaw do vetor normal, em sin/cos).",
+            S, width=15 * cm,
+        ))
+
+    P("3.2.1 Distâncias inter-articulares (21 atributos por mão)", "h2")
     P(
         "Distância euclidiana 3D entre pares pré-selecionados de "
         "landmarks normalizados:"
@@ -351,7 +409,7 @@ def build(analysis_dir: Path, styles):
         "do indicador à sua própria base (captura flexão)."
     )
 
-    P("3.1.2 Ângulos articulares (30 atributos por mão)", "h2")
+    P("3.2.2 Ângulos articulares (30 atributos por mão)", "h2")
     P(
         "Para cada tripleta (A, B, C) de landmarks que define uma "
         "articulação no ponto B, o ângulo é codificado como par "
@@ -369,7 +427,7 @@ def build(analysis_dir: Path, styles):
         "cobrindo flexão de cada dedo e abertura inter-digital."
     )
 
-    P("3.1.3 Curvatura dos dedos (5 atributos por mão)", "h2")
+    P("3.2.3 Curvatura dos dedos (5 atributos por mão)", "h2")
     P(
         "Diferença na coordenada z entre a ponta e a base "
         "metacarpofalangeana de cada dedo, já normalizada pela escala da "
@@ -384,7 +442,7 @@ def build(analysis_dir: Path, styles):
         "body",
     )
 
-    P("3.1.4 Orientação da palma (4 atributos por mão)", "h2")
+    P("3.2.4 Orientação da palma (4 atributos por mão)", "h2")
     P(
         "Vetor normal ao plano da palma calculado por produto vetorial e "
         "decomposto em ângulos de <i>pitch</i> e <i>yaw</i>, codificados "
@@ -406,7 +464,7 @@ def build(analysis_dir: Path, styles):
         "experimental (Seção 4.2.2)."
     )
 
-    P("3.2 Arquitetura do modelo", "h2")
+    P("3.3 Arquitetura do modelo", "h2")
     P(
         "Diferente da arquitetura CNN-LSTM originalmente proposta no TCC "
         "I (Hipótese H2), os experimentos confirmaram que uma rede DNN "
@@ -437,7 +495,7 @@ def build(analysis_dir: Path, styles):
         "monitorando acurácia de validação."
     )
 
-    P("3.3 Data augmentation", "h2")
+    P("3.4 Data augmentation", "h2")
     P(
         "Três técnicas de aumento são aplicadas em tempo de treinamento "
         "via <font name='Courier' size='10'>tf.data.map</font>:"
@@ -474,7 +532,7 @@ def build(analysis_dir: Path, styles):
         r"x_{flip} = (x_{60:120},\ x_{0:60})"
     ))
 
-    P("3.4 Treinamento multi-sujeito balanceado", "h2")
+    P("3.5 Treinamento multi-sujeito balanceado", "h2")
     P(
         "Para combinar dados de múltiplos sujeitos com volume desigual, "
         "atribuem-se pesos de amostra inversamente proporcionais ao "
@@ -490,7 +548,7 @@ def build(analysis_dir: Path, styles):
         "<i>holdout</i> limpo para avaliação."
     )
 
-    P("3.5 Protocolo de avaliação em câmera real", "h2")
+    P("3.6 Protocolo de avaliação em câmera real", "h2")
     P(
         "Foi desenvolvido protocolo padronizado de captura interativa "
         "(script <font name='Courier' size='10'>evaluate_realworld.py</font>) "
@@ -511,15 +569,28 @@ def build(analysis_dir: Path, styles):
     P("4.1 Configuração experimental", "h2")
     P(
         "Dataset base: LibrAI (alfabeto LIBRAS), 45.997 frames distribuídos "
-        "em 22 classes (A–Y + Ç), divididos em 70%/15%/15% para treino/"
-        "validação/teste com semente fixa. Dois sujeitos participaram das "
-        "sessões de câmera real: S01 (operador, 6.172 frames detectados) e "
-        "S02 (sujeito não visto no treinamento inicial, 6.414 frames). "
-        "Foram realizadas duas sessões adicionais focalizadas: S02-extra "
-        "(7 letras × 10 repetições = 4.095 frames) e S02-cluster (4 letras "
-        "vizinhas semanticamente × 10 repetições = 2.377 frames). "
-        "Hardware: GPU NVIDIA RTX 3050 Laptop. <i>Framework</i>: "
-        "TensorFlow 2.10 / Keras."
+        "em 22 classes (A–Y + Ç, com 21 letras estáticas e Ç adicionada por "
+        "extração de quadros de vídeos de demonstração da LSP), divididos "
+        "em 70%/15%/15% para treino/validação/teste com semente fixa. "
+        "A Figura 4 ilustra o vocabulário-alvo da validação técnica."
+    )
+    gallery = analysis_dir.parent / "paper_figures" / "alphabet_gallery.png"
+    if gallery.exists():
+        story.extend(figure_block(
+            gallery,
+            "<b>Figura 4.</b> Vocabulário-alvo da validação técnica — 22 "
+            "letras do alfabeto LIBRAS utilizadas no estudo. As referências "
+            "visuais correspondem ao dataset LibrAI.",
+            S, width=14 * cm,
+        ))
+    P(
+        "Dois sujeitos participaram das sessões de câmera real: S01 "
+        "(operador, 6.172 frames detectados) e S02 (sujeito não visto no "
+        "treinamento inicial, 6.414 frames). Foram realizadas duas sessões "
+        "adicionais focalizadas: S02-extra (7 letras × 10 repetições = "
+        "4.095 frames) e S02-cluster (4 letras vizinhas semanticamente × "
+        "10 repetições = 2.377 frames). Hardware: GPU NVIDIA RTX 3050 "
+        "Laptop. <i>Framework</i>: TensorFlow 2.10 / Keras."
     )
 
     P("4.2 Linha de base e diagnóstico do <i>domain gap</i>", "h2")
@@ -594,7 +665,7 @@ def build(analysis_dir: Path, styles):
     if heatmap.exists():
         story.extend(figure_block(
             heatmap,
-            "<b>Figura 1.</b> Acurácia top-1 por letra e por modelo sobre a "
+            "<b>Figura 5.</b> Acurácia top-1 por letra e por modelo sobre a "
             "sessão completa de S02 (6.414 frames). Verde indica acurácia "
             "elevada; vermelho, baixa. Note-se a instabilidade nas colunas "
             "v2 e v3 e a estabilização em v4 (multi-sujeito balanceado).",
@@ -641,7 +712,7 @@ def build(analysis_dir: Path, styles):
     if learning.exists():
         story.extend(figure_block(
             learning,
-            "<b>Figura 2.</b> Curvas de loss e accuracy por época para os "
+            "<b>Figura 6.</b> Curvas de loss e accuracy por época para os "
             "quatro modelos robustos. v4 (azul-violeta) treina por mais "
             "épocas devido ao maior volume de dados (~38 mil amostras "
             "de operador vs. ~6 mil em v1), mas converge para val_accuracy "
@@ -665,7 +736,7 @@ def build(analysis_dir: Path, styles):
     if noise.exists():
         story.extend(figure_block(
             noise,
-            "<b>Figura 3.</b> Degradação da acurácia top-1 sob ruído "
+            "<b>Figura 7.</b> Degradação da acurácia top-1 sob ruído "
             "gaussiano aplicado às features normalizadas. Curvas mais "
             "planas indicam modelos mais robustos. v4 mantém vantagem "
             "estável sobre os demais em todos os níveis de ruído testados.",
@@ -686,7 +757,7 @@ def build(analysis_dir: Path, styles):
     if confsan.exists():
         story.extend(figure_block(
             confsan,
-            "<b>Figura 4.</b> Sanitização por confiança. (Esquerda) "
+            "<b>Figura 8.</b> Sanitização por confiança. (Esquerda) "
             "acurácia em função do limiar de confiança mínima. (Direita) "
             "trade-off entre cobertura e acurácia. v4 oferece a melhor "
             "fronteira de Pareto.",
