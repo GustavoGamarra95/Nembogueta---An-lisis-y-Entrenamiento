@@ -219,29 +219,30 @@ def build(analysis_dir: Path, styles):
         "Este artigo apresenta a validação técnica experimental do pipeline "
         "de reconhecimento de Língua de Sinais Paraguaia (LSP) proposto no "
         "TCC I, utilizando a Língua Brasileira de Sinais (LIBRAS) como prova "
-        "de conceito (Etapa 2 do cronograma). Foram treinados quatro modelos "
-        "iterativos sobre o alfabeto LIBRAS (22 classes), partindo de um "
-        "modelo baseline com 99,78% de acurácia em holdout mas apenas "
-        "24% em câmera real, evidenciando um <i>domain gap</i> de 76 "
-        "pontos percentuais. Por meio de engenharia de características "
-        "invariantes (120 atributos em vez dos 208 originalmente propostos), "
-        "<i>data augmentation</i> dirigida à sensibilidade detectada e "
-        "treinamento multi-sujeito balanceado, alcançou-se 91,81% de "
-        "acurácia em sessão de câmera real com sujeito não visto no "
-        "treinamento, superando a meta de 80% estabelecida nas hipóteses "
-        "do TCC I. Os experimentos iterativos evidenciam que adições "
-        "parciais de dados multi-sujeito (seletivas por classe) podem "
-        "deslocar fronteiras de decisão e degradar classes semanticamente "
-        "vizinhas — comportamento consistente com dinâmicas conhecidas em "
-        "literatura mais ampla de desbalanceamento de classes e "
-        "esquecimento catastrófico em aprendizagem incremental. A "
-        "contribuição metodológica deste trabalho é a demonstração "
-        "empírica do fenômeno no contexto específico de reconhecimento de "
-        "língua de sinais via <i>landmarks</i> de mão, e a recomendação "
-        "prática de balanceamento simultâneo de todas as classes para cada "
-        "sujeito recrutado em coletas de dados de línguas com baixa "
-        "disponibilidade, orientando a Etapa 3 do cronograma (coleta de "
-        "dados primários da LSP).",
+        "de conceito (Etapa 2 do cronograma). A <b>principal contribuição "
+        "empírica</b> é a demonstração quantitativa, no contexto de "
+        "reconhecimento de alfabeto manual via <i>landmarks</i> de mão, "
+        "de que adições parciais e seletivas de dados multi-sujeito podem "
+        "<b>degradar drasticamente classes semanticamente vizinhas</b> "
+        "(observou-se colapso de até −89,7 pp em letras individuais), "
+        "enquanto o <b>balanceamento simultâneo de todas as classes por "
+        "sujeito estabiliza o sistema</b> e melhora a generalização — "
+        "comportamento consistente com dinâmicas conhecidas em literatura "
+        "mais ampla de desbalanceamento de classes e esquecimento "
+        "catastrófico em aprendizagem incremental. Quanto ao desempenho "
+        "absoluto, partindo de um modelo <i>baseline</i> com 99,78% de "
+        "acurácia em <i>holdout</i> mas apenas 24% em câmara real "
+        "(<i>domain gap</i> de 76 pontos percentuais), por meio de "
+        "engenharia de 120 atributos invariantes (revisados em relação "
+        "aos 208 originalmente propostos), <i>data augmentation</i> "
+        "dirigida à sensibilidade detectada e treinamento multi-sujeito "
+        "balanceado, alcançou-se 91,85% ± 3,54% de acurácia (intervalo de "
+        "confiança 95% ±3,10 pp) em sessão de câmara real com sujeito não "
+        "visto no treinamento, superando a meta de 80% estabelecida nas "
+        "hipóteses do TCC I. A recomendação prática derivada — coletar "
+        "todas as classes do vocabulário-alvo para cada sujeito recrutado "
+        "— orienta diretamente a Etapa 3 do cronograma (coleta de dados "
+        "primários da LSP).",
         "abstract",
     )
     SP(8)
@@ -270,20 +271,33 @@ def build(analysis_dir: Path, styles):
     P(
         "Este artigo documenta os resultados experimentais dessa validação, "
         "realizada em 14 e 15 de junho de 2026 sobre o dataset LibrAI "
-        "(alfabeto manual da LIBRAS, 22 classes). A validação não apenas "
-        "atendeu à meta de acurácia estabelecida nas hipóteses do TCC I "
-        "(superior a 80%), como produziu três contribuições adicionais: "
-        "(i) revisão fundamentada da escolha de características biomecânicas "
-        "(de 208 para 120 atributos invariantes a transformações rígidas); "
-        "(ii) demonstração experimental de que arquitetura DNN sobre frame "
-        "único é suficiente para o caso de letras estáticas, simplificando "
-        "a CNN-LSTM proposta; e (iii) demonstração empírica, em contexto "
-        "de língua de sinais, de que coletas multi-sujeito parciais "
-        "(seletivas por classe) podem desestabilizar o classificador, "
-        "ilustrando no domínio específico um fenômeno bem documentado em "
-        "literaturas relacionadas (desbalanceamento de classes, "
-        "esquecimento catastrófico), e fundamentando recomendação prática "
-        "para coleta balanceada na Etapa 3."
+        "(alfabeto manual da LIBRAS, 22 classes). A <b>contribuição mais "
+        "relevante</b>, à qual se dedica boa parte das Seções 4 e 5, é a "
+        "demonstração quantitativa de que adições parciais e seletivas de "
+        "dados multi-sujeito (focadas apenas em algumas letras) podem "
+        "degradar drasticamente classes semanticamente vizinhas — observou-se "
+        "queda de 89,7 pontos percentuais em letras individuais entre "
+        "iterações — enquanto o balanceamento simultâneo de todas as classes "
+        "para cada sujeito recrutado estabiliza o sistema e melhora a "
+        "generalização. Esta observação ilustra, no contexto específico de "
+        "reconhecimento de língua de sinais via <i>landmarks</i> de mão, "
+        "dinâmicas amplamente documentadas em literaturas relacionadas "
+        "(desbalanceamento de classes, esquecimento catastrófico, "
+        "adaptação de domínio), e fundamenta recomendação prática direta "
+        "para a Etapa 3 do cronograma do projeto."
+    )
+    P(
+        "Além desta contribuição central, a validação produziu duas "
+        "revisões fundamentadas das hipóteses originais do TCC I: "
+        "(i) revisão da escolha de características biomecânicas, de 208 "
+        "atributos para 120 atributos invariantes a transformações "
+        "rígidas, motivada pela observação de que features não-invariantes "
+        "degradam catastroficamente em câmara real; e (ii) evidência "
+        "empírica de que arquitetura DNN sobre <i>frame</i> único atinge "
+        "desempenho adequado (91,85% ± 3,54%) para o caso de letras "
+        "estáticas, sem comparação direta neste estudo com a CNN-LSTM "
+        "originalmente proposta — esta permanece recomendada para etapas "
+        "futuras com sinais dinâmicos (palavras, frases)."
     )
 
     # ----- 2. Trabalhos Relacionados ----- #
@@ -478,9 +492,11 @@ def build(analysis_dir: Path, styles):
     P("3.3 Arquitetura do modelo", "h2")
     P(
         "Diferente da arquitetura CNN-LSTM originalmente proposta no TCC "
-        "I (Hipótese H2), os experimentos confirmaram que uma rede DNN "
-        "<i>feed-forward</i> sobre frame único é suficiente para letras "
-        "estáticas do alfabeto. A arquitetura final consiste em:"
+        "I (Hipótese H2), os experimentos <i>indicam</i> que uma rede DNN "
+        "<i>feed-forward</i> sobre frame único é suficiente para o "
+        "reconhecimento de letras estáticas do alfabeto manual, sem ter "
+        "sido realizada neste trabalho comparação direta com a arquitetura "
+        "CNN-LSTM proposta originalmente. A arquitetura final consiste em:"
     )
     SP(4)
     P(
@@ -715,6 +731,82 @@ def build(analysis_dir: Path, styles):
         "(6.414 frames). v4 é simultaneamente mais preciso (+11,8 pp "
         "vs. v1), mais decisivo (entropia −41%) e mais robusto (Seção "
         "4.6).",
+        "caption",
+    )
+
+    SP(8)
+    P(
+        "Para avaliar a estabilidade dos resultados, a Tabela 3 reporta "
+        "a acurácia top-1 desagregada por cada uma das 5 repetições "
+        "(cada repetição contém aproximadamente 1.250 frames distribuídos "
+        "pelas 22 letras), com média e desvio-padrão calculados sobre as "
+        "repetições. O intervalo de confiança 95% é estimado como "
+        "1,96·σ/√n com n = 5."
+    )
+    SP(4)
+    story.append(make_table(
+        [
+            ["Modelo", "rep 0", "rep 1", "rep 2", "rep 3", "rep 4",
+             "Média ± σ", "IC 95%"],
+            ["v1", "77,89", "81,25", "84,85", "77,26", "79,02",
+             "80,05 ± 2,75", "±2,41"],
+            ["v2", "83,59", "82,43", "86,35", "79,51", "86,48",
+             "83,67 ± 2,61", "±2,28"],
+            ["v3", "79,04", "90,39", "87,69", "73,86", "90,29",
+             "84,25 ± 6,65", "±5,83"],
+            ["v4", "90,52", "94,96", "96,45", "86,47", "90,83",
+             "91,85 ± 3,54", "±3,10"],
+        ],
+        col_widths=[1.5 * cm, 1.4 * cm, 1.4 * cm, 1.4 * cm, 1.4 * cm,
+                    1.4 * cm, 2.6 * cm, 1.6 * cm],
+        style_extras=[
+            ("FONT", (0, -1), (-1, -1), "Times-Bold", 8.5),
+            ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#eef5ee")),
+            ("FONTSIZE", (0, 0), (-1, -1), 8),
+        ],
+    ))
+    P(
+        "<i>Tabela 3.</i> Acurácia top-1 (%) desagregada por repetição "
+        "sobre S02. Note-se que v3 apresenta a maior variância (σ = 6,65), "
+        "coerente com a observação de instabilidade do modelo após adições "
+        "parciais; v4 reduz a variância (σ = 3,54) ao tempo em que eleva "
+        "a média. As diferenças v4 vs. v1 (Δ ≈ +11,8 pp) e v4 vs. v3 "
+        "(Δ ≈ +7,6 pp) são superiores aos intervalos de confiança "
+        "individuais, sustentando a interpretação de melhoria real e não "
+        "atribuível a variância amostral.",
+        "caption",
+    )
+
+    SP(8)
+    P(
+        "A Tabela 4 sintetiza o ganho experimental obtido entre o modelo "
+        "<i>base</i> (treinado apenas com LibrAI) e o modelo <i>robust-v4</i> "
+        "(multi-sujeito balanceado), nas três métricas principais:"
+    )
+    SP(4)
+    story.append(make_table(
+        [
+            ["Métrica", "Baseline (base)", "Robust v4", "Δ"],
+            ["Acurácia em LibrAI test", "99,78 %", "99,33 %", "−0,45 pp"],
+            ["Acurácia em câmara real (S02)", "23,95 %", "91,81 %",
+             "+67,86 pp"],
+            ["Top-5 em câmara real (S02)", "59,17 %", "99,31 %",
+             "+40,14 pp"],
+        ],
+        col_widths=[6.0 * cm, 3.0 * cm, 3.0 * cm, 2.4 * cm],
+        style_extras=[
+            ("FONT", (0, 1), (-1, 1), "Times-Italic", 9),
+            ("FONT", (0, 2), (-1, -1), "Times-Bold", 9),
+            ("BACKGROUND", (0, 2), (-1, -1), colors.HexColor("#eef5ee")),
+        ],
+    ))
+    P(
+        "<i>Tabela 4.</i> Síntese do impacto do treinamento multi-sujeito "
+        "balanceado com <i>data augmentation</i>. A perda marginal em "
+        "LibrAI (−0,45 pp) é largamente compensada pelo ganho em câmara "
+        "real (+67,86 pp), demonstrando que a generalização ao domínio "
+        "de uso real foi atingida sem comprometer significativamente o "
+        "desempenho no domínio de origem.",
         "caption",
     )
 
