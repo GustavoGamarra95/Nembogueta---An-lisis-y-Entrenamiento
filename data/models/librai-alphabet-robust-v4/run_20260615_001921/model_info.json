@@ -1,0 +1,122 @@
+{
+  "timestamp": "2026-06-15T00:21:19.551820Z",
+  "num_features": 120,
+  "num_classes": 22,
+  "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "I",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "Y",
+    "Ç"
+  ],
+  "label_names": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "I",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "Y",
+    "Ç"
+  ],
+  "model_type": "dnn_robust",
+  "training_data": {
+    "librai": {
+      "train": 32197,
+      "val": 6900,
+      "test": 6900
+    },
+    "operator": {
+      "train": 16478,
+      "val": 1293,
+      "test": 1287
+    },
+    "op_weight": 1.9539385847797062
+  },
+  "augmentation": {
+    "palm_rot_deg": 20.0,
+    "jitter_sigma": 0.5,
+    "flip_prob": 0.5,
+    "dropout": 0.4
+  },
+  "hyperparameters": {
+    "lr": 0.001,
+    "batch_size": 128,
+    "epochs_max": 120,
+    "epochs_trained": 116
+  },
+  "test_accuracy": 0.9933333333333333,
+  "results": {
+    "base_v4": {
+      "librai_test": {
+        "name": "base_librai_test",
+        "top1": 0.9986956521739131,
+        "top5": 0.9998550724637681,
+        "n": 6900
+      },
+      "operator_test": {
+        "name": "base_op_test",
+        "top1": 0.10722610722610723,
+        "top5": 0.432012432012432,
+        "n": 1287
+      },
+      "operator_all": {
+        "name": "base_op_all",
+        "top1": 0.11568444028687247,
+        "top5": 0.4374805113813533,
+        "n": 6414
+      }
+    },
+    "robust_new": {
+      "librai_test": {
+        "name": "robust_librai_test",
+        "top1": 0.9933333333333333,
+        "top5": 0.9992753623188406,
+        "n": 6900
+      },
+      "operator_test": {
+        "name": "robust_op_test",
+        "top1": 0.9083139083139083,
+        "top5": 0.9867909867909868,
+        "n": 1287
+      },
+      "operator_all": {
+        "name": "robust_op_all",
+        "top1": 0.9181478016838166,
+        "top5": 0.993140006236358,
+        "n": 6414
+      }
+    }
+  }
+}
