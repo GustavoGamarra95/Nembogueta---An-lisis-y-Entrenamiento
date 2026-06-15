@@ -1,0 +1,72 @@
+{
+  "model": {
+    "test_accuracy_holdout": 0.9904347826086957,
+    "num_features": 120,
+    "num_classes": 22
+  },
+  "per_letter": {
+    "T": {
+      "reps": 10,
+      "frames_detected": 600,
+      "frames_total": 600,
+      "top1_accuracy": 0.9416666666666667,
+      "top5_accuracy": 1.0,
+      "mean_confidence_on_target": 0.9141414399817586
+    },
+    "U": {
+      "reps": 10,
+      "frames_detected": 590,
+      "frames_total": 600,
+      "top1_accuracy": 0.7203389830508474,
+      "top5_accuracy": 0.9983050847457627,
+      "mean_confidence_on_target": 0.4640328369827912
+    },
+    "V": {
+      "reps": 10,
+      "frames_detected": 600,
+      "frames_total": 600,
+      "top1_accuracy": 1.0,
+      "top5_accuracy": 1.0,
+      "mean_confidence_on_target": 0.8905643648902575
+    },
+    "W": {
+      "reps": 10,
+      "frames_detected": 587,
+      "frames_total": 600,
+      "top1_accuracy": 0.9829642248722317,
+      "top5_accuracy": 0.9914821124361158,
+      "mean_confidence_on_target": 0.9807275669116163
+    }
+  },
+  "global": {
+    "frames_detected": 2377,
+    "top1_accuracy": 0.9116533445519562,
+    "top5_accuracy": 0.9974758098443416,
+    "letters_evaluated": 4,
+    "gap_vs_holdout": 0.07878143805673943
+  },
+  "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "I",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "Y",
+    "Ç"
+  ]
+}
