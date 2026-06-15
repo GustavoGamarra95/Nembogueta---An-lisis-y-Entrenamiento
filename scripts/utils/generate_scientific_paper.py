@@ -310,14 +310,18 @@ def build(analysis_dir: Path, styles):
         "et al. (2020) introduziram Transformers para tradução de sequências. "
         "Para línguas com escassez de dados, Idrees et al. (2025) "
         "demonstraram que a combinação MediaPipe Hands + LSTM atinge 95% "
-        "de acurácia em tempo real para a Língua de Sinais Norueguesa, "
-        "metodologia análoga à adotada no presente projeto. Ahmed et al. "
-        "(2022) reportaram 88,40% para LIBRAS com o modelo DeepSign, e "
-        "Saleh e Alnasser (2023) obtiveram entre 88% e 96% para ASL "
-        "com arquiteturas híbridas LSTM. A LSP permanece praticamente "
-        "ausente da literatura computacional: o único trabalho documentado "
-        "(Gutierrez et al., 2024) classificou apenas 10 sinais sem suporte "
-        "multilíngue ou inferência em tempo real."
+        "de acurácia em tempo real para o reconhecimento dos sinais "
+        "numéricos (0–10) da Língua de Sinais Norueguesa, metodologia "
+        "análoga à adotada no presente projeto. Para LIBRAS, Abdallah "
+        "et al. (2023) reportaram, em seu modelo DSLR baseado em GRU+CNN "
+        "1D combinado com MediaPipe, acurácia de 88,40% sobre o dataset "
+        "LIBRAS-BSL. Saleh e Alnasser (2023) propuseram arquiteturas "
+        "híbridas baseadas em LSTM para o reconhecimento de sinais "
+        "estáticos e dinâmicos da Língua de Sinais Americana. A LSP "
+        "permanece praticamente ausente da literatura computacional: o "
+        "único trabalho documentado (Gutierrez et al., 2024) classificou "
+        "apenas 10 sinais sem suporte multilíngue ou inferência em "
+        "tempo real."
     )
     P(
         "Sobre <i>domain shift</i> em reconhecimento de gestos, a "
@@ -1005,9 +1009,10 @@ def build(analysis_dir: Path, styles):
     P("REFERÊNCIAS", "h1")
 
     refs = [
-        "AHMED, S. et al. DeepSign: Sign Language Detection and "
-        "Recognition Using Deep Learning. <i>Electronics</i>, v. 11, "
-        "n. 11, p. 1780, 2022. DOI: 10.3390/electronics11111780.",
+        "ABDALLAH, M. S. et al. Light-Weight Deep Learning Techniques "
+        "with Advanced Processing for Real-Time Hand Gesture Recognition. "
+        "<i>Sensors</i>, v. 23, n. 1, art. 2, 2023. DOI: "
+        "10.3390/s23010002.",
 
         "BEN-DAVID, S. et al. A theory of learning from different "
         "domains. <i>Machine Learning</i>, v. 79, n. 1-2, p. 151-175, "
@@ -1051,7 +1056,8 @@ def build(analysis_dir: Path, styles):
         "KOLLER, O. et al. Weakly Supervised Learning with Multi-stream "
         "CNN-LSTM-HMMs to Discover Sequential Parallelism in Sign "
         "Language Videos. <i>IEEE Transactions on Pattern Analysis and "
-        "Machine Intelligence</i>, v. 42, n. 9, p. 2306-2320, 2020.",
+        "Machine Intelligence</i>, v. 42, n. 9, p. 2306-2320, 2020. "
+        "DOI: 10.1109/TPAMI.2019.2911077.",
 
         "KRAWCZYK, B. Learning from imbalanced data: open challenges "
         "and future directions. <i>Progress in Artificial "
