@@ -48,6 +48,7 @@ nuevos datos de colecta.
 | `librai-alphabet-robust` ⭐ | **97.74%** | **79%** | **80%** | Recomendado — generaliza |
 | `librai-alphabet-robust-ft` | 96.41% | 84% | — | Personalizado al operador S01 |
 | `librai-alphabet-robust-v2` 🧪 | **99.04%** | — | **83.66%** | Experimental — S01 + S02 parcial |
+| `librai-alphabet-robust-v3` 🧪 | **99.35%** | — | **84.21%** | Experimental — S01 + S02-extra + S02-cluster |
 
 **Validación inter-sujeto del `robust`** (sesión S02 grabada con sujeto no
 visto durante training):
@@ -75,6 +76,33 @@ colapsó porque su frontera con R se desplazó al ver más ejemplos de R
 del estilo de S02. Para producción, multi-sujeto debe ser balanceado
 por cluster semántico (R-V-U-W se mueven juntas), no solo por
 dificultad individual.
+
+**Iteración del experimento (`robust-v3`)** — se agregó al training una
+segunda sesión parcial de S02 con las 4 letras vecinas del cluster
+(U, T, V, W × 10 reps cada una). Resultados sobre S02 full session:
+
+| Letra | v1 | v2 | v3 | Comentario |
+|---|---|---|---|---|
+| U | 97% | 8% | **97%** | Recuperada (+89.7 pp vs v2) |
+| T | 89% | 76% | 88% | Recuperada |
+| V | 81% | 96% | **57%** | **Nueva inestabilidad** (-39 pp vs v2) |
+| W | 90% | 96% | 97% | Estable |
+| C | 96% | 95% | **68%** | Daño colateral en letra estable |
+| F | 98% | 98% | **64%** | Daño colateral en letra estable |
+| Global S02 | 80.03% | 83.66% | **84.21%** | +0.55 pp marginal |
+
+**Hallazgo refinado**: el cluster R-V-U-W **no es un set fijo**. Cada
+iteración parcial mueve las inestabilidades a letras distintas — v1→v2
+rompió U, v2→v3 rompió V (y degradó C, F, N). Es un sistema de
+equilibrios competitivos: agregar data para A genera presión sobre B
+que comparte feature space.
+
+**Conclusión metodológica para colecta LSP** (Fase 3 del roadmap): el
+dataset multi-sujeto efectivo debe ser **completo y balanceado** —
+todas las letras del alfabeto × todos los sujetos × mismo número de
+reps. La colecta parcial selectiva es intrínsecamente inestable y
+genera resultados de mejora marginal con costo de daños colaterales
+impredecibles.
 
 Lineage:
 ```
