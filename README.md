@@ -142,11 +142,31 @@ v4 (base LibrAI puro, 99.78% holdout, 24% real → overfit)
           + recupera V (única letra débil del robust): 0% → 98%
 ```
 
+### Alicia — nombre de los modelos entrenados
+
+A partir de ahora, los modelos que producen los scripts de `scripts/train/`
+se llaman **Alicia**: se guardan en carpetas `alicia-*` y su
+`model_info.json` / `metadata.json` incluye `"model_name": "Alicia"`.
+
+| Script | Salida por defecto |
+|---|---|
+| `train_alphabet.py` | `models/alicia-alphabet` |
+| `train_alphabet_robust.py` | `/data/models/alicia-alphabet-robust` |
+| `finetune_alphabet_realworld.py` | `/data/models/alicia-alphabet-ft` |
+| `cv_finetune_alphabet.py` | `/data/models/alicia-alphabet-ft-cv` |
+| `train_vlibrasil.py` | `/data/models/alicia-phrases` |
+| `train_ufpr.py` | `/data/models/alicia-handshape` |
+| `train_translation.py` | `/data/models/alicia-translation` |
+
+Los modelos ya entrenados (`librai-alphabet-*`, `vlibrasil-v2`,
+`ufpr-handshape`) conservan su nombre porque el paper y las sesiones de
+evaluación los referencian.
+
 ### Modelos de frases y handshapes (pipeline legacy, 208 features)
 
 | Modelo | Dataset | Clases | Test Acc | Estado |
 |---|---|---|---|---|
-| V-LIBRASIL v2 | V-LIBRASIL (UFPE) | 1361 | 99.4% | ⚠️ Pipeline legacy — incompatible con `feature_engineering.py` actual |
+| V-LIBRASIL v2 | V-LIBRASIL (UFPE) | 1361 | 99.4% (frases: 98.2%) | ⚠️ Pipeline legacy — incompatible con `feature_engineering.py` actual |
 | UFPR Handshapes | LIBRAS-HC-RGBDS | 61 | 70.3% | ⚠️ Pipeline legacy — incompatible con `feature_engineering.py` actual |
 | LSP letters | Pendente | — | — | ❌ Aguardando colecta de datos |
 
@@ -156,6 +176,13 @@ motion). El pipeline actual (`src/preprocessing/feature_engineering.py`)
 produce 120 features invariantes. Para usar estos modelos hay que
 restaurar el extractor viejo o retrainear con el nuevo. Pendiente
 decisión: ver `docs/source/protocols/`.
+
+**Evaluación de V-LIBRASIL v2 sobre frases** — de las 1361 clases, las que
+son frases (nombre con espacios) se evaluaron por separado con
+`scripts/evaluate/evaluate_phrases_vlibrasil.py`: **795 muestras,
+top-1 98.2%, top-5 100%**. Reporte por frase en
+`data/analysis/phrases_report.json` y videos demo en
+`data/analysis/videos/`.
 
 ---
 
@@ -233,7 +260,8 @@ Nembogueta---An-lisis-y-Entrenamiento/
 │   │                                 # finetune_alphabet_realworld,
 │   │                                 # cv_finetune_alphabet, train_vlibrasil, train_ufpr...
 │   ├── evaluate/                     # Evaluación offline + evaluate_realworld.py
-│   ├── demo/                         # realtime_librai_alphabet, realtime_vlibrasil...
+│   ├── demo/                         # realtime_librai_alphabet, realtime_vlibrasil,
+│   │                                 # make_video_demo_vlibrasil, make_synth_video...
 │   ├── inference/
 │   ├── utils/                        # guided_calibration, verify_gpu, capture_letter_images...
 │   └── legacy/                       # Scripts deprecados (ver scripts/legacy/README.md)
@@ -242,15 +270,23 @@ Nembogueta---An-lisis-y-Entrenamiento/
 │   ├── models/
 │   │   ├── librai-alphabet-v4/      # base
 │   │   ├── librai-alphabet-v4-ft/
-│   │   ├── librai-alphabet-robust/  # ⭐ recomendado
+│   │   ├── librai-alphabet-robust/  # v1
 │   │   ├── librai-alphabet-robust-ft/
+│   │   ├── librai-alphabet-robust-v2/ … -v3/  # experimentales
+│   │   ├── librai-alphabet-robust-v4/  # ⭐ recomendado
 │   │   ├── librai-alphabet-v4-ft-cv/  # 5-fold CV runs
 │   │   ├── vlibrasil-v2/            # legacy (208 features)
-│   │   └── ufpr-handshape/          # legacy (208 features)
+│   │   ├── ufpr-handshape/          # legacy (208 features)
+│   │   └── alicia-*/                # modelos que se entrenen de ahora en adelante
 │   ├── processed/
 │   │   ├── librai_alphabet_v4/      # 22 letras × ~2090 frames (120 features)
 │   │   ├── v-librasil-flat/         # legacy
 │   │   └── ufpr-handshape/          # legacy
+│   ├── analysis/
+│   │   ├── robust_models/           # análisis comparativo robust v1–v4
+│   │   ├── paper_figures/
+│   │   ├── videos/                  # demos de frases V-LIBRASIL (.mp4)
+│   │   └── phrases_report.json      # evaluación de frases V-LIBRASIL v2
 │   └── realworld_eval/
 │       └── sessions/                # sesiones de evaluación en cámara real
 │
@@ -294,6 +330,35 @@ Rutas dentro del container:
 - Datos/modelos: `/data/`
 - Dataset V-LIBRASIL: `/app/src/videos UFPE (V-LIBRASIL)/data/`
 - Dataset UFPR: `/app/src/LIBRAS-HC-RGBDS-2011/`
+
+### Entorno local sin Docker (Linux)
+
+TF 2.10 requiere Python 3.10. Con [uv](https://docs.astral.sh/uv/):
+
+```bash
+uv python install 3.10
+uv venv --seed --python 3.10 .venv
+.venv/bin/pip install -r requirements.txt
+cp .env.example .env   # ajustar rutas
+```
+
+Para entrenar en GPU sin CUDA instalado en el sistema, las librerías de
+CUDA 11 y cuDNN 8 se pueden instalar dentro del venv:
+
+```bash
+.venv/bin/pip install nvidia-cuda-runtime-cu11==11.8.89 nvidia-cublas-cu11==11.11.3.6 \
+  nvidia-cufft-cu11==10.9.0.58 nvidia-curand-cu11==10.3.0.86 \
+  nvidia-cusolver-cu11==11.4.1.48 nvidia-cusparse-cu11==11.7.5.86 \
+  nvidia-cudnn-cu11==8.6.0.163 nvidia-cuda-nvcc-cu11==11.8.89
+
+# Antes de correr scripts (bash):
+NV=.venv/lib/python3.10/site-packages/nvidia
+export LD_LIBRARY_PATH=$(printf '%s:' "$PWD/$NV"/*/lib)$LD_LIBRARY_PATH
+export XLA_FLAGS=--xla_gpu_cuda_data_dir=$PWD/$NV/cuda_nvcc
+```
+
+Fuera del container, pasar rutas locales a los scripts (los defaults
+apuntan a `/data/` y `/app/`), p. ej. `--librai-dir data/processed/librai_alphabet_v4`.
 
 ---
 
@@ -354,6 +419,9 @@ python scripts/preprocess/preprocess_vlibrasil.py \
 python scripts/train/train_vlibrasil.py \
   --data-dir /data/processed/v-librasil-flat \
   --output-dir /data/models/alicia-phrases
+python scripts/evaluate/evaluate_phrases_vlibrasil.py \
+  --model-dir /data/models/vlibrasil-v2 \
+  --output /data/analysis/phrases_report.json
 
 # UFPR
 python scripts/utils/convert_oni_to_mp4.py --input-dir /app/src/LIBRAS-HC-RGBDS-2011
@@ -403,6 +471,21 @@ docker compose --profile gpu run nembogueta-gpu \
 docker compose --profile gpu run nembogueta-gpu \
   python scripts/demo/realtime_vlibrasil.py
 ```
+
+### Videos demo (offline)
+
+```bash
+# V-LIBRASIL: videos → landmarks → 208 features → top-3 (OUT = archivo de salida,
+# PHRASES_ONLY=1 limita a frases)
+docker compose --profile gpu run -e OUT=/data/analysis/videos/phrases_demo.mp4 \
+  -e PHRASES_ONLY=1 nembogueta-gpu python scripts/demo/make_video_demo_vlibrasil.py
+
+# Alfabeto LibrAI con MediaPipe Tasks API (requiere hand_landmarker.task en /app)
+docker compose --profile gpu run nembogueta-gpu python scripts/demo/make_synth_video.py
+```
+
+`scripts/demo/_fe208.py` contiene el extractor legacy de 208 features que
+usan estos demos de V-LIBRASIL.
 
 ---
 
@@ -491,7 +574,7 @@ echo $DISPLAY        # debe ser :0 o similar
 
 ### Fase 3 — Datos y modelos LSP
 - [ ] Colecta de videos de letras LSP (A–Z, Ñ) — Sprint 4 del roadmap interno
-- [ ] Validación del modelo `robust` con segundo sujeto
+- [x] Validación del modelo `robust` con segundo sujeto (S02 — `robust-v4`: 91.8% top-1)
 - [ ] Entrenamiento de modelo de letras LSP
 - [ ] Colecta de palabras y frases LSP (tríplice fronteira)
 
