@@ -46,6 +46,7 @@ logs/
 *.h5
 *.tflite
 *.mp4
+!data/analysis/videos/*.mp4
 *.avi
 
 # Test coverage
