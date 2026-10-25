@@ -268,7 +268,7 @@ def main():
     parser.add_argument("--data-dir", type=Path,
                         default=Path("/data/processed/v-librasil-flat"))
     parser.add_argument("--output-dir", type=Path,
-                        default=Path("/data/models/vlibrasil-v2"))
+                        default=Path("/data/models/alicia-phrases"))
     parser.add_argument("--aug-factor", type=int, default=5,
                         help="Multiplicador de augmentación (default: 5 → 15 muestras por clase)")
     parser.add_argument("--epochs", type=int, default=300)
@@ -374,6 +374,7 @@ def main():
     save_prototypes(model, X_train, y_train, n_classes, args.output_dir)
 
     metadata = {
+        "model_name": "Alicia",
         "dataset": "V-LIBRASIL",
         "n_classes": n_classes,
         "class_names": class_names,

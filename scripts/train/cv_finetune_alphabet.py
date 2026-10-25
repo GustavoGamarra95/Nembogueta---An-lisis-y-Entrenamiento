@@ -135,6 +135,7 @@ def train_one_fold(
     np.save(fold_out_dir / "label_classes.npy", np.array(classes))
 
     fold_info = {
+        "model_name": "Alicia",
         "val_rep": val_rep,
         "epochs_trained": len(history.history["loss"]),
         "train_samples": int(len(X_train)),
@@ -267,7 +268,7 @@ def main():
     p.add_argument("--base-model-dir", type=Path, required=True)
     p.add_argument(
         "--output-root", type=Path,
-        default=Path("/data/models/librai-alphabet-v4-ft-cv"),
+        default=Path("/data/models/alicia-alphabet-ft-cv"),
     )
     p.add_argument("--lr", type=float, default=1e-4)
     p.add_argument("--epochs", type=int, default=80)

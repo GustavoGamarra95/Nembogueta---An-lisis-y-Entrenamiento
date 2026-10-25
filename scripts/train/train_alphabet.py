@@ -4,7 +4,7 @@ Entrena un modelo CNN-LSTM para clasificación de letras usando landmarks.
 
 Uso:
     python scripts/train_alphabet.py --data-dir data/processed/alphabet \
-                                     --output-dir models/alphabet \
+                                     --output-dir models/alicia-alphabet \
                                      --epochs 100 \
                                      --batch-size 32
 """
@@ -548,6 +548,7 @@ def train(args):
 
     # Guardar información del modelo
     model_info = {
+        'model_name': 'Alicia',
         'timestamp': timestamp,
         'input_shape': list(input_shape),
         'num_features': int(input_shape[0]) if is_per_frame else int(input_shape[1]),
@@ -594,7 +595,7 @@ def main():
     parser.add_argument(
         '--output-dir',
         type=str,
-        default='models/alphabet',
+        default='models/alicia-alphabet',
         help='Directorio para guardar modelos'
     )
 

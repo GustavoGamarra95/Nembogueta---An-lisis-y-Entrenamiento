@@ -184,7 +184,7 @@ def build_transformer_model(
 def main():
     parser = argparse.ArgumentParser(description="Entrena modelo de traducción PT-BR → LIBRAS glosas")
     parser.add_argument("--data-dir", type=Path, default=Path("/data/processed/pt_br2libras"))
-    parser.add_argument("--output-dir", type=Path, default=Path("/data/models/translation"))
+    parser.add_argument("--output-dir", type=Path, default=Path("/data/models/alicia-translation"))
     parser.add_argument("--max-seq-length", type=int, default=100)
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--batch-size", type=int, default=64)
@@ -285,6 +285,7 @@ def main():
     shutil.copy(args.data_dir / "vocab_libras_gloss.json", args.output_dir / "vocab_libras_gloss.json")
 
     metadata = {
+        "model_name": "Alicia",
         "max_seq_length": args.max_seq_length,
         "embed_dim": args.embed_dim,
         "num_heads": args.num_heads,

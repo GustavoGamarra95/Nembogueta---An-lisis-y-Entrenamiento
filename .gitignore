@@ -42,6 +42,7 @@ data/personal/
 data/raw/
 data/models/*/
 !data/models/librai-alphabet-robust*/
+!data/models/alicia-alphabet-robust*/
 logs/
 *.h5
 *.tflite
@@ -68,4 +69,5 @@ coversacion.txt
 hand_landmarker.task
 *.keras
 !data/models/librai-alphabet-robust*/**/*.keras
+!data/models/alicia-alphabet-robust*/**/*.keras
 !data/realworld_eval/**/*.keras

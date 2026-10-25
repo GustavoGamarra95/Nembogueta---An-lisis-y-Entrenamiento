@@ -310,35 +310,35 @@ python scripts/preprocess/preprocess_alphabet_videos.py \
 # 2. Entrenar modelo base (DNN simple)
 python scripts/train/train_alphabet.py \
   --data-dir /data/processed/librai_alphabet_v4 \
-  --output-dir /data/models/librai-alphabet-v4
+  --output-dir /data/models/alicia-alphabet
 
 # 3. Entrenar modelo robusto (augmentation + datos operador)
 python scripts/train/train_alphabet_robust.py \
   --librai-dir /data/processed/librai_alphabet_v4 \
   --session-dir /data/realworld_eval/sessions/<SESSION_ID> \
-  --output-root /data/models/librai-alphabet-robust
+  --output-root /data/models/alicia-alphabet-robust
 
 # 4. Evaluar offline (LibrAI holdout)
 python scripts/evaluate/evaluate_alphabet.py \
-  --model /data/models/librai-alphabet-robust/<run>/best_model.keras \
-  --model-info /data/models/librai-alphabet-robust/<run>/model_info.json \
+  --model /data/models/alicia-alphabet-robust/<run>/best_model.keras \
+  --model-info /data/models/alicia-alphabet-robust/<run>/model_info.json \
   --data-dir /data/processed/librai_alphabet_v4 \
-  --output-dir /data/models/librai-alphabet-robust/<run>/evaluation
+  --output-dir /data/models/alicia-alphabet-robust/<run>/evaluation
 
 # 5. Evaluar en cámara real (sesión interactiva ~18 min)
 python scripts/evaluate/evaluate_realworld.py \
-  --model-dir /data/models/librai-alphabet-robust/<run> \
+  --model-dir /data/models/alicia-alphabet-robust/<run> \
   --subject-id S02 --reps 5
 
 # 6. Fine-tune sobre sesión real
 python scripts/train/finetune_alphabet_realworld.py \
   --session-dir /data/realworld_eval/sessions/<SESSION_ID> \
-  --base-model-dir /data/models/librai-alphabet-robust/<run>
+  --base-model-dir /data/models/alicia-alphabet-robust/<run>
 
 # 7. Cross-validation 5-fold del fine-tune
 python scripts/train/cv_finetune_alphabet.py \
   --session-dir /data/realworld_eval/sessions/<SESSION_ID> \
-  --base-model-dir /data/models/librai-alphabet-robust/<run>
+  --base-model-dir /data/models/alicia-alphabet-robust/<run>
 ```
 
 ### V-LIBRASIL (frases) y UFPR Handshapes — pipeline legacy
@@ -353,7 +353,7 @@ python scripts/preprocess/preprocess_vlibrasil.py \
   --output-dir /data/processed/v-librasil-flat
 python scripts/train/train_vlibrasil.py \
   --data-dir /data/processed/v-librasil-flat \
-  --output-dir /data/models/vlibrasil-v2
+  --output-dir /data/models/alicia-phrases
 
 # UFPR
 python scripts/utils/convert_oni_to_mp4.py --input-dir /app/src/LIBRAS-HC-RGBDS-2011
@@ -362,7 +362,7 @@ python scripts/preprocess/preprocess_ufpr.py \
   --output-dir /data/processed/ufpr-handshape
 python scripts/train/train_ufpr.py \
   --data-dir /data/processed/ufpr-handshape \
-  --output-dir /data/models/ufpr-handshape
+  --output-dir /data/models/alicia-handshape
 ```
 
 ---

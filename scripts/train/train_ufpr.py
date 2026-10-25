@@ -116,7 +116,7 @@ def main():
     )
     parser.add_argument(
         "--output-dir", type=Path,
-        default=Path("/data/models/ufpr-handshape"),
+        default=Path("/data/models/alicia-handshape"),
         help="Directorio de salida para el modelo"
     )
     parser.add_argument("--epochs", type=int, default=300)
@@ -213,6 +213,7 @@ def main():
     model.save(args.output_dir / "final_model.keras")
 
     metadata = {
+        "model_name": "Alicia",
         "dataset": "UFPR LIBRAS-HC-RGBDS",
         "n_classes": n_classes,
         "class_names": class_names,

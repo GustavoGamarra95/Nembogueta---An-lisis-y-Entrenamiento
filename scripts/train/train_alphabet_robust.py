@@ -12,7 +12,7 @@ Uso (dentro del contenedor):
     python scripts/train/train_alphabet_robust.py \\
         --librai-dir /data/processed/librai_alphabet_v4 \\
         --session-dir /data/realworld_eval/sessions/20260614_011801_S01 \\
-        --output-root /data/models/librai-alphabet-robust
+        --output-root /data/models/alicia-alphabet-robust
 """
 
 import argparse
@@ -396,6 +396,7 @@ def run(args):
     np.save(out_dir / "label_classes.npy", np.array(classes))
 
     info = {
+        "model_name": "Alicia",
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "num_features": 120,
         "num_classes": len(classes),
@@ -443,7 +444,7 @@ def main():
                    ),
                    help="Solo para comparación final")
     p.add_argument("--output-root", type=Path,
-                   default=Path("/data/models/librai-alphabet-robust"))
+                   default=Path("/data/models/alicia-alphabet-robust"))
     p.add_argument("--lr", type=float, default=1e-3)
     p.add_argument("--epochs", type=int, default=120)
     p.add_argument("--batch-size", type=int, default=128)

@@ -12,7 +12,7 @@ Uso (dentro del contenedor):
     python scripts/train/finetune_alphabet_realworld.py \\
         --session-dir /data/realworld_eval/sessions/20260614_011801_S01 \\
         --base-model-dir /data/models/librai-alphabet-v4/run_20260601_015641 \\
-        --output-root /data/models/librai-alphabet-v4-ft
+        --output-root /data/models/alicia-alphabet-ft
 """
 
 import argparse
@@ -200,6 +200,7 @@ def run(args):
 
     # model_info.json compatible con evaluate_realworld
     info = {
+        "model_name": "Alicia",
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "num_features": 120,
         "num_classes": len(classes),
@@ -267,7 +268,7 @@ def main():
     p.add_argument("--base-model-dir", type=Path, required=True)
     p.add_argument(
         "--output-root", type=Path,
-        default=Path("/data/models/librai-alphabet-v4-ft"),
+        default=Path("/data/models/alicia-alphabet-ft"),
     )
     p.add_argument("--val-rep", type=int, default=4,
                    help="Rep usada como val (default: 4 = última)")
