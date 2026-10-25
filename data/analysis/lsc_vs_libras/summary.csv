@@ -1,0 +1,28 @@
+letra,veredicto,pct_misma_letra,prediccion_top,pct_top,rank_centroide,grupo_mas_distinto
+A,equivalente,81.3,A,81.3,1,distancias
+B,equivalente,96.5,B,96.5,1,curl_dedos
+C,equivalente,91.3,C,91.3,1,orientacion_palma
+D,distinta,1.5,Ç,85.5,3,angulos
+E,distinta,4.5,C,71.7,13,curl_dedos
+F,distinta,0.0,G,84.6,20,curl_dedos
+G,distinta,8.4,Ç,40.0,2,orientacion_palma
+H,solo LSC (o no está en LibrAI),,Ç,21.4,,
+I,equivalente,78.7,I,78.7,1,curl_dedos
+J,solo LSC (o no está en LibrAI),,Ç,36.8,,
+K,solo LSC (o no está en LibrAI),,P,75.9,,
+L,parecida (revisar),52.5,L,52.5,1,distancias
+M,equivalente,70.1,M,70.1,1,distancias
+N,parecida (revisar),43.9,N,43.9,1,distancias
+O,equivalente,95.9,O,95.9,1,angulos
+P,parecida (revisar),39.4,P,39.4,2,orientacion_palma
+Q,distinta,0.0,M,82.0,8,curl_dedos
+R,parecida (revisar),64.1,R,64.1,2,curl_dedos
+S,distinta,1.7,Ç,51.0,8,angulos
+T,parecida (revisar),39.8,F,50.1,1,curl_dedos
+U,distinta,0.0,D,63.3,10,distancias
+V,parecida (revisar),56.3,V,56.3,2,curl_dedos
+W,equivalente,93.1,W,93.1,1,curl_dedos
+X,solo LSC (o no está en LibrAI),,Ç,90.6,,
+Y,equivalente,88.2,Y,88.2,1,curl_dedos
+Z,solo LSC (o no está en LibrAI),,R,23.2,,
+Ñ,solo LSC (o no está en LibrAI),,N,43.3,,

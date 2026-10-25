@@ -1,0 +1,950 @@
+{
+  "A": {
+    "veredicto": "equivalente",
+    "cruce_modelo": {
+      "n": 418,
+      "pred_top": "A",
+      "pred_top_pct": 81.3,
+      "same_letter_pct": 81.3,
+      "mean_prob_same": 0.782,
+      "top3": [
+        [
+          "A",
+          81.3
+        ],
+        [
+          "S",
+          11.7
+        ],
+        [
+          "Y",
+          3.8
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "A",
+      "dist_nearest": 3.7,
+      "dist_same": 3.7,
+      "dist_nearest_other": 6.17,
+      "rank_same": 1,
+      "group_diff": {
+        "distancias": 0.4,
+        "angulos": 0.4,
+        "curl_dedos": 0.18,
+        "orientacion_palma": 0.28
+      }
+    }
+  },
+  "B": {
+    "veredicto": "equivalente",
+    "cruce_modelo": {
+      "n": 397,
+      "pred_top": "B",
+      "pred_top_pct": 96.5,
+      "same_letter_pct": 96.5,
+      "mean_prob_same": 0.913,
+      "top3": [
+        [
+          "B",
+          96.5
+        ],
+        [
+          "O",
+          1.3
+        ],
+        [
+          "T",
+          0.8
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "B",
+      "dist_nearest": 3.53,
+      "dist_same": 3.53,
+      "dist_nearest_other": 4.14,
+      "rank_same": 1,
+      "group_diff": {
+        "distancias": 0.34,
+        "angulos": 0.19,
+        "curl_dedos": 0.48,
+        "orientacion_palma": 0.38
+      }
+    }
+  },
+  "C": {
+    "veredicto": "equivalente",
+    "cruce_modelo": {
+      "n": 413,
+      "pred_top": "C",
+      "pred_top_pct": 91.3,
+      "same_letter_pct": 91.3,
+      "mean_prob_same": 0.796,
+      "top3": [
+        [
+          "C",
+          91.3
+        ],
+        [
+          "Ç",
+          4.1
+        ],
+        [
+          "O",
+          3.6
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "C",
+      "dist_nearest": 5.78,
+      "dist_same": 5.78,
+      "dist_nearest_other": 6.31,
+      "rank_same": 1,
+      "group_diff": {
+        "distancias": 0.38,
+        "angulos": 0.65,
+        "curl_dedos": 0.1,
+        "orientacion_palma": 1.08
+      }
+    }
+  },
+  "D": {
+    "veredicto": "distinta",
+    "cruce_modelo": {
+      "n": 399,
+      "pred_top": "Ç",
+      "pred_top_pct": 85.5,
+      "same_letter_pct": 1.5,
+      "mean_prob_same": 0.043,
+      "top3": [
+        [
+          "Ç",
+          85.5
+        ],
+        [
+          "C",
+          4.8
+        ],
+        [
+          "O",
+          4.5
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "Ç",
+      "dist_nearest": 7.49,
+      "dist_same": 7.86,
+      "dist_nearest_other": 7.49,
+      "rank_same": 3,
+      "group_diff": {
+        "distancias": 0.52,
+        "angulos": 1.03,
+        "curl_dedos": 0.74,
+        "orientacion_palma": 0.8
+      }
+    }
+  },
+  "E": {
+    "veredicto": "distinta",
+    "cruce_modelo": {
+      "n": 396,
+      "pred_top": "C",
+      "pred_top_pct": 71.7,
+      "same_letter_pct": 4.5,
+      "mean_prob_same": 0.046,
+      "top3": [
+        [
+          "C",
+          71.7
+        ],
+        [
+          "O",
+          19.2
+        ],
+        [
+          "E",
+          4.5
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "C",
+      "dist_nearest": 7.52,
+      "dist_same": 9.72,
+      "dist_nearest_other": 7.52,
+      "rank_same": 13,
+      "group_diff": {
+        "distancias": 0.45,
+        "angulos": 1.09,
+        "curl_dedos": 1.62,
+        "orientacion_palma": 0.67
+      }
+    }
+  },
+  "F": {
+    "veredicto": "distinta",
+    "cruce_modelo": {
+      "n": 415,
+      "pred_top": "G",
+      "pred_top_pct": 84.6,
+      "same_letter_pct": 0.0,
+      "mean_prob_same": 0.0,
+      "top3": [
+        [
+          "G",
+          84.6
+        ],
+        [
+          "Ç",
+          9.2
+        ],
+        [
+          "L",
+          3.6
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "G",
+      "dist_nearest": 4.49,
+      "dist_same": 8.58,
+      "dist_nearest_other": 4.49,
+      "rank_same": 20,
+      "group_diff": {
+        "distancias": 0.89,
+        "angulos": 0.89,
+        "curl_dedos": 1.41,
+        "orientacion_palma": 0.33
+      }
+    }
+  },
+  "G": {
+    "veredicto": "distinta",
+    "cruce_modelo": {
+      "n": 417,
+      "pred_top": "Ç",
+      "pred_top_pct": 40.0,
+      "same_letter_pct": 8.4,
+      "mean_prob_same": 0.082,
+      "top3": [
+        [
+          "Ç",
+          40.0
+        ],
+        [
+          "Q",
+          26.9
+        ],
+        [
+          "G",
+          8.4
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "P",
+      "dist_nearest": 5.87,
+      "dist_same": 6.74,
+      "dist_nearest_other": 5.87,
+      "rank_same": 2,
+      "group_diff": {
+        "distancias": 0.84,
+        "angulos": 0.67,
+        "curl_dedos": 0.79,
+        "orientacion_palma": 0.86
+      }
+    }
+  },
+  "H": {
+    "veredicto": "solo LSC (o no está en LibrAI)",
+    "cruce_modelo": {
+      "n": 406,
+      "pred_top": "Ç",
+      "pred_top_pct": 21.4,
+      "same_letter_pct": null,
+      "mean_prob_same": null,
+      "top3": [
+        [
+          "Ç",
+          21.4
+        ],
+        [
+          "P",
+          17.5
+        ],
+        [
+          "N",
+          16.5
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "P",
+      "dist_nearest": 4.37
+    }
+  },
+  "I": {
+    "veredicto": "equivalente",
+    "cruce_modelo": {
+      "n": 418,
+      "pred_top": "I",
+      "pred_top_pct": 78.7,
+      "same_letter_pct": 78.7,
+      "mean_prob_same": 0.8,
+      "top3": [
+        [
+          "I",
+          78.7
+        ],
+        [
+          "Y",
+          14.4
+        ],
+        [
+          "Ç",
+          4.5
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "I",
+      "dist_nearest": 3.45,
+      "dist_same": 3.45,
+      "dist_nearest_other": 6.18,
+      "rank_same": 1,
+      "group_diff": {
+        "distancias": 0.24,
+        "angulos": 0.37,
+        "curl_dedos": 0.4,
+        "orientacion_palma": 0.21
+      }
+    }
+  },
+  "J": {
+    "veredicto": "solo LSC (o no está en LibrAI)",
+    "cruce_modelo": {
+      "n": 416,
+      "pred_top": "Ç",
+      "pred_top_pct": 36.8,
+      "same_letter_pct": null,
+      "mean_prob_same": null,
+      "top3": [
+        [
+          "Ç",
+          36.8
+        ],
+        [
+          "I",
+          25.7
+        ],
+        [
+          "Y",
+          8.4
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "Ç",
+      "dist_nearest": 5.83
+    }
+  },
+  "K": {
+    "veredicto": "solo LSC (o no está en LibrAI)",
+    "cruce_modelo": {
+      "n": 419,
+      "pred_top": "P",
+      "pred_top_pct": 75.9,
+      "same_letter_pct": null,
+      "mean_prob_same": null,
+      "top3": [
+        [
+          "P",
+          75.9
+        ],
+        [
+          "N",
+          12.6
+        ],
+        [
+          "Ç",
+          6.7
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "P",
+      "dist_nearest": 4.99
+    }
+  },
+  "L": {
+    "veredicto": "parecida (revisar)",
+    "cruce_modelo": {
+      "n": 419,
+      "pred_top": "L",
+      "pred_top_pct": 52.5,
+      "same_letter_pct": 52.5,
+      "mean_prob_same": 0.522,
+      "top3": [
+        [
+          "L",
+          52.5
+        ],
+        [
+          "Ç",
+          28.9
+        ],
+        [
+          "G",
+          17.4
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "L",
+      "dist_nearest": 4.89,
+      "dist_same": 4.89,
+      "dist_nearest_other": 5.19,
+      "rank_same": 1,
+      "group_diff": {
+        "distancias": 0.51,
+        "angulos": 0.49,
+        "curl_dedos": 0.5,
+        "orientacion_palma": 0.41
+      }
+    }
+  },
+  "M": {
+    "veredicto": "equivalente",
+    "cruce_modelo": {
+      "n": 418,
+      "pred_top": "M",
+      "pred_top_pct": 70.1,
+      "same_letter_pct": 70.1,
+      "mean_prob_same": 0.675,
+      "top3": [
+        [
+          "M",
+          70.1
+        ],
+        [
+          "W",
+          14.8
+        ],
+        [
+          "T",
+          6.7
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "M",
+      "dist_nearest": 3.27,
+      "dist_same": 3.27,
+      "dist_nearest_other": 5.41,
+      "rank_same": 1,
+      "group_diff": {
+        "distancias": 0.42,
+        "angulos": 0.25,
+        "curl_dedos": 0.35,
+        "orientacion_palma": 0.3
+      }
+    }
+  },
+  "N": {
+    "veredicto": "parecida (revisar)",
+    "cruce_modelo": {
+      "n": 417,
+      "pred_top": "N",
+      "pred_top_pct": 43.9,
+      "same_letter_pct": 43.9,
+      "mean_prob_same": 0.424,
+      "top3": [
+        [
+          "N",
+          43.9
+        ],
+        [
+          "P",
+          34.8
+        ],
+        [
+          "V",
+          14.6
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "N",
+      "dist_nearest": 3.79,
+      "dist_same": 3.79,
+      "dist_nearest_other": 5.26,
+      "rank_same": 1,
+      "group_diff": {
+        "distancias": 0.47,
+        "angulos": 0.34,
+        "curl_dedos": 0.38,
+        "orientacion_palma": 0.31
+      }
+    }
+  },
+  "O": {
+    "veredicto": "equivalente",
+    "cruce_modelo": {
+      "n": 410,
+      "pred_top": "O",
+      "pred_top_pct": 95.9,
+      "same_letter_pct": 95.9,
+      "mean_prob_same": 0.954,
+      "top3": [
+        [
+          "O",
+          95.9
+        ],
+        [
+          "C",
+          3.2
+        ],
+        [
+          "Ç",
+          0.7
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "O",
+      "dist_nearest": 6.81,
+      "dist_same": 6.81,
+      "dist_nearest_other": 7.32,
+      "rank_same": 1,
+      "group_diff": {
+        "distancias": 0.33,
+        "angulos": 0.77,
+        "curl_dedos": 0.34,
+        "orientacion_palma": 0.72
+      }
+    }
+  },
+  "P": {
+    "veredicto": "parecida (revisar)",
+    "cruce_modelo": {
+      "n": 409,
+      "pred_top": "P",
+      "pred_top_pct": 39.4,
+      "same_letter_pct": 39.4,
+      "mean_prob_same": 0.386,
+      "top3": [
+        [
+          "P",
+          39.4
+        ],
+        [
+          "Ç",
+          23.2
+        ],
+        [
+          "N",
+          19.3
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "Ç",
+      "dist_nearest": 6.09,
+      "dist_same": 6.13,
+      "dist_nearest_other": 6.09,
+      "rank_same": 2,
+      "group_diff": {
+        "distancias": 0.62,
+        "angulos": 0.67,
+        "curl_dedos": 0.42,
+        "orientacion_palma": 1.21
+      }
+    }
+  },
+  "Q": {
+    "veredicto": "distinta",
+    "cruce_modelo": {
+      "n": 412,
+      "pred_top": "M",
+      "pred_top_pct": 82.0,
+      "same_letter_pct": 0.0,
+      "mean_prob_same": 0.002,
+      "top3": [
+        [
+          "M",
+          82.0
+        ],
+        [
+          "Ç",
+          4.6
+        ],
+        [
+          "B",
+          3.6
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "M",
+      "dist_nearest": 5.45,
+      "dist_same": 9.83,
+      "dist_nearest_other": 5.45,
+      "rank_same": 8,
+      "group_diff": {
+        "distancias": 1.16,
+        "angulos": 0.6,
+        "curl_dedos": 2.32,
+        "orientacion_palma": 0.76
+      }
+    }
+  },
+  "R": {
+    "veredicto": "parecida (revisar)",
+    "cruce_modelo": {
+      "n": 418,
+      "pred_top": "R",
+      "pred_top_pct": 64.1,
+      "same_letter_pct": 64.1,
+      "mean_prob_same": 0.589,
+      "top3": [
+        [
+          "R",
+          64.1
+        ],
+        [
+          "U",
+          21.8
+        ],
+        [
+          "Ç",
+          3.8
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "U",
+      "dist_nearest": 3.09,
+      "dist_same": 3.22,
+      "dist_nearest_other": 3.09,
+      "rank_same": 2,
+      "group_diff": {
+        "distancias": 0.17,
+        "angulos": 0.33,
+        "curl_dedos": 0.7,
+        "orientacion_palma": 0.23
+      }
+    }
+  },
+  "S": {
+    "veredicto": "distinta",
+    "cruce_modelo": {
+      "n": 410,
+      "pred_top": "Ç",
+      "pred_top_pct": 51.0,
+      "same_letter_pct": 1.7,
+      "mean_prob_same": 0.02,
+      "top3": [
+        [
+          "Ç",
+          51.0
+        ],
+        [
+          "D",
+          22.0
+        ],
+        [
+          "P",
+          4.9
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "D",
+      "dist_nearest": 5.06,
+      "dist_same": 6.85,
+      "dist_nearest_other": 5.06,
+      "rank_same": 8,
+      "group_diff": {
+        "distancias": 0.7,
+        "angulos": 0.73,
+        "curl_dedos": 0.18,
+        "orientacion_palma": 0.48
+      }
+    }
+  },
+  "T": {
+    "veredicto": "parecida (revisar)",
+    "cruce_modelo": {
+      "n": 415,
+      "pred_top": "F",
+      "pred_top_pct": 50.1,
+      "same_letter_pct": 39.8,
+      "mean_prob_same": 0.39,
+      "top3": [
+        [
+          "F",
+          50.1
+        ],
+        [
+          "T",
+          39.8
+        ],
+        [
+          "Ç",
+          5.8
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "T",
+      "dist_nearest": 2.76,
+      "dist_same": 2.76,
+      "dist_nearest_other": 2.82,
+      "rank_same": 1,
+      "group_diff": {
+        "distancias": 0.22,
+        "angulos": 0.21,
+        "curl_dedos": 0.72,
+        "orientacion_palma": 0.2
+      }
+    }
+  },
+  "U": {
+    "veredicto": "distinta",
+    "cruce_modelo": {
+      "n": 420,
+      "pred_top": "D",
+      "pred_top_pct": 63.3,
+      "same_letter_pct": 0.0,
+      "mean_prob_same": 0.0,
+      "top3": [
+        [
+          "D",
+          63.3
+        ],
+        [
+          "G",
+          18.6
+        ],
+        [
+          "I",
+          7.6
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "I",
+      "dist_nearest": 5.75,
+      "dist_same": 7.93,
+      "dist_nearest_other": 5.75,
+      "rank_same": 10,
+      "group_diff": {
+        "distancias": 1.03,
+        "angulos": 0.56,
+        "curl_dedos": 0.42,
+        "orientacion_palma": 0.23
+      }
+    }
+  },
+  "V": {
+    "veredicto": "parecida (revisar)",
+    "cruce_modelo": {
+      "n": 419,
+      "pred_top": "V",
+      "pred_top_pct": 56.3,
+      "same_letter_pct": 56.3,
+      "mean_prob_same": 0.568,
+      "top3": [
+        [
+          "V",
+          56.3
+        ],
+        [
+          "U",
+          38.2
+        ],
+        [
+          "D",
+          1.2
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "U",
+      "dist_nearest": 2.67,
+      "dist_same": 2.86,
+      "dist_nearest_other": 2.67,
+      "rank_same": 2,
+      "group_diff": {
+        "distancias": 0.21,
+        "angulos": 0.29,
+        "curl_dedos": 0.51,
+        "orientacion_palma": 0.25
+      }
+    }
+  },
+  "W": {
+    "veredicto": "equivalente",
+    "cruce_modelo": {
+      "n": 419,
+      "pred_top": "W",
+      "pred_top_pct": 93.1,
+      "same_letter_pct": 93.1,
+      "mean_prob_same": 0.931,
+      "top3": [
+        [
+          "W",
+          93.1
+        ],
+        [
+          "U",
+          1.9
+        ],
+        [
+          "M",
+          1.4
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "W",
+      "dist_nearest": 2.97,
+      "dist_same": 2.97,
+      "dist_nearest_other": 5.78,
+      "rank_same": 1,
+      "group_diff": {
+        "distancias": 0.25,
+        "angulos": 0.24,
+        "curl_dedos": 0.6,
+        "orientacion_palma": 0.27
+      }
+    }
+  },
+  "X": {
+    "veredicto": "solo LSC (o no está en LibrAI)",
+    "cruce_modelo": {
+      "n": 416,
+      "pred_top": "Ç",
+      "pred_top_pct": 90.6,
+      "same_letter_pct": null,
+      "mean_prob_same": null,
+      "top3": [
+        [
+          "Ç",
+          90.6
+        ],
+        [
+          "O",
+          5.8
+        ],
+        [
+          "Q",
+          1.9
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "P",
+      "dist_nearest": 7.8
+    }
+  },
+  "Y": {
+    "veredicto": "equivalente",
+    "cruce_modelo": {
+      "n": 415,
+      "pred_top": "Y",
+      "pred_top_pct": 88.2,
+      "same_letter_pct": 88.2,
+      "mean_prob_same": 0.841,
+      "top3": [
+        [
+          "Y",
+          88.2
+        ],
+        [
+          "Ç",
+          2.4
+        ],
+        [
+          "I",
+          2.2
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "Y",
+      "dist_nearest": 4.33,
+      "dist_same": 4.33,
+      "dist_nearest_other": 4.97,
+      "rank_same": 1,
+      "group_diff": {
+        "distancias": 0.56,
+        "angulos": 0.3,
+        "curl_dedos": 0.66,
+        "orientacion_palma": 0.34
+      }
+    }
+  },
+  "Z": {
+    "veredicto": "solo LSC (o no está en LibrAI)",
+    "cruce_modelo": {
+      "n": 401,
+      "pred_top": "R",
+      "pred_top_pct": 23.2,
+      "same_letter_pct": null,
+      "mean_prob_same": null,
+      "top3": [
+        [
+          "R",
+          23.2
+        ],
+        [
+          "Ç",
+          16.0
+        ],
+        [
+          "P",
+          12.2
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "R",
+      "dist_nearest": 4.14
+    }
+  },
+  "Ñ": {
+    "veredicto": "solo LSC (o no está en LibrAI)",
+    "cruce_modelo": {
+      "n": 402,
+      "pred_top": "N",
+      "pred_top_pct": 43.3,
+      "same_letter_pct": null,
+      "mean_prob_same": null,
+      "top3": [
+        [
+          "N",
+          43.3
+        ],
+        [
+          "P",
+          34.1
+        ],
+        [
+          "Ç",
+          6.5
+        ]
+      ]
+    },
+    "centroides": {
+      "nearest_libras": "N",
+      "dist_nearest": 3.25
+    }
+  },
+  "_solo_libras": [
+    "Ç"
+  ]
+}
