@@ -19,10 +19,17 @@ Fuentes (--source):
   canal    video "Alfabeto Manual" del canal LSPy (ya espejado), segmentado
            por el rótulo de cada letra
   signario videos de letras del signario SLS (se espejan)
+  youtube  segmentos de videos del alfabeto LSPy alineados con
+           align_alphabet_videos.py (--input = carpeta de los .json)
+  lsm      LSM dinámico (Zenodo 14689869, CC BY 4.0): J, K, Ñ, Q, X, Z de
+           20 personas × 5 repeticiones, primer plano 900×900; solo vista
+           frontal (--no-flip si el video ya es selfie)
 
 Salida: <output>.npz con listas de secuencias, etiquetas y sujetos.
 """
 import argparse
+import json
+import re
 import sys
 from pathlib import Path
 
@@ -60,6 +67,7 @@ class _OneHand:
 
 
 MAX_JUMP = 3.0  # en tamaños de mano por frame
+REANCHOR_AFTER = 5  # frames sin la mano que deletrea antes de reanclar
 
 
 def _hand_record(hand_lm, hd):
@@ -81,31 +89,42 @@ def process_frames(frames, hands, flip):
     la muñeca más cercana; si la más cercana está a más de MAX_JUMP tamaños
     de mano, la mano que deletrea se perdió y el frame se descarta.
     """
+    # Solo se guardan las detecciones (pocos KB por frame), nunca la imagen:
+    # `frames` puede ser un generador que lee el video frame a frame
     dets = []
     for fr in frames:
         if flip:
             fr = cv2.flip(fr, 1)
         res = hands.process(cv2.cvtColor(fr, cv2.COLOR_BGR2RGB))
         dets.append(select_hands(res, "all") if res.multi_hand_landmarks else [])
+    n = len(dets)
     cands = [(p[0].landmark[0].y, i, j) for i, ps in enumerate(dets)
              for j, p in enumerate(ps)]
     if not cands:
-        return [None] * len(frames)
+        return [None] * n
     _, a, j = min(cands)
-    recs = [None] * len(frames)
+    recs = [None] * n
     recs[a] = _hand_record(*dets[a][j])
-    for order in (range(a + 1, len(frames)), range(a - 1, -1, -1)):
-        prev = recs[a]
+    for order in (range(a + 1, n), range(a - 1, -1, -1)):
+        prev, lost = recs[a], 0
         for i in order:
             if not dets[i]:
+                lost += 1
                 continue
-            w, s = prev[1][0], prev[2]
-            dist = lambda p: np.hypot(p[0].landmark[0].x - w[0],  # noqa: E731
-                                      p[0].landmark[0].y - w[1])
-            best = min(dets[i], key=dist)
-            if dist(best) <= MAX_JUMP * s:
-                recs[i] = _hand_record(*best)
-                prev = recs[i]
+            if lost > REANCHOR_AFTER:
+                # La mano bajó a reposo o salió de cuadro: al volver puede
+                # estar lejos de la última posición; se reancla en la más alta
+                best = min(dets[i], key=lambda p: p[0].landmark[0].y)
+            else:
+                w, s = prev[1][0], prev[2]
+                dist = lambda p: np.hypot(p[0].landmark[0].x - w[0],  # noqa: E731
+                                          p[0].landmark[0].y - w[1])
+                best = min(dets[i], key=dist)
+                if dist(best) > MAX_JUMP * s:
+                    lost += 1
+                    continue
+            recs[i] = _hand_record(*best)
+            prev, lost = recs[i], 0
     return recs
 
 
@@ -118,31 +137,70 @@ def pack(recs):
             "size": np.array([r[2] for r in keep], np.float32)}
 
 
-def video_frames(path, a=0, b=None):
+def iter_frames(path, a=0, b=None):
+    """Frames [a, b] del video, de a uno (sin cargar el video en memoria)."""
     cap = cv2.VideoCapture(str(path))
-    frames, i = [], 0
-    while True:
+    if a:
+        cap.set(cv2.CAP_PROP_POS_FRAMES, a)
+    i = a
+    while b is None or i <= b:
         ok, fr = cap.read()
-        if not ok or (b is not None and i > b):
+        if not ok:
             break
-        if i >= a:
-            frames.append(fr)
+        yield fr
         i += 1
-    return frames
+    cap.release()
+
+
+def video_frames(path, a=0, b=None):
+    """Lista de frames (solo para videos cortos; preferir iter_frames)."""
+    return list(iter_frames(path, a, b))
+
+
+def save(path, seqs, labels, subjects):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(
+        path,
+        feats=np.array([s["feats"] for s in seqs], dtype=object),
+        xy=np.array([s["xy"] for s in seqs], dtype=object),
+        size=np.array([s["size"] for s in seqs], dtype=object),
+        labels=np.array(labels), subjects=np.array(subjects))
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--source", choices=["lsc70", "canal", "signario"],
-                    required=True)
-    ap.add_argument("--input", type=Path, required=True)
+    ap.add_argument("--source",
+                    choices=["lsc70", "canal", "signario", "lsm", "youtube"])
+    ap.add_argument("--min-conf", type=float, default=0.05,
+                    help="(youtube) descarta segmentos alineados con menor "
+                         "confianza: frames sin mano visible")
+    ap.add_argument("--input", type=Path)
     ap.add_argument("--output", type=Path, required=True)
+    ap.add_argument("--shard", default="0/1",
+                    help="i/n: procesa solo los ítems i, i+n, i+2n… (para "
+                         "correr por partes en procesos separados)")
+    ap.add_argument("--merge", type=Path, nargs="+", default=None,
+                    help="Une los .npz de las partes en --output")
+    ap.add_argument("--no-flip", action="store_true",
+                    help="(lsm) no espejar: el video ya tiene geometría selfie")
     args = ap.parse_args()
 
+    if args.merge:
+        parts = [np.load(p, allow_pickle=True) for p in args.merge]
+        seqs = [{"feats": f, "xy": x, "size": z} for d in parts
+                for f, x, z in zip(d["feats"], d["xy"], d["size"])]
+        save(args.output,
+             seqs,
+             [l for d in parts for l in d["labels"]],
+             [s for d in parts for s in d["subjects"]])
+        print(f"{len(seqs)} secuencias unidas → {args.output}")
+        return
+
+    k, n_shards = map(int, args.shard.split("/"))
     seqs, labels, subjects = [], [], []
     if args.source == "lsc70":
         hands = mp.solutions.hands.Hands(static_image_mode=True, max_num_hands=2)
-        for sign_dir in sorted(args.input.glob("Per*/*")):
+        for sign_dir in sorted(args.input.glob("Per*/*"))[k::n_shards]:
             sign = sign_dir.name
             if sign in NUMBER_SIGNS:
                 continue
@@ -155,33 +213,54 @@ def main():
                 labels.append(LABEL_MAP.get(sign, sign))
                 subjects.append(sign_dir.parent.name)
     else:
-        if args.source == "canal":
-            frames = video_frames(args.input)
-            items = [(L, frames[a:b + 1], "canal") for L, a, b in CANAL_SEGS]
+        if args.source == "lsm":
+            # LSM dinámico (Zenodo 14689869): S<n>-<LETRA>-<vista>[-.]<rep>.mp4
+            # Los ítems guardan cómo leer cada video, no sus frames
+            items = []
+            for p in sorted(args.input.rglob("*.mp4")):
+                m = re.match(r"S(\d+)-([A-ZÑ]+)-(\w+)[-.](\d+)", p.stem)
+                if m and m.group(3).lower() == "frontal":
+                    items.append((m.group(2), (p, 0, None),
+                                  f"S{int(m.group(1)):02d}"))
+            flip = not args.no_flip
+        elif args.source == "canal":
+            items = [(L, (args.input, a, b), "canal") for L, a, b in CANAL_SEGS]
             flip = False
+        elif args.source == "youtube":
+            # Segmentos de align_alphabet_videos.py: --input = carpeta de los
+            # .json; el video está en data/raw/LSPy/alfabetos_youtube
+            videos = ROOT / "data/raw/LSPy/alfabetos_youtube"
+            items, flips = [], {}
+            for j in sorted(args.input.glob("*.json")):
+                if j.stem == "config":
+                    continue
+                al = json.load(open(j))
+                flips[j.stem] = al["espejado"]
+                for seg in al["segmentos"]:
+                    if seg["conf"] >= args.min_conf:
+                        a, b = seg["frames"]
+                        items.append((seg["letra"], (videos / al["video"], a, b),
+                                      j.stem))
+            flip = None  # por video
         else:
-            items = [(p.stem, video_frames(p), "signario")
+            items = [(p.stem, (p, 0, None), "signario")
                      for p in sorted(args.input.glob("*.mp4"))]
             flip = True
-        for L, frs, subj in items:
+        for L, src, subj in items[k::n_shards]:
+            frs = iter_frames(*src)
             # Rastreador nuevo por secuencia: en modo video MediaPipe arrastra
             # el seguimiento (y la interpretación de la mano) a la siguiente
             hands = mp.solutions.hands.Hands(static_image_mode=False,
                                              max_num_hands=2)
-            s = pack(process_frames(frs, hands, flip))
+            s = pack(process_frames(frs, hands,
+                                    flips[subj] if flip is None else flip))
             hands.close()
             if s:
                 seqs.append(s)
                 labels.append(L)
                 subjects.append(subj)
 
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    np.savez_compressed(
-        args.output,
-        feats=np.array([s["feats"] for s in seqs], dtype=object),
-        xy=np.array([s["xy"] for s in seqs], dtype=object),
-        size=np.array([s["size"] for s in seqs], dtype=object),
-        labels=np.array(labels), subjects=np.array(subjects))
+    save(args.output, seqs, labels, subjects)
     print(f"{len(seqs)} secuencias → {args.output}")
 
 
