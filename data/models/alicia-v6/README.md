@@ -45,9 +45,10 @@ En GN las letras compartidas bajan donde compiten con su variante guaraní
 - **Las 13 letras propias del guaraní no tienen validación**: un solo
   intérprete, una toma, todo en entrenamiento. Son un prototipo funcional,
   no un resultado medido.
-- Los datos LSPy y GN son una recopilación pública de investigación (licencia
-  estándar de YouTube / Facebook): no se redistribuyen, solo landmarks y
-  modelos derivados. No constituyen un dataset publicable.
+- Los datos LSPy y GN provienen de material público cuyo uso fue autorizado
+  por sus titulares; se publican solo landmarks y modelos derivados
+  (CC BY 4.0), los videos no se redistribuyen. Siguen siendo una toma por
+  letra e intérprete.
 - Las nasales y los dígrafos llevan movimiento; el modelo de secuencia aún
   no tiene clases GN (las cubre solo el estático).
 

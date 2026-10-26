@@ -604,8 +604,8 @@ echo $DISPLAY        # debe ser :0 o similar
       YouTube (Proyecto LSPY / Dra. Mirta Barreto, Información de Sordos,
       Tico Rodríguez, Ariel Torres, Milcar, CODA DOS LENGUAS) segmentados por
       alineamiento forzado, y 20 letras del signario SLS — 9 intérpretes,
-      una toma por letra; uso solo para investigación (licencia estándar de
-      YouTube, no se redistribuyen)
+      una toma por letra; uso autorizado por los titulares, se publican solo
+      landmarks y modelos (CC BY 4.0), los videos no se redistribuyen
 - [ ] Colecta propia multi-sujeto de letras LSPy (protocolo de cámara real,
       con landmarks crudos para las letras con movimiento) — Sprint 4
 - [x] Validación del modelo `robust` con segundo sujeto (S02 — `robust-v4`: 91.8% top-1)

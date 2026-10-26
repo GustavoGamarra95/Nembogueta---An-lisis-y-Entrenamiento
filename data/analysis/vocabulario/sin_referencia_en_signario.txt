@@ -1,0 +1,11 @@
+Señas prioritarias sin video en el signario SLS (se registrarían en la colecta):
+AYUDA
+GRACIAS
+SÍ
+NO
+SANGRE
+EMERGENCIA
+BAÑO
+POLICÍA
+CORAZÓN
+RESPIRAR

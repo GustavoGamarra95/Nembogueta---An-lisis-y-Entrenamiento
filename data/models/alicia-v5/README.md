@@ -20,8 +20,8 @@ Semilla 42 en ambos.
 | LSPy | Proxy letra por letra desde LSC/LIBRAS/ASL (mapeo derivado del video "Alfabeto Manual" del canal Lengua de Señas LSPy) + frames reales de 8 intérpretes públicos (canal + 7 videos de YouTube alineados) | 8 reales |
 | Movimiento | LSC70 (J, Z, Ñ), LSM dinámico (J, K, Ñ, Q, X, Z; Zenodo 14689869, CC BY 4.0, 20 personas), secuencias LSPy reales | — |
 
-Los videos LSPy de YouTube tienen licencia estándar de YouTube: se usan solo
-para investigación y no se redistribuyen (solo landmarks derivados).
+El uso de los videos LSPy fue autorizado por sus titulares; se publican solo
+landmarks y modelos derivados (CC BY 4.0), los videos no se redistribuyen.
 
 ## Resultados
 

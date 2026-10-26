@@ -40,6 +40,8 @@ ENV/
 data/processed/
 data/personal/
 data/raw/
+data/release/
+data/collection/
 data/models/*/
 !data/models/librai-alphabet-robust*/
 !data/models/alicia-alphabet-robust*/
