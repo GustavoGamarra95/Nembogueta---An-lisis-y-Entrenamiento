@@ -119,7 +119,19 @@ class AttentionLayer(layers.Layer):
 
 
 class LibrasUnifiedPredictor:
-    def __init__(self, models_dir: Path, buffer_size: int = 30):
+    def __init__(
+        self,
+        models_dir: Path,
+        buffer_size: int = 30,
+        output_lang: str = "es",
+        sign_language: str = "LSPY",
+        alicia_dir: Optional[Path] = None,
+    ):
+        """`output_lang` (es, gn, pt) es el idioma de salida del deletreo con
+        Alicia; `sign_language` la lengua del alfabeto (LSPY, GN, LIBRAS,
+        LSP, ASL). Alicia se carga desde `alicia_dir` o, si no se indica,
+        desde models_dir/alicia-v6 cuando existe. Los frames deben ser los
+        de la cámara sin espejar."""
         self.models_dir = Path(models_dir)
         self.models = {}
         self.metadata = {}
@@ -147,6 +159,46 @@ class LibrasUnifiedPredictor:
 
         logger.info("Inicializando predictor unificado...")
         self._load_all_models()
+        self.deletreo = None
+        self._load_alicia(alicia_dir, sign_language, output_lang)
+
+    def _load_alicia(self, alicia_dir, sign_language, output_lang):
+        from src.inference.alicia import Alicia
+        from src.inference.deletreo import Deletreador
+        from src.inference.diccionario import Diccionario
+
+        ruta = Path(alicia_dir) if alicia_dir else None
+        if ruta is None and (self.models_dir / "alicia-v6").exists():
+            ruta = self.models_dir / "alicia-v6" / "estatico"
+        if ruta is None:
+            logger.info("Alicia no disponible: deletreo desactivado")
+            return
+        self.deletreo = Deletreador(
+            Alicia(ruta), Diccionario(), sign_language, output_lang
+        )
+        self.metadata["alicia"] = {"ruta": str(self.deletreo.alicia.ruta)}
+        logger.info(f"Alicia cargada: {self.deletreo.alicia.ruta}")
+
+    @property
+    def output_lang(self) -> Optional[str]:
+        return self.deletreo.idioma if self.deletreo else None
+
+    def set_output_lang(self, output_lang: str):
+        from src.inference.diccionario import IDIOMAS
+
+        if output_lang not in IDIOMAS:
+            raise ValueError(f"Idioma no soportado: {output_lang}")
+        if self.deletreo:
+            self.deletreo.idioma = output_lang
+
+    def translate(self, text: str, output_lang: Optional[str] = None) -> str:
+        """Texto en español o glosas LSP → idioma de salida (diccionario
+        LSP; las palabras desconocidas quedan igual)."""
+        from src.inference.diccionario import Diccionario
+
+        dic = self.deletreo.diccionario if self.deletreo else Diccionario()
+        idioma = output_lang or self.output_lang or "es"
+        return dic.traducir_texto(text, idioma)["texto"]
 
     def _load_all_models(self):
         handshape_dir = self.models_dir / "handshape"
@@ -561,6 +613,7 @@ class LibrasUnifiedPredictor:
     ) -> Dict[str, any]:
         results = {
             "hands": [],  # Lista de predicciones para cada mano
+            "spelling": None,  # Deletreo con Alicia en output_lang
             "facial_expression": None,
             "landmarks_detected": {
                 "hands": 0,  # Número de manos detectadas
@@ -611,6 +664,15 @@ class LibrasUnifiedPredictor:
                     }
 
                 results["hands"].append(hand_predictions)
+
+        if self.deletreo is not None:
+            from src.inference.alicia import Mano
+
+            manos = [
+                Mano(h["landmarks"].reshape(21, 3), h["handedness"])
+                for h in hands_data or []
+            ]
+            results["spelling"] = self.deletreo.agregar(manos)
 
         face_landmarks = self.extract_face_landmarks(frame)
         if face_landmarks is not None:

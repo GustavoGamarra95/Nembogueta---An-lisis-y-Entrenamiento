@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ñemongueta · Alicia</title>
+<style>
+  :root {
+    --bg: #f6f5f1; --panel: #ffffff; --ink: #1d1d1b; --muted: #6b6a64;
+    --line: #e3e1da; --accent: #c2410c; --accent-soft: #fde8dc;
+    --ok: #15803d; --bar: #ece9e1; --hand: #f97316; --hand2: #2563eb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141413; --panel: #1f1e1c; --ink: #f2f0ea; --muted: #a29f96;
+      --line: #34322e; --accent: #fb923c; --accent-soft: #3a2416;
+      --ok: #4ade80; --bar: #2c2a27;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  header {
+    display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+    padding: 18px 24px 8px;
+  }
+  header h1 { margin: 0; font-size: 22px; letter-spacing: -.01em; }
+  header span { color: var(--muted); font-size: 14px; }
+  #estado { margin-left: auto; font-size: 13px; color: var(--muted); }
+  #estado.ok::before { content: "● "; color: var(--ok); }
+  main {
+    display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
+    gap: 16px; padding: 8px 24px 24px;
+  }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; padding: 8px 16px 16px; } }
+  .card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 14px; padding: 16px;
+  }
+  .escena { position: relative; padding: 0; overflow: hidden; }
+  canvas#vista { display: block; width: 100%; height: auto; background: #000; }
+  .barra {
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    padding: 12px 16px; border-top: 1px solid var(--line);
+  }
+  button, select, input[type=text] {
+    font: inherit; color: var(--ink); background: var(--panel);
+    border: 1px solid var(--line); border-radius: 9px; padding: 7px 12px;
+  }
+  button { cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  button.primario { background: var(--accent); border-color: var(--accent); color: #fff; }
+  label.archivo { cursor: pointer; }
+  label.archivo input { display: none; }
+  .lado { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .selects { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .selects label { font-size: 12px; color: var(--muted); display: grid; gap: 4px; }
+  .letra { display: flex; align-items: center; gap: 18px; }
+  #letra {
+    font-size: 84px; font-weight: 700; line-height: 1; min-width: 110px;
+    text-align: center; color: var(--accent);
+  }
+  #confianza { font-size: 13px; color: var(--muted); }
+  .top { flex: 1; display: grid; gap: 6px; }
+  .fila { display: grid; grid-template-columns: 44px 1fr 48px; gap: 8px; align-items: center; font-size: 13px; }
+  .pista { height: 8px; background: var(--bar); border-radius: 4px; overflow: hidden; }
+  .pista i { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
+  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; }
+  #texto { font-size: 28px; font-weight: 600; min-height: 40px; word-break: break-word; }
+  #texto .cursor { color: var(--accent); animation: parpadeo 1s steps(1) infinite; }
+  @keyframes parpadeo { 50% { opacity: 0; } }
+  .traducciones { display: grid; gap: 6px; margin-top: 10px; }
+  .trad { display: grid; grid-template-columns: 78px 1fr; gap: 8px; padding: 6px 10px; border-radius: 8px; }
+  .trad.activa { background: var(--accent-soft); }
+  .trad b { font-size: 12px; color: var(--muted); font-weight: 600; padding-top: 2px; }
+  .nota { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+  .buscar { display: flex; gap: 8px; }
+  .buscar input { flex: 1; min-width: 0; }
+  #resultado { margin-top: 8px; font-size: 14px; }
+  .ayuda { position: absolute; inset: 0; display: grid; place-items: center; color: #ddd; text-align: center; padding: 24px; pointer-events: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Ñemongueta · Alicia v6</h1>
+  <span>Alfabeto manual → español, guaraní y portugués</span>
+  <span id="estado">conectando…</span>
+</header>
+<main>
+  <section class="card escena">
+    <canvas id="vista" width="960" height="720"></canvas>
+    <div class="ayuda" id="ayuda">Activá la cámara o subí una imagen<br>para reconocer letras del alfabeto manual.</div>
+    <video id="video" playsinline muted hidden></video>
+    <div class="barra">
+      <button class="primario" id="camara">Activar cámara</button>
+      <label class="archivo"><input type="file" id="archivo" accept="image/*"><span class="btn">Subir imagen</span></label>
+      <button id="espacio" title="Atajo: barra espaciadora">Espacio</button>
+      <button id="retroceder" title="Atajo: Retroceso">⌫ Letra</button>
+      <button id="borrar">Limpiar</button>
+      <button id="capturar" style="margin-left:auto">📸 Capturar</button>
+    </div>
+  </section>
+
+  <section class="lado">
+    <div class="card selects">
+      <label>Lengua de señas
+        <select id="lengua">
+          <option value="LSPY">LSPy (Paraguay)</option>
+          <option value="GN">Guaraní (achegety)</option>
+          <option value="LIBRAS">LIBRAS (Brasil)</option>
+          <option value="LSP">LSC (Colombia)</option>
+          <option value="ASL">ASL</option>
+        </select>
+      </label>
+      <label>Idioma de salida
+        <select id="idioma">
+          <option value="es">Español (Paraguay)</option>
+          <option value="gn">Guaraní</option>
+          <option value="pt">Português (Brasil)</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="card letra">
+      <div>
+        <div id="letra">–</div>
+        <div id="confianza" style="text-align:center">sin mano</div>
+      </div>
+      <div class="top" id="top"></div>
+    </div>
+
+    <div class="card">
+      <h2>Texto deletreado</h2>
+      <div id="texto"><span class="cursor">▍</span></div>
+      <div class="traducciones" id="traducciones"></div>
+      <p class="nota">Bajá la mano un momento para separar palabras. ⚠ Traducciones generadas por IA, sin revisión humana (salvo las marcadas ✓): prototipo, no usar en contextos reales.</p>
+    </div>
+
+    <div class="card">
+      <h2>Diccionario LSP</h2>
+      <form class="buscar" id="buscar">
+        <input type="text" id="consulta" placeholder="Ej.: agua, médico, buenos días">
+        <button>Buscar</button>
+      </form>
+      <div id="resultado"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const vista = $("vista"), ctx = vista.getContext("2d");
+const video = $("video");
+const envio = document.createElement("canvas");
+const NOMBRES = { es: "Español", gn: "Guaraní", pt: "Português" };
+const CONEXIONES = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],
+  [10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+
+let ws, enVuelo = false, camaraActiva = false, imagenFija = null;
+let ultimo = { manos: [], letra: null, confianza: 0, top: [], texto: "", traduccion: null };
+let traducciones = {};
+
+function conectar() {
+  const url = `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws` +
+    `?lengua=${$("lengua").value}&idioma=${$("idioma").value}`;
+  ws = new WebSocket(url);
+  ws.onopen = () => { $("estado").textContent = "conectado"; $("estado").className = "ok"; };
+  ws.onclose = () => { $("estado").textContent = "desconectado — reintentando"; $("estado").className = "";
+    setTimeout(conectar, 1500); };
+  ws.onmessage = (e) => { enVuelo = false; mostrar(JSON.parse(e.data)); };
+}
+
+function mostrar(r) {
+  Object.assign(ultimo, r);
+  if ("letra" in r) {
+    $("letra").textContent = r.letra || "–";
+    $("confianza").textContent = r.letra ? `${(r.confianza * 100).toFixed(1)} %` : "sin mano";
+    $("top").innerHTML = (r.top || []).map(t => `
+      <div class="fila"><span>${t.letra}</span>
+      <span class="pista"><i style="width:${(t.probabilidad * 100).toFixed(1)}%"></i></span>
+      <span>${(t.probabilidad * 100).toFixed(0)} %</span></div>`).join("");
+  }
+  if ("texto" in r) {
+    $("texto").innerHTML = `${escapar(r.texto)}<span class="cursor">▍</span>`;
+    actualizarTraducciones(r.texto);
+  }
+  if (imagenFija) dibujarImagen();
+}
+
+const escapar = (s) => (s || "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+let textoTraducido = null;
+async function actualizarTraducciones(texto) {
+  if (texto === textoTraducido) return pintarTraducciones();
+  textoTraducido = texto;
+  if (!texto) { traducciones = {}; return pintarTraducciones(); }
+  const res = await Promise.all(Object.keys(NOMBRES).map(i =>
+    fetch("/traducir", { method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ palabra: texto, idioma: i }) }).then(r => r.json())));
+  traducciones = Object.fromEntries(res.map(r => [r.idioma, r]));
+  pintarTraducciones();
+}
+
+function pintarTraducciones() {
+  const idioma = $("idioma").value;
+  $("traducciones").innerHTML = Object.entries(NOMBRES).map(([i, n]) => {
+    const t = traducciones[i];
+    const valor = t ? escapar(t.traduccion) + (t.validado ? " ✓" : "") +
+      (t.en_vocabulario ? "" : " <small>(parcial)</small>") : "–";
+    return `<div class="trad ${i === idioma ? "activa" : ""}"><b>${n}</b><span>${valor}</span></div>`;
+  }).join("");
+}
+
+function dibujarMano(puntos, espejo, w, h, color) {
+  const P = puntos.map(([x, y]) => [(espejo ? 1 - x : x) * w, y * h]);
+  ctx.lineWidth = Math.max(2, w / 240); ctx.strokeStyle = color; ctx.fillStyle = "#fff";
+  ctx.beginPath();
+  for (const [a, b] of CONEXIONES) { ctx.moveTo(...P[a]); ctx.lineTo(...P[b]); }
+  ctx.stroke();
+  for (const [x, y] of P) { ctx.beginPath(); ctx.arc(x, y, Math.max(2.5, w / 220), 0, 7); ctx.fill(); ctx.stroke(); }
+}
+
+function dibujarManos(espejo) {
+  const css = getComputedStyle(document.documentElement);
+  (ultimo.manos || []).forEach((m, i) =>
+    dibujarMano(m, espejo, vista.width, vista.height, css.getPropertyValue(i ? "--hand2" : "--hand").trim()));
+}
+
+function bucle() {
+  if (camaraActiva && video.readyState >= 2) {
+    vista.width = video.videoWidth; vista.height = video.videoHeight;
+    ctx.save(); ctx.translate(vista.width, 0); ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0); ctx.restore();
+    dibujarManos(true);
+    if (!enVuelo && ws && ws.readyState === 1) enviarFrame();
+  }
+  requestAnimationFrame(bucle);
+}
+
+function enviarFrame() {
+  enVuelo = true;
+  const ancho = 480, alto = Math.round(ancho * video.videoHeight / video.videoWidth);
+  envio.width = ancho; envio.height = alto;
+  envio.getContext("2d").drawImage(video, 0, 0, ancho, alto);  // sin espejar
+  const jpg = envio.toDataURL("image/jpeg", 0.75).split(",")[1];
+  ws.send(JSON.stringify({ imagen: jpg }));
+  setTimeout(() => { enVuelo = false; }, 1000);  // por si se pierde una respuesta
+}
+
+$("camara").onclick = async () => {
+  if (camaraActiva) {
+    video.srcObject.getTracks().forEach(t => t.stop());
+    camaraActiva = false; $("camara").textContent = "Activar cámara"; return;
+  }
+  try {
+    video.srcObject = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
+    await video.play();
+    camaraActiva = true; imagenFija = null; $("ayuda").hidden = true;
+    $("camara").textContent = "Detener cámara";
+  } catch (e) { alert("No se pudo abrir la cámara: " + e.message); }
+};
+
+$("archivo").onchange = async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  if (camaraActiva) $("camara").click();
+  const img = new Image(); img.src = URL.createObjectURL(f); await img.decode();
+  imagenFija = img; $("ayuda").hidden = true;
+  const datos = new FormData(); datos.append("imagen", f);
+  const r = await fetch(`/predecir/imagen?lengua=${$("lengua").value}&top_k=3`, { method: "POST", body: datos });
+  mostrar(await r.json());
+  e.target.value = "";
+};
+
+function dibujarImagen() {
+  const escala = Math.min(1, 1280 / imagenFija.naturalWidth);
+  vista.width = imagenFija.naturalWidth * escala; vista.height = imagenFija.naturalHeight * escala;
+  ctx.drawImage(imagenFija, 0, 0, vista.width, vista.height);
+  dibujarManos(false);
+}
+
+const accion = (a) => ws && ws.readyState === 1 && ws.send(JSON.stringify({ accion: a }));
+$("espacio").onclick = () => accion("espacio");
+$("retroceder").onclick = () => accion("retroceder");
+$("borrar").onclick = () => accion("borrar");
+$("idioma").onchange = () => { ws.send(JSON.stringify({ idioma: $("idioma").value })); pintarTraducciones(); };
+$("lengua").onchange = () => ws.send(JSON.stringify({ lengua: $("lengua").value }));
+document.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "INPUT") return;
+  if (e.code === "Space") { e.preventDefault(); accion("espacio"); }
+  if (e.code === "Backspace") { e.preventDefault(); accion("retroceder"); }
+});
+
+$("capturar").onclick = () => {
+  const banda = Math.round(vista.height * 0.2);
+  const out = document.createElement("canvas");
+  out.width = vista.width; out.height = vista.height + banda;
+  const c = out.getContext("2d");
+  c.drawImage(vista, 0, 0);
+  c.fillStyle = "#141413"; c.fillRect(0, vista.height, out.width, banda);
+  const s = banda / 5;
+  c.fillStyle = "#fb923c"; c.font = `700 ${s * 2.6}px system-ui, sans-serif`;
+  c.fillText(ultimo.letra || "–", s, vista.height + s * 3.1);
+  c.fillStyle = "#f2f0ea"; c.font = `600 ${s * 0.95}px system-ui, sans-serif`;
+  const lengua = $("lengua").selectedOptions[0].text;
+  const conf = ultimo.letra ? `${(ultimo.confianza * 100).toFixed(1)} %` : "";
+  c.fillText(`${lengua} · ${conf}`, s * 4.6, vista.height + s * 1.6);
+  c.font = `400 ${s * 0.85}px system-ui, sans-serif`;
+  const top = (ultimo.top || []).map(t => `${t.letra} ${(t.probabilidad * 100).toFixed(0)}%`).join("   ");
+  c.fillText(top, s * 4.6, vista.height + s * 2.8);
+  const t = traducciones[$("idioma").value];
+  if (ultimo.texto) c.fillText(`${ultimo.texto}${t ? "  →  " + t.traduccion : ""}`, s * 4.6, vista.height + s * 4.1);
+  c.fillStyle = "#a29f96"; c.font = `400 ${s * 0.6}px system-ui, sans-serif`;
+  c.textAlign = "right"; c.fillText("Ñemongueta · Alicia v6", out.width - s, vista.height + s * 4.1);
+  const a = document.createElement("a");
+  a.download = `alicia_${ultimo.letra || "captura"}_${Date.now()}.png`;
+  a.href = out.toDataURL("image/png"); a.click();
+};
+
+$("buscar").onsubmit = async (e) => {
+  e.preventDefault();
+  const q = $("consulta").value.trim(); if (!q) return;
+  const r = await fetch(`/diccionario/${encodeURIComponent(q)}`);
+  if (!r.ok) { $("resultado").textContent = "No está en el diccionario."; return; }
+  const d = await r.json();
+  $("resultado").innerHTML = `<div class="traducciones">${Object.entries(NOMBRES).map(([i, n]) =>
+    `<div class="trad"><b>${n}</b><span>${d[i] ? escapar(d[i]) + ` <small>(${d.estado[i]})</small>` : "<small>sin traducción todavía</small>"}</span></div>`).join("")}
+    </div><p class="nota">Seña LSP: ${escapar(d.sena)}</p>`;
+};
+
+pintarTraducciones();
+conectar();
+bucle();
+</script>
+</body>
+</html>

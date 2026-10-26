@@ -313,9 +313,8 @@ Nembogueta---An-lisis-y-Entrenamiento/
 │
 ├── src/                              # Librería principal (importable)
 │   ├── api/                          # API FastAPI de inferencia (Alicia v6)
-│   │   ├── alicia.py                 # carga del modelo y predicción
-│   │   ├── diccionario.py            # vocabulario-objetivo es/gn/pt
-│   │   └── app.py                    # endpoints REST + WebSocket
+│   │   ├── app.py                    # endpoints REST + WebSocket
+│   │   └── static/index.html         # demo web local (cámara, captura PNG)
 │   ├── config/config.py
 │   ├── preprocessing/
 │   │   ├── feature_engineering.py   # 120 features invariantes (núcleo)
@@ -324,7 +323,10 @@ Nembogueta---An-lisis-y-Entrenamiento/
 │   │   └── word_processor.py
 │   ├── training/
 │   ├── inference/
-│   │   └── unified_predictor.py
+│   │   ├── alicia.py                 # carga de Alicia y predicción por lengua
+│   │   ├── deletreo.py               # letras → palabras → idioma de salida
+│   │   ├── diccionario.py            # diccionario LSP → es / gn / pt
+│   │   └── unified_predictor.py      # predictor legacy + output_lang
 │   ├── data_collection/
 │   └── utils/
 │
@@ -582,29 +584,38 @@ usan estos demos de V-LIBRASIL.
 
 API FastAPI en `src/api/` con el modelo `data/models/alicia-v6`
 (override con `ALICIA_MODEL_DIR`). Reconoce el alfabeto manual de LSPy,
-guaraní (achegety), LIBRAS, LSC y ASL, y traduce palabras deletreadas al
-español, guaraní o portugués.
+guaraní (achegety), LIBRAS, LSC y ASL, y traduce lo deletreado al español
+paraguayo, guaraní o portugués con el diccionario LSP.
 
 ```bash
 pip install -r requirements-api.txt
-uvicorn src.api.app:app --host 0.0.0.0 --port 8000   # docs en /docs
+uvicorn src.api.app:app --host 0.0.0.0 --port 8000
 ```
+
+**Demo web local:** http://localhost:8000 — cámara con el esqueleto de la
+mano superpuesto, letra y top-3, texto deletreado con su traducción a los
+tres idiomas, buscador del diccionario, modo "subir imagen" y botón
+**📸 Capturar**, que descarga un PNG con la predicción incrustada. Bajar la
+mano un momento separa palabras (o barra espaciadora; Retroceso borra una
+letra). Documentación interactiva de la API en `/docs`.
 
 | Endpoint | Uso |
 |---|---|
 | `GET /salud`, `/lenguas`, `/idiomas` | Estado, lenguas (con sus letras) e idiomas de salida |
 | `POST /predecir/landmarks` | Letra a partir de landmarks de MediaPipe calculados en el cliente sobre la imagen **sin espejar** (`sostenido=true` usa el tramo estable) |
 | `POST /predecir/imagen` | Letra a partir de una imagen JPG/PNG |
-| `POST /traducir` | Palabra deletreada (español) → `es` / `gn` / `pt` según el vocabulario-objetivo |
-| `WS /ws?lengua=LSPY&idioma=gn` | Tiempo real: frames (imagen base64 o landmarks) → letra, palabra acumulada y traducción |
+| `POST /traducir` | Palabra o texto (español o glosa LSP) → `es` / `gn` / `pt`; agrupa frases de hasta 4 palabras ("buenos días") |
+| `GET /diccionario/{palabra}` | Entrada del diccionario LSP en los tres idiomas |
+| `WS /ws?lengua=LSPY&idioma=gn` | Tiempo real: frames (imagen base64 o landmarks) → letra, texto deletreado y traducción; acciones `espacio`, `retroceder`, `borrar` y cambio de idioma o lengua |
 
 La API espeja los landmarks matemáticamente (x → 1 − x) para llevarlos a la
 geometría de entrenamiento; en el signario SLS da 14/20 frente a 16/20 de la
 validación offline (que espeja la imagen antes de MediaPipe). Las
-traducciones al guaraní son un borrador pendiente de validación.
+traducciones del diccionario son de una IA y están sin revisar
+(`/diccionario` y `/traducir` informan el estado).
 
 Es un **prototipo**: sin autenticación ni despliegue. Tests en
-`tests/test_api/` (12 tests, corren en el CI):
+`tests/test_api/` (corren en el CI):
 
 ```bash
 pytest tests/test_api
@@ -631,12 +642,44 @@ python scripts/preprocess/build_lspy_landmarks_release.py --merge
 Sale en `data/release/lspy_landmarks_v1/` (ignorado en git), con su propio
 README, licencia e `index.csv` por subconjunto.
 
+## Diccionario LSP → {ES paraguayo, guaraní, PT-BR}
+
+`data/analysis/diccionario/diccionario_lsp.csv`: las **1810 glosas del
+Signario SLS** (1744 conceptos; las variantes "X 2", "X 3" y las acepciones
+son filas propias) con su video de referencia y traducción a español
+paraguayo, portugués de Brasil y guaraní (746 entradas con guaraní).
+
+> ⚠ **Las traducciones las generó una IA (Claude) y nadie las revisó
+> todavía.** Una relectura ya encontró errores (p. ej. TALÓN → `pytã`, que
+> significa "rojo"; POR LA NOCHE → `pyharekue`, "anoche"), que se
+> corrigieron dejando la celda vacía en lugar de reemplazarlos por otra
+> suposición. Cada idioma lleva su estado (`es_estado`, `pt_estado`,
+> `gn_estado`): `IA sin revisar`, `pendiente` (sin traducción) o `validado`.
+> No usar fuera del prototipo hasta que un hablante de guaraní y uno de
+> portugués las revisen.
+
+Las correcciones humanas van en `data/analysis/diccionario/revisiones.tsv`
+(`clave`, `idioma` es/pt/gn, `traduccion`, `revisor`, `fecha`, `nota`):
+pisan a la IA y marcan la celda como `validado`.
+
+```bash
+# traducciones + revisiones + índice del signario → diccionario
+python scripts/preprocess/build_diccionario_lsp.py
+```
+
+```python
+from src.inference.diccionario import Diccionario
+d = Diccionario()
+d.traducir("médico", "gn")                              # 'pohanohára'
+d.traducir_texto("buenos dias doctor", "gn")["texto"]   # frase + palabra libre
+```
+
 ## Vocabulario-objetivo y grabación del autor
 
-`data/analysis/vocabulario/vocabulario_objetivo.csv` define 30 señas del
-Signario SLS con su traducción a español, guaraní (**borrador**) y
-portugués; es el vocabulario que usa `POST /traducir`. Para grabarlas en
-cámara real:
+`data/analysis/vocabulario/vocabulario_objetivo.csv` define 30 señas
+prioritarias del Signario SLS (salud, servicios, cotidiano); su guaraní
+(también propuesto por la IA, pendiente de validación) tiene prioridad en
+el diccionario. Para grabarlas en cámara real:
 
 ```bash
 python scripts/collect/collect_lspy_signs.py \
@@ -653,9 +696,18 @@ Guarda landmarks crudos en el mismo formato que LSPy-Landmarks v1 en
 ```python
 from src.inference.unified_predictor import LibrasUnifiedPredictor
 
-predictor = LibrasUnifiedPredictor(models_dir="data/models")
-predictions = predictor.predict_from_frame(frame, draw_landmarks=True)
+predictor = LibrasUnifiedPredictor(
+    models_dir="data/models", output_lang="gn", sign_language="LSPY"
+)
+predictions = predictor.predict_from_frame(frame)   # frame sin espejar
+predictions["spelling"]   # letra, top-3, texto deletreado y traducción (gn)
+predictor.set_output_lang("pt")
+predictor.translate("buenos días")                   # 'Bom dia'
 ```
+
+Si existe `data/models/alicia-v6`, el predictor carga Alicia y deletrea en
+`output_lang` (`es`, `gn`, `pt`); los modelos legacy de LIBRAS se cargan
+igual que antes cuando están presentes.
 
 ---
 
@@ -759,10 +811,13 @@ echo $DISPLAY        # debe ser :0 o similar
       (`data/models/alicia-v6/`): las 13 letras propias del guaraní (nasales,
       g̃, dígrafos, puso) vienen de un único video leído frame a frame —
       prototipo sin validación externa
-- [ ] Diccionario LSP → {ES paraguayo, Guaraní, PT-BR} — en curso: 30
-      señas con es/pt y guaraní en borrador (`data/analysis/vocabulario/`)
-- [ ] Integración en `unified_predictor.py` con `output_lang`
-- [ ] Demo end-to-end multi-idioma
+- [x] Diccionario LSP → {ES paraguayo, Guaraní, PT-BR}: 1810 glosas del
+      Signario SLS (`data/analysis/diccionario/`); traducciones **generadas
+      por IA, sin revisión humana** (es/pt/gn) — pendiente: validación por
+      hablantes vía `revisiones.tsv`
+- [x] Integración en `unified_predictor.py` con `output_lang`
+- [x] Demo end-to-end multi-idioma: web local en `/` (cámara → letras →
+      palabras → es / gn / pt, con captura PNG)
 
 ### Fase 5 — Migración del pipeline legacy
 - [ ] Reentrenar V-LIBRASIL con feature extractor de 120 features
@@ -771,7 +826,7 @@ echo $DISPLAY        # debe ser :0 o similar
 
 ### Fase 6 — Despliegue
 - [x] API REST de inferencia (FastAPI) — **prototipo** en `src/api/`
-      (Alicia v6, REST + WebSocket, 12 tests); sin despliegue ni autenticación
+      (Alicia v6, REST + WebSocket + demo web); sin despliegue ni autenticación
 - [x] CI en GitHub Actions (lint + tests)
 - [ ] Optimización para edge devices / TFLite
 - [ ] Interface de usuario final

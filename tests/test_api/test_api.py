@@ -41,7 +41,7 @@ def test_lenguas_incluye_lspy_y_guarani(cliente):
 
 def test_traducir_vocabulario(cliente):
     r = cliente.post("/traducir", json={"palabra": "agua", "idioma": "pt"})
-    assert r.json()["traduccion"] == "água"
+    assert r.json()["traduccion"] == "Água"
     r = cliente.post("/traducir", json={"palabra": "AGUA", "idioma": "gn"})
     assert r.json()["traduccion"] == "y"
 
@@ -92,13 +92,62 @@ def test_canonicalizar_lleva_minoria_al_slot_mayoritario():
 def test_normalizar_conserva_enie():
     assert normalizar("  dónde  ") == "DONDE"
     assert normalizar("año") == "AÑO"
-    assert Diccionario().traducir("Dónde", "pt") == "onde"
+    assert Diccionario().traducir("Dónde", "pt") == "Onde"
 
 
 def test_tiempo_real_deletrea_la_letra(cliente):
     frames = json.loads(EJEMPLO_A.read_text())["frames"]
     with cliente.websocket_connect("/ws?lengua=LSPY&ventana=8") as ws:
-        for manos in frames:
+        for manos in frames * 2:  # la letra debe sostenerse 10 frames
             ws.send_json({"manos": manos})
             respuesta = ws.receive_json()
     assert respuesta["palabra"] == "A"
+
+
+def test_diccionario_cubre_el_signario():
+    d = Diccionario()
+    assert len(d) >= 1744
+    assert d.traducir("MÉDICO", "gn") == "pohanohára"
+    assert d.traducir("ABURRIDO", "gn") is None  # sin guaraní todavía
+
+
+def test_traducir_texto_agrupa_frases():
+    r = Diccionario().traducir_texto("buenos dias doctor", "gn")
+    assert r["texto"] == "mba'éichapa nde pyhareve doctor"
+    assert r["completo"] is False
+
+
+def test_buscar_en_diccionario(cliente):
+    r = cliente.get("/diccionario/agua")
+    assert r.json()["gn"] == "y"
+    assert cliente.get("/diccionario/zzz").status_code == 404
+
+
+def test_frontend(cliente):
+    r = cliente.get("/")
+    assert r.status_code == 200
+    assert "Alicia" in r.text
+
+
+def test_tiempo_real_espacio_y_traduccion(cliente):
+    frames = json.loads(EJEMPLO_A.read_text())["frames"]
+    with cliente.websocket_connect(
+        "/ws?lengua=LSPY&idioma=pt&ventana=8"
+    ) as ws:
+        for manos in frames * 2:  # la letra debe sostenerse 10 frames
+            ws.send_json({"manos": manos})
+            ws.receive_json()
+        ws.send_json({"accion": "espacio"})
+        assert ws.receive_json()["texto"] == "A"
+        ws.send_json({"accion": "retroceder"})
+        ws.send_json({"accion": "retroceder"})
+        ws.receive_json()
+        assert ws.receive_json()["texto"] == ""
+
+
+def test_estado_de_revision_visible(cliente):
+    entrada = cliente.get("/diccionario/agua").json()
+    assert entrada["estado"]["gn"] == "IA sin revisar"
+    r = cliente.post("/traducir", json={"palabra": "agua", "idioma": "gn"})
+    assert r.json()["validado"] is False
+    assert Diccionario().traducir("talón", "gn") is None  # error corregido

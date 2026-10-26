@@ -3,21 +3,25 @@
 Lanzar desde la raíz del repositorio:
     uvicorn src.api.app:app --host 0.0.0.0 --port 8000
 
-Documentación interactiva en http://localhost:8000/docs
+Demo web en http://localhost:8000 y documentación en /docs
 """
 
 import base64
-from collections import deque
 from functools import lru_cache
-from typing import List, Literal, Optional
+from pathlib import Path
+from typing import List, Literal
 
 import numpy as np
 from fastapi import FastAPI, File, HTTPException, UploadFile, WebSocket
+from fastapi.responses import FileResponse
 from fastapi.websockets import WebSocketDisconnect
 from pydantic import BaseModel, Field
 
-from src.api.alicia import Alicia, Mano
-from src.api.diccionario import IDIOMAS, Diccionario
+from src.inference.alicia import Alicia, Mano
+from src.inference.deletreo import Deletreador
+from src.inference.diccionario import IDIOMAS, Diccionario
+
+ESTATICOS = Path(__file__).parent / "static"
 
 app = FastAPI(
     title="Ñemongueta — API de Alicia",
@@ -25,7 +29,7 @@ app = FastAPI(
         "Reconocimiento del alfabeto manual (LSPy, guaraní, LIBRAS, LSC, "
         "ASL) con salida en español, guaraní o portugués."
     ),
-    version="0.6.0",
+    version="0.7.0",
 )
 
 Lengua = Literal["LSPY", "GN", "LIBRAS", "LSP", "ASL"]
@@ -74,7 +78,9 @@ class PrediccionIn(BaseModel):
 
 
 class TraduccionIn(BaseModel):
-    palabra: str = Field(..., min_length=1, description="Palabra en español")
+    palabra: str = Field(
+        ..., min_length=1, description="Palabra o texto en español o glosa"
+    )
     idioma: Idioma = "gn"
 
 
@@ -82,14 +88,26 @@ def _frames(frames: List[List[ManoIn]]) -> List[List[Mano]]:
     return [[Mano(m.puntos, m.lateralidad) for m in f] for f in frames]
 
 
-def _manos_de_imagen(imagen: np.ndarray) -> List[Mano]:
-    import cv2
+def _detector(video: bool):
     import mediapipe as mp
 
-    with mp.solutions.hands.Hands(
-        static_image_mode=True, max_num_hands=2
-    ) as hands:
+    return mp.solutions.hands.Hands(
+        static_image_mode=not video,
+        max_num_hands=2,
+        min_detection_confidence=0.5,
+    )
+
+
+def _manos_de_imagen(imagen: np.ndarray, hands=None) -> List[Mano]:
+    import cv2
+
+    propio = hands is None
+    hands = hands or _detector(video=False)
+    try:
         res = hands.process(cv2.cvtColor(imagen, cv2.COLOR_BGR2RGB))
+    finally:
+        if propio:
+            hands.close()
     if not res.multi_hand_landmarks:
         return []
     return [
@@ -107,6 +125,17 @@ def _decodificar(datos: bytes) -> np.ndarray:
     return imagen
 
 
+def _puntos(manos: List[Mano]) -> List[List[List[float]]]:
+    return [
+        [[round(p[0], 4), round(p[1], 4)] for p in m.puntos] for m in manos
+    ]
+
+
+@app.get("/", include_in_schema=False)
+def demo():
+    return FileResponse(ESTATICOS / "index.html")
+
+
 @app.get("/salud")
 def salud():
     a = alicia()
@@ -114,6 +143,7 @@ def salud():
         "estado": "ok",
         "modelo": a.ruta.parent.parent.name,
         "run": a.ruta.name,
+        "diccionario": len(diccionario()),
     }
 
 
@@ -135,6 +165,17 @@ def idiomas():
     return [{"codigo": c, "nombre": n} for c, n in IDIOMAS.items()]
 
 
+@app.get("/diccionario/{palabra}")
+def buscar(palabra: str):
+    """Entrada del diccionario LSP (glosa o palabra en español) en los tres
+    idiomas con el estado de cada traducción ("validado", "IA sin revisar" o
+    "pendiente"), o 404."""
+    entrada = diccionario().buscar(palabra)
+    if not entrada:
+        raise HTTPException(404, "No está en el diccionario")
+    return entrada
+
+
 @app.post("/predecir/landmarks")
 def predecir_landmarks(datos: PrediccionIn):
     """Letra a partir de landmarks calculados en el cliente."""
@@ -149,21 +190,28 @@ async def predecir_imagen(
 ):
     """Letra a partir de una imagen (JPG/PNG) de la cámara, sin espejar."""
     manos = _manos_de_imagen(_decodificar(await imagen.read()))
-    return alicia().predecir([manos], lengua, top_k)
+    return {
+        **alicia().predecir([manos], lengua, top_k),
+        "manos": _puntos(manos),
+    }
 
 
 @app.post("/traducir")
 def traducir(datos: TraduccionIn):
-    """Palabra deletreada (en español) → idioma elegido.
+    """Palabra o texto deletreado → idioma elegido (diccionario LSP).
 
-    Las traducciones al guaraní son un borrador pendiente de validación.
+    `validado` es falso mientras alguna parte sea una traducción de la IA sin
+    revisión humana.
     """
+    resultado = diccionario().traducir_texto(datos.palabra, datos.idioma)
     traduccion = diccionario().traducir(datos.palabra, datos.idioma)
     return {
         "palabra": datos.palabra,
         "idioma": datos.idioma,
-        "traduccion": traduccion,
-        "en_vocabulario": traduccion is not None,
+        "traduccion": traduccion or resultado["texto"],
+        "en_vocabulario": resultado["completo"],
+        "validado": resultado["validado"],
+        "partes": resultado["partes"],
     }
 
 
@@ -174,49 +222,43 @@ async def tiempo_real(
     idioma: Idioma = "es",
     ventana: int = 15,
 ):
-    """Tiempo real: el cliente envía {"imagen": <JPG en base64>} o
-    {"manos": [...]} por frame y {"accion": "borrar"} para reiniciar la
-    palabra. Una letra se confirma cuando domina la ventana de frames."""
+    """Tiempo real. Mensajes del cliente:
+    {"imagen": <JPG en base64>} o {"manos": [...]} por frame;
+    {"accion": "espacio" | "retroceder" | "borrar"};
+    {"idioma": "es" | "gn" | "pt"} o {"lengua": "LSPY" | ...}.
+    Responde con la letra, el texto deletreado y su traducción."""
     await ws.accept()
-    buffer: deque = deque(maxlen=ventana)
-    palabra: List[str] = []
-    ultima: Optional[str] = None
+    deletreo = Deletreador(alicia(), diccionario(), lengua, idioma, ventana)
+    hands = None
     try:
         while True:
             msg = await ws.receive_json()
-            if msg.get("accion") == "borrar":
-                buffer.clear(), palabra.clear()
-                ultima = None
+            accion = msg.get("accion")
+            if accion in ("espacio", "retroceder", "borrar"):
+                getattr(deletreo, accion)()
+                await ws.send_json(deletreo.resumen())
                 continue
+            if msg.get("idioma") in IDIOMAS:
+                deletreo.idioma = msg["idioma"]
+            if msg.get("lengua") in alicia().lenguas:
+                deletreo.lengua = msg["lengua"]
+                deletreo.buffer.clear()
             if "imagen" in msg:
-                manos = _manos_de_imagen(
-                    _decodificar(base64.b64decode(msg["imagen"]))
-                )
-            else:
+                hands = hands or _detector(video=True)
+                imagen = _decodificar(base64.b64decode(msg["imagen"]))
+                manos = _manos_de_imagen(imagen, hands)
+            elif "manos" in msg:
                 manos = [
-                    Mano(m["puntos"], m["lateralidad"])
-                    for m in msg.get("manos", [])
+                    Mano(m["puntos"], m["lateralidad"]) for m in msg["manos"]
                 ]
-            buffer.append(manos)
-            pred = alicia().predecir(list(buffer), lengua)
-            letra = pred["letra"]
-            if (
-                letra
-                and letra != ultima
-                and pred["confianza"] >= 0.6
-                and pred["frames_con_mano"] >= ventana // 2
-            ):
-                palabra.append(letra)
-                ultima = letra
-            texto = "".join(palabra)
+            else:
+                await ws.send_json(deletreo.resumen())
+                continue
             await ws.send_json(
-                {
-                    **pred,
-                    "palabra": texto,
-                    "traduccion": diccionario().traducir(texto, idioma)
-                    if texto
-                    else None,
-                }
+                {**deletreo.agregar(manos), "manos": _puntos(manos)}
             )
     except WebSocketDisconnect:
         return
+    finally:
+        if hands is not None:
+            hands.close()
