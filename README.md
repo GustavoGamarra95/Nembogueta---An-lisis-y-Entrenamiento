@@ -600,14 +600,19 @@ echo $DISPLAY        # debe ser :0 o similar
 
 ### Fase 3 — Datos y modelos LSP
 - [x] Recopilación pública de letras LSPy (A–Z, Ñ, LL, RR): video "Alfabeto
-      Manual" del canal Lengua de Señas LSPy (29 letras) y 20 letras del
-      signario SLS — 2 intérpretes, una toma por letra
+      Manual" del canal Lengua de Señas LSPy, 7 videos del alfabeto en
+      YouTube (Proyecto LSPY / Dra. Mirta Barreto, Información de Sordos,
+      Tico Rodríguez, Ariel Torres, Milcar, CODA DOS LENGUAS) segmentados por
+      alineamiento forzado, y 20 letras del signario SLS — 9 intérpretes,
+      una toma por letra; uso solo para investigación (licencia estándar de
+      YouTube, no se redistribuyen)
 - [ ] Colecta propia multi-sujeto de letras LSPy (protocolo de cámara real,
       con landmarks crudos para las letras con movimiento) — Sprint 4
 - [x] Validación del modelo `robust` con segundo sujeto (S02 — `robust-v4`: 91.8% top-1)
-- [x] Entrenamiento de modelo de letras LSPy proxy (LSC + LIBRAS + ASL mapeados
-      letra por letra + frames reales del canal): 14/20 en el signario
-      (1 intérprete externo); letras con movimiento (J, Z, Ñ, X) pendientes
+- [x] Alicia v5 (`data/models/alicia-v5/`): estático multilengua con LSPy
+      proxy + frames reales de 8 intérpretes, y modelo de movimiento (LSC70,
+      LSM dinámico, LSPy real). Signario SLS (1 intérprete externo): fusión
+      16/20, acierta J y Z; faltan N/Ñ, U y X
 - [ ] Colecta de palabras y frases LSP (tríplice fronteira)
 
 ### Fase 4 — Salida trilíngue
