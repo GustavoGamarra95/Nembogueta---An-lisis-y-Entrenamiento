@@ -1,5 +1,7 @@
 # Nembogueta — Análisis y Entrenamiento
 
+[![CI](https://github.com/GustavoGamarra95/Nembogueta---An-lisis-y-Entrenamiento/actions/workflows/ci.yml/badge.svg)](https://github.com/GustavoGamarra95/Nembogueta---An-lisis-y-Entrenamiento/actions/workflows/ci.yml)
+
 **Sistema de Reconocimiento de Lengua de Señas Paraguaya (LSP)**
 **Módulo de Análisis, Preprocesamiento y Entrenamiento**
 
@@ -33,7 +35,14 @@ Brasileira de Sinais):
 - **LibrAI alphabet** — alfabeto manual LIBRAS, 22 clases (A–Y + Ç)
 
 Estos modelos base serán adaptados a LSP mediante transfer learning y
-nuevos datos de colecta.
+nuevos datos de colecta. Desde Alicia v5 el alfabeto se entrena en un solo
+modelo multilengua (LIBRAS, LSC, ASL y LSPy) y Alicia v6 suma el alfabeto
+guaraní (achegety).
+
+La tesis es una **prueba de concepto** basada en LibrAI: no incluye colecta
+con terceros (y por lo tanto no pasa por comité de ética); los datos LSPy
+provienen de material público autorizado por sus titulares y de grabaciones
+del propio autor.
 
 ---
 
@@ -143,6 +152,37 @@ v4 (base LibrAI puro, 99.78% holdout, 24% real → overfit)
           + recupera V (única letra débil del robust): 0% → 98%
 ```
 
+### Alicia v5 y v6 — alfabeto multilengua con LSPy y guaraní
+
+Fichas completas en `data/models/alicia-v5/README.md` y
+`data/models/alicia-v6/README.md`. Ambas versiones combinan un modelo
+**estático** (frame a frame, 120 features; `train_alphabet_multilang.py`) y
+uno de **movimiento** para las letras dinámicas de LSPy (secuencia de 8
+pasos; `train_letter_sequences.py`). En inferencia se elige la lengua y el
+argmax se restringe a sus clases (`LIBRAS:*`, `LSP:*` = LSC, `ASL:*`,
+`LSPY:*` y, en v6, `GN:*`).
+
+| Conjunto | v5 | v6 |
+|---|---|---|
+| Signario SLS (LSPy, 1 intérprete externo), estático | 15/20 | **16/20** |
+| Signario SLS, fusión estático + movimiento | 16/20 | 16/20 |
+| Operador en cámara real (LIBRAS) | 85.6% | **92.6%** |
+| LibrAI (LIBRAS) | 98.8% | 97.6% |
+| LSC / ASL, sujetos no vistos | 81.0% / 84.6% | 79.6% / 85.1% |
+| GN, letras compartidas, sujetos no vistos | — | 69.4% |
+
+- **v5**: LIBRAS (LibrAI + S01/S02), LSC (LSC70), ASL (Massey + Spelling It
+  Out) y LSPy (proxy letra por letra + frames reales de 8 intérpretes
+  públicos). Movimiento: LSC70, LSM dinámico y secuencias LSPy reales.
+- **v6**: v5 + alfabeto guaraní (achegety, lengua `GN`, 33 letras). Las 13
+  letras propias del guaraní (ã, ẽ, ĩ, õ, ũ, ỹ, g̃, ch, mb, nd, ng, nt,
+  puso) salen de un único video leído frame a frame
+  (`data/analysis/achegety/`): **prototipo sin validación externa**. El
+  modelo de movimiento todavía no tiene clases GN.
+- La validación LSPy es un solo intérprete con una toma por letra (el
+  signario no tiene B, C, E, F, G, H ni W); la fusión de v5 falla en N, U, X
+  y Ñ.
+
 ### Alicia — nombre de los modelos entrenados
 
 A partir de ahora, los modelos que producen los scripts de `scripts/train/`
@@ -158,6 +198,8 @@ se llaman **Alicia**: se guardan en carpetas `alicia-*` y su
 | `train_vlibrasil.py` | `/data/models/alicia-phrases` |
 | `train_ufpr.py` | `/data/models/alicia-handshape` |
 | `train_translation.py` | `/data/models/alicia-translation` |
+| `train_alphabet_multilang.py` | `/data/models/alicia-alphabet-multilang` |
+| `train_letter_sequences.py` | `data/models/alicia-lspy-sequences` |
 
 Los modelos ya entrenados (`librai-alphabet-*`, `vlibrasil-v2`,
 `ufpr-handshape`) conservan su nombre porque el paper y las sesiones de
@@ -169,7 +211,7 @@ evaluación los referencian.
 |---|---|---|---|---|
 | V-LIBRASIL v2 | V-LIBRASIL (UFPE) | 1361 | 99.4% (frases: 98.2%) | ⚠️ Pipeline legacy — incompatible con `feature_engineering.py` actual |
 | UFPR Handshapes | LIBRAS-HC-RGBDS | 61 | 70.3% | ⚠️ Pipeline legacy — incompatible con `feature_engineering.py` actual |
-| LSP letters | Pendente | — | — | ❌ Aguardando colecta de datos |
+| LSP letters | — | — | — | ➡️ Cubiertas por Alicia v5/v6 (alfabeto multilengua, ver arriba) |
 
 ⚠️ **Importante:** V-LIBRASIL v2 y UFPR Handshapes fueron entrenados con
 un extractor de features anterior (208 features con posición absoluta +
@@ -267,7 +309,13 @@ Secuencia (T, 208) → mean pooling → (208,) → Dense layers → Dense(61, so
 ```
 Nembogueta---An-lisis-y-Entrenamiento/
 │
+├── .github/workflows/ci.yml          # CI: lint (flake8, black, isort) + tests
+│
 ├── src/                              # Librería principal (importable)
+│   ├── api/                          # API FastAPI de inferencia (Alicia v6)
+│   │   ├── alicia.py                 # carga del modelo y predicción
+│   │   ├── diccionario.py            # vocabulario-objetivo es/gn/pt
+│   │   └── app.py                    # endpoints REST + WebSocket
 │   ├── config/config.py
 │   ├── preprocessing/
 │   │   ├── feature_engineering.py   # 120 features invariantes (núcleo)
@@ -281,10 +329,16 @@ Nembogueta---An-lisis-y-Entrenamiento/
 │   └── utils/
 │
 ├── scripts/                          # Entry points ejecutables
-│   ├── preprocess/                   # Extracción de features
+│   ├── preprocess/                   # Extracción de features:
+│   │                                 # preprocess_alphabet_images, preprocess_lsc70,
+│   │                                 # align_alphabet_videos (alineamiento forzado LSPy),
+│   │                                 # extract_letter_sequences, build_lspy_proxy,
+│   │                                 # build_gn_dataset, build_lspy_landmarks_release...
 │   ├── train/                        # train_alphabet, train_alphabet_robust,
+│   │                                 # train_alphabet_multilang, train_letter_sequences,
 │   │                                 # finetune_alphabet_realworld,
 │   │                                 # cv_finetune_alphabet, train_vlibrasil, train_ufpr...
+│   ├── collect/                      # collect_lspy_signs (grabación guiada, modo AUTOR)
 │   ├── evaluate/                     # Evaluación offline + evaluate_realworld.py
 │   ├── demo/                         # realtime_librai_alphabet, realtime_vlibrasil,
 │   │                                 # make_video_demo_vlibrasil, make_synth_video...
@@ -303,6 +357,8 @@ Nembogueta---An-lisis-y-Entrenamiento/
 │   │   ├── librai-alphabet-v4-ft-cv/  # 5-fold CV runs
 │   │   ├── vlibrasil-v2/            # legacy (208 features)
 │   │   ├── ufpr-handshape/          # legacy (208 features)
+│   │   ├── alicia-v5/               # multilengua + LSPy (estático + movimiento)
+│   │   ├── alicia-v6/               # v5 + achegety (GN) — usado por la API
 │   │   └── alicia-*/                # modelos que se entrenen de ahora en adelante
 │   ├── processed/
 │   │   ├── librai_alphabet_v4/      # 22 letras × ~2090 frames (120 features)
@@ -310,9 +366,12 @@ Nembogueta---An-lisis-y-Entrenamiento/
 │   │   └── ufpr-handshape/          # legacy
 │   ├── analysis/
 │   │   ├── robust_models/           # análisis comparativo robust v1–v4
+│   │   ├── achegety/                # lectura frame a frame del alfabeto guaraní
+│   │   ├── vocabulario/             # vocabulario-objetivo (30 señas), alfabetos
 │   │   ├── paper_figures/
 │   │   ├── videos/                  # demos de frases V-LIBRASIL (.mp4)
 │   │   └── phrases_report.json      # evaluación de frases V-LIBRASIL v2
+│   ├── release/                     # LSPy-Landmarks v1 generado (no versionado)
 │   └── realworld_eval/
 │       └── sessions/                # sesiones de evaluación en cámara real
 │
@@ -321,10 +380,14 @@ Nembogueta---An-lisis-y-Entrenamiento/
 ├── tests/
 ├── Dockerfile                       # Python 3.10 + CUDA 11.8
 ├── docker-compose.yml               # Container GPU: nembogueta-dev-gpu
-├── requirements.txt                 # TF 2.10, MediaPipe 0.10.8, OpenCV 4.8
+├── requirements.txt                 # TF 2.10, MediaPipe 0.10.8, OpenCV 4.8 (+ contrib 4.11)
+├── requirements-api.txt             # FastAPI, uvicorn, httpx (API)
 ├── pyproject.toml                   # target Python 3.10
 └── LICENSE                          # MIT
 ```
+
+En git solo se versionan `alicia-v5/`, `alicia-v6/` y los modelos
+`*-alphabet-robust*`; el resto de `data/models/` queda local.
 
 Datasets externos (no versionados, viven en `src/`):
 - `src/LibrAI/` — alfabeto LIBRAS (referencia visual + frames)
@@ -540,6 +603,51 @@ geometría de entrenamiento; en el signario SLS da 14/20 frente a 16/20 de la
 validación offline (que espeja la imagen antes de MediaPipe). Las
 traducciones al guaraní son un borrador pendiente de validación.
 
+Es un **prototipo**: sin autenticación ni despliegue. Tests en
+`tests/test_api/` (12 tests, corren en el CI):
+
+```bash
+pytest tests/test_api
+```
+
+## Dataset LSPy-Landmarks v1
+
+Landmarks crudos de MediaPipe Hands (sin videos) preparados para publicar en
+Zenodo con licencia **CC BY 4.0**. El uso de las fuentes fue autorizado por
+sus titulares; los videos no se redistribuyen.
+
+| Subconjunto | Muestras | Contenido |
+|---|---|---|
+| `alfabeto` | 243 | Alfabeto manual castellano (A–Z, Ñ, LL, RR), 9 intérpretes |
+| `achegety` | 33 | Alfabeto guaraní, 1 intérprete, tiempos verificados frame a frame |
+| `lexico` | 1810 | Señas léxicas del Signario SLS, 1 intérprete |
+
+```bash
+python scripts/preprocess/build_lspy_landmarks_release.py --subset alfabeto
+python scripts/preprocess/build_lspy_landmarks_release.py --subset lexico --shard 0/4
+python scripts/preprocess/build_lspy_landmarks_release.py --merge
+```
+
+Sale en `data/release/lspy_landmarks_v1/` (ignorado en git), con su propio
+README, licencia e `index.csv` por subconjunto.
+
+## Vocabulario-objetivo y grabación del autor
+
+`data/analysis/vocabulario/vocabulario_objetivo.csv` define 30 señas del
+Signario SLS con su traducción a español, guaraní (**borrador**) y
+portugués; es el vocabulario que usa `POST /traducir`. Para grabarlas en
+cámara real:
+
+```bash
+python scripts/collect/collect_lspy_signs.py \
+  --vocab data/analysis/vocabulario/vocabulario_objetivo.csv \
+  --participant AUTOR --reps 10
+```
+
+En modo `AUTOR` el propio investigador se graba a sí mismo (sin terceros).
+Guarda landmarks crudos en el mismo formato que LSPy-Landmarks v1 en
+`data/collection/` (no versionado).
+
 ## Predictor unificado
 
 ```python
@@ -558,15 +666,17 @@ predictions = predictor.predict_from_frame(frame, draw_landmarks=True)
 | Lenguaje | Python 3.10 |
 | Framework de DL | TensorFlow 2.10 / Keras |
 | Extracción de landmarks | MediaPipe Hands 0.10.8 (Docker) / 0.10.35 (host Tasks API) |
-| Procesamiento de video | OpenCV 4.8 |
+| Procesamiento de video | OpenCV 4.8 (`opencv-python`) + `opencv-contrib-python` 4.11 |
 | Métricas | scikit-learn |
 | Manipulación de datos | NumPy / Pandas |
 | Visualización | Matplotlib / Seaborn |
 | Entorno de entrenamiento | Docker + NVIDIA GPU (CUDA 11.8) |
-| API de inferencia (planeada) | FastAPI |
+| API de inferencia (prototipo) | FastAPI 0.115 + Uvicorn (`requirements-api.txt`) |
+| Calidad / CI | GitHub Actions: Flake8, Black, isort + pytest |
 
 ```bash
 pip install -r requirements.txt
+pip install -r requirements-api.txt   # solo para la API
 ```
 
 Nota sobre TF 2.10: EOL desde 2023 pero estable y compatible con la GPU
@@ -638,6 +748,10 @@ echo $DISPLAY        # debe ser :0 o similar
       proxy + frames reales de 8 intérpretes, y modelo de movimiento (LSC70,
       LSM dinámico, LSPy real). Signario SLS (1 intérprete externo): fusión
       16/20, acierta J y Z; faltan N/Ñ, U y X
+- [x] Dataset LSPy-Landmarks v1 (alfabeto 243, achegety 33, léxico 1810;
+      solo landmarks, CC BY 4.0) — `build_lspy_landmarks_release.py`
+- [x] Vocabulario-objetivo (30 señas del Signario SLS) y herramienta de
+      grabación del autor (`scripts/collect/collect_lspy_signs.py`)
 - [ ] Colecta de palabras y frases LSP (tríplice fronteira)
 
 ### Fase 4 — Salida trilíngue
@@ -645,7 +759,8 @@ echo $DISPLAY        # debe ser :0 o similar
       (`data/models/alicia-v6/`): las 13 letras propias del guaraní (nasales,
       g̃, dígrafos, puso) vienen de un único video leído frame a frame —
       prototipo sin validación externa
-- [ ] Diccionario LSP → {ES paraguayo, Guaraní, PT-BR}
+- [ ] Diccionario LSP → {ES paraguayo, Guaraní, PT-BR} — en curso: 30
+      señas con es/pt y guaraní en borrador (`data/analysis/vocabulario/`)
 - [ ] Integración en `unified_predictor.py` con `output_lang`
 - [ ] Demo end-to-end multi-idioma
 
@@ -655,7 +770,9 @@ echo $DISPLAY        # debe ser :0 o similar
 - [ ] Deprecar pipeline de 208 features
 
 ### Fase 6 — Despliegue
-- [ ] API REST de inferencia (FastAPI)
+- [x] API REST de inferencia (FastAPI) — **prototipo** en `src/api/`
+      (Alicia v6, REST + WebSocket, 12 tests); sin despliegue ni autenticación
+- [x] CI en GitHub Actions (lint + tests)
 - [ ] Optimización para edge devices / TFLite
 - [ ] Interface de usuario final
 - [ ] Migración a TF 2.15+
@@ -664,7 +781,9 @@ echo $DISPLAY        # debe ser :0 o similar
 
 ## Contribución
 
-1. Seguir las directrices de calidad (Black, isort, Flake8 — ver `.pre-commit-config.yaml`)
+1. Seguir las directrices de calidad (Black, isort, Flake8 — ver `.pre-commit-config.yaml`);
+   el CI (`.github/workflows/ci.yml`) corre `flake8`, `black --check` e
+   `isort --check-only` sobre `src` y `tests`, y luego `pytest`
 2. Agregar pruebas unitarias en `tests/` para nueva funcionalidad
 3. Actualizar este README al cambiar el estado de modelos o pipelines
 4. Documentar protocolos académicos en `docs/source/protocols/`
