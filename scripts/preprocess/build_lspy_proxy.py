@@ -11,8 +11,8 @@ Reglas de resolución del mapeo (sobre los candidatos de cada lengua):
   3. Cada clase de origen se asigna a una sola letra LSPy (primero las que
      coinciden por nombre, luego por probabilidad); las demás quedan solo
      con los frames reales.
-Los frames reales van con sujeto "train_canal" (siempre a train) y se
-replican hasta --real-min por letra.
+Los frames reales van con sujeto "train_<fuente>" (siempre a train) y se
+replican hasta --real-min por letra y sujeto.
 
 Salida: <output-dir>/index.csv (rutas relativas) y mapeo_resuelto.json.
 
@@ -72,8 +72,11 @@ def source_rows(root: Path, lang: str, letter: str):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--mapping", type=Path, required=True)
-    p.add_argument("--real-dir", type=Path,
-                   default=Path("data/processed/lspy_canal_alfabeto"))
+    p.add_argument("--real-dir", type=Path, nargs="+",
+                   default=[Path("data/processed/lspy_canal_alfabeto")],
+                   help="Carpetas <LETRA>/*.npy con frames LSPy reales. Si el "
+                        "archivo se llama <video>__<k>.npy el sujeto es ese "
+                        "video; si no, el nombre de la carpeta")
     p.add_argument("--output-dir", type=Path,
                    default=Path("data/processed/lspy_proxy"))
     p.add_argument("--name-threshold", type=float, default=0.35)
@@ -91,12 +94,20 @@ def main():
             for path, subj in source_rows(Path(LANG_DIRS[lang]), lang, src):
                 rows.append([os.path.relpath(path, out), letter, subj, "proxy"])
                 n_src += 1
-        real = sorted((args.real_dir / letter).glob("*.npy"))
-        reps = max(1, -(-args.real_min // max(len(real), 1)))
-        for f in real * reps:
-            rows.append([os.path.relpath(f.resolve(), out), letter,
-                         "train_canal", "real"])
-        m["n_origen"], m["n_real"] = n_src, len(real)
+        n_real = 0
+        for rdir in args.real_dir:
+            by_subj = {}
+            for f in sorted((rdir / letter).glob("*.npy")):
+                subj = (f.name.split("__")[0] if "__" in f.name
+                        else rdir.name.replace("lspy_", ""))
+                by_subj.setdefault(f"train_{subj}", []).append(f)
+            for subj, files in by_subj.items():
+                reps = max(1, -(-args.real_min // len(files)))
+                for f in files * reps:
+                    rows.append([os.path.relpath(f.resolve(), out), letter,
+                                 subj, "real"])
+                n_real += len(files)
+        m["n_origen"], m["n_real"] = n_src, n_real
 
     with open(out / "index.csv", "w", newline="") as f:
         w = csv.writer(f)

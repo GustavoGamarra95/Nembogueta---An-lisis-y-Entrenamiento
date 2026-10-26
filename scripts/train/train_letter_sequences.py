@@ -149,17 +149,32 @@ def build(args, rng):
             y.append(letter)
             subj.append(r["subject"])
 
-    # Canal: aumentado
-    for f, xy, s, lab, _ in load_seqs(args.canal):
-        for _ in range(args.canal_aug):
-            a = rng.uniform(0.0, 0.25)
-            b = rng.uniform(0.75, 1.0)
-            v = sequence_vector(f, xy, s, (a, b))
-            v[:, 60:] *= rng.uniform(0.7, 1.3)
-            v[:, :60] += rng.normal(0, 0.02, v[:, :60].shape)
-            X.append(v)
-            y.append(lab)
-            subj.append("train_canal")
+    # LSM dinámico: J, K, Ñ, Q, X, Z por nombre (supuesto: mismo movimiento
+    # que en LSPy; el signario lo pone a prueba)
+    if args.lsm and args.lsm.exists():
+        for f, xy, s, lab, sub in load_seqs(args.lsm):
+            if lab in classes:
+                X.append(sequence_vector(f, xy, s))
+                y.append(lab)
+                subj.append(f"LSM_{sub}")
+
+    # LSPy real (canal y videos de YouTube alineados): aumentados
+    real = [(args.canal, args.canal_aug, lambda _: "train_canal")]
+    if args.youtube and args.youtube.exists():
+        real.append((args.youtube, args.youtube_aug, lambda s: f"yt_{s}"))
+    for path, n_aug, subject in real:
+        for f, xy, s, lab, sub in load_seqs(path):
+            if lab not in classes:
+                continue
+            for _ in range(n_aug):
+                a = rng.uniform(0.0, 0.25)
+                b = rng.uniform(0.75, 1.0)
+                v = sequence_vector(f, xy, s, (a, b))
+                v[:, 60:] *= rng.uniform(0.7, 1.3)
+                v[:, :60] += rng.normal(0, 0.02, v[:, :60].shape)
+                X.append(v)
+                y.append(lab)
+                subj.append(subject(sub))
     return np.stack(X), np.array(y), np.array(subj), classes
 
 
@@ -190,6 +205,11 @@ def main():
                     default=Path("data/processed/lspy_proxy"))
     ap.add_argument("--mapping", type=Path,
                     default=Path("data/processed/lspy_proxy/mapeo_resuelto.json"))
+    ap.add_argument("--lsm", type=Path,
+                    default=Path("data/processed/sequences/lsm.npz"))
+    ap.add_argument("--youtube", type=Path,
+                    default=Path("data/processed/sequences/youtube.npz"))
+    ap.add_argument("--youtube-aug", type=int, default=40)
     ap.add_argument("--static-model", type=Path, default=None,
                     help="Modelo multilengua con clases LSPY:* para fusionar")
     ap.add_argument("--trim-arrival", action="store_true",

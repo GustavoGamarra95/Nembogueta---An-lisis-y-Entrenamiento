@@ -599,9 +599,15 @@ echo $DISPLAY        # debe ser :0 o similar
 - [x] Validación inter-sujeto del `robust` con sujeto no visto (80% top-1)
 
 ### Fase 3 — Datos y modelos LSP
-- [x] Colecta de videos de letras LSP (A–Z, Ñ) — Sprint 4 del roadmap interno
+- [x] Recopilación pública de letras LSPy (A–Z, Ñ, LL, RR): video "Alfabeto
+      Manual" del canal Lengua de Señas LSPy (29 letras) y 20 letras del
+      signario SLS — 2 intérpretes, una toma por letra
+- [ ] Colecta propia multi-sujeto de letras LSPy (protocolo de cámara real,
+      con landmarks crudos para las letras con movimiento) — Sprint 4
 - [x] Validación del modelo `robust` con segundo sujeto (S02 — `robust-v4`: 91.8% top-1)
-- [x] Entrenamiento de modelo de letras LSP
+- [x] Entrenamiento de modelo de letras LSPy proxy (LSC + LIBRAS + ASL mapeados
+      letra por letra + frames reales del canal): 14/20 en el signario
+      (1 intérprete externo); letras con movimiento (J, Z, Ñ, X) pendientes
 - [ ] Colecta de palabras y frases LSP (tríplice fronteira)
 
 ### Fase 4 — Salida trilíngue
