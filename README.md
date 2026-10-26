@@ -515,6 +515,31 @@ usan estos demos de V-LIBRASIL.
 
 ---
 
+## API de inferencia (Alicia v6)
+
+API FastAPI en `src/api/` con el modelo `data/models/alicia-v6`
+(override con `ALICIA_MODEL_DIR`). Reconoce el alfabeto manual de LSPy,
+guaraní (achegety), LIBRAS, LSC y ASL, y traduce palabras deletreadas al
+español, guaraní o portugués.
+
+```bash
+pip install -r requirements-api.txt
+uvicorn src.api.app:app --host 0.0.0.0 --port 8000   # docs en /docs
+```
+
+| Endpoint | Uso |
+|---|---|
+| `GET /salud`, `/lenguas`, `/idiomas` | Estado, lenguas (con sus letras) e idiomas de salida |
+| `POST /predecir/landmarks` | Letra a partir de landmarks de MediaPipe calculados en el cliente sobre la imagen **sin espejar** (`sostenido=true` usa el tramo estable) |
+| `POST /predecir/imagen` | Letra a partir de una imagen JPG/PNG |
+| `POST /traducir` | Palabra deletreada (español) → `es` / `gn` / `pt` según el vocabulario-objetivo |
+| `WS /ws?lengua=LSPY&idioma=gn` | Tiempo real: frames (imagen base64 o landmarks) → letra, palabra acumulada y traducción |
+
+La API espeja los landmarks matemáticamente (x → 1 − x) para llevarlos a la
+geometría de entrenamiento; en el signario SLS da 14/20 frente a 16/20 de la
+validación offline (que espeja la imagen antes de MediaPipe). Las
+traducciones al guaraní son un borrador pendiente de validación.
+
 ## Predictor unificado
 
 ```python
