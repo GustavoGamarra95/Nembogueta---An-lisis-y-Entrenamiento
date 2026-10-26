@@ -77,3 +77,6 @@ hand_landmarker.task
 !data/models/alicia-v5/**/*.keras
 !data/models/alicia-v6/**/*.keras
 !data/realworld_eval/**/*.keras
+# Documentos de la tesis: fuera del repositorio (copia local en ~/Documentos)
+data/paper/
+scripts/utils/generate_scientific_paper.py
