@@ -1,0 +1,150 @@
+{
+  "model_name": "Alicia",
+  "timestamp": "2026-10-25T22:25:38.710609Z",
+  "num_features": 120,
+  "num_classes": 22,
+  "classes": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "I",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "Y",
+    "Ç"
+  ],
+  "label_names": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "I",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "Y",
+    "Ç"
+  ],
+  "model_type": "dnn_robust",
+  "training_data": {
+    "librai": {
+      "train": 32197,
+      "val": 6900,
+      "test": 6900
+    },
+    "operator": {
+      "train": 16478,
+      "val": 1293,
+      "test": 1287
+    },
+    "op_weight": 1.9539385847797062
+  },
+  "augmentation": {
+    "palm_rot_deg": 20.0,
+    "palm_rot_space": "normalized",
+    "jitter_sigma": 0.5,
+    "flip_prob": 0.5,
+    "flip_mode": "mirror",
+    "dropout": 0.4
+  },
+  "hyperparameters": {
+    "lr": 0.001,
+    "batch_size": 128,
+    "epochs_max": 120,
+    "epochs_trained": 70,
+    "seed": 42
+  },
+  "test_accuracy": 0.9921739130434782,
+  "results": {
+    "base_v4": {
+      "librai_test": {
+        "name": "base_librai_test",
+        "top1": 0.9986956521739131,
+        "top5": 0.9998550724637681,
+        "n": 6900
+      },
+      "operator_test": {
+        "name": "base_op_test",
+        "top1": 0.10722610722610723,
+        "top5": 0.432012432012432,
+        "n": 1287
+      },
+      "operator_all": {
+        "name": "base_op_all",
+        "top1": 0.11568444028687247,
+        "top5": 0.4374805113813533,
+        "n": 6414
+      },
+      "librai_test_mirror": {
+        "name": "base_librai_test_mirror",
+        "top1": 0.8933333333333333,
+        "top5": 0.9956521739130435,
+        "n": 6900
+      },
+      "operator_test_mirror": {
+        "name": "base_op_test_mirror",
+        "top1": 0.16627816627816627,
+        "top5": 0.4902874902874903,
+        "n": 1287
+      }
+    },
+    "robust_new": {
+      "librai_test": {
+        "name": "robust_librai_test",
+        "top1": 0.9921739130434782,
+        "top5": 0.9994202898550725,
+        "n": 6900
+      },
+      "operator_test": {
+        "name": "robust_op_test",
+        "top1": 0.9020979020979021,
+        "top5": 0.9813519813519813,
+        "n": 1287
+      },
+      "operator_all": {
+        "name": "robust_op_all",
+        "top1": 0.9236046149048955,
+        "top5": 0.9920486435921422,
+        "n": 6414
+      },
+      "librai_test_mirror": {
+        "name": "robust_librai_test_mirror",
+        "top1": 0.9928985507246377,
+        "top5": 0.9994202898550725,
+        "n": 6900
+      },
+      "operator_test_mirror": {
+        "name": "robust_op_test_mirror",
+        "top1": 0.9036519036519036,
+        "top5": 0.9813519813519813,
+        "n": 1287
+      }
+    }
+  }
+}

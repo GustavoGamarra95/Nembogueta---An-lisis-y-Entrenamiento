@@ -136,7 +136,8 @@ v4 (base LibrAI puro, 99.78% holdout, 24% real → overfit)
  │
  └─ robust = v4 reentrenado con:
        · LibrAI + datos operador (sample weighted)
-       · augmentation: palm rotation ±20°, jitter 0.5σ, handedness flip
+       · augmentation: palm rotation ±20°, jitter 0.5σ, permutación de slots
+         (v1–v4; desde alicia-alphabet-robust-mirror: espejo geométrico)
        · dropout 0.4
     └─ robust-ft (fine-tune sobre robust)
           + recupera V (única letra débil del robust): 0% → 98%
@@ -222,7 +223,32 @@ Input (120,)
   → Dense(22, softmax)
 ```
 `robust` agrega `tf.data.map(augment_batch)` con rotación de palm angles,
-jitter gaussiano, y flip de handedness durante training.
+jitter gaussiano y, con probabilidad 0.5, un flip de la mano.
+
+**Flip: permutación de slots (v1–v4) vs. espejo geométrico (actual).**
+MediaPipe decide la lateralidad y la geometría 3D a la vez: en manos planas
+la palma de una mano y el dorso de la otra tienen la misma silueta, y entre
+el 6% y el 36% de los frames reciben la interpretación "otra mano" (slot
+opuesto y normal de la palma invertida ~180° en pitch). Los modelos
+robust v1–v4 solo permutaban los slots (`x[60:120], x[0:60]`), lo que no
+espeja la geometría y genera combinaciones que no ocurren en datos reales.
+Desde `--flip-mode mirror` (por defecto) el flip es un espejo geométrico:
+cambia el signo de los senos de los 15 ángulos y de
+`(sin_pitch, cos_pitch, cos_yaw)` y permuta los slots
+(`mirror_features` en `train_alphabet_robust.py`). Validado contra
+imágenes reales espejadas: error medio 0.020 vs. 0.658 sin transformar.
+La rotación de palma ahora se aplica sobre los sin/cos reales
+(`--palm-rot-space raw`); v1–v4 la aplicaban sobre features normalizadas.
+
+| Modelo (seed 42) | Operador test | Operador test espejado | LibrAI test | LibrAI espejado |
+|---|---|---|---|---|
+| Control: permutación de slots (método v1–v4) | 90.05% | 73.19% | 99.29% | 92.59% |
+| Espejo geométrico | 90.21% | 90.37% | 99.22% | 99.29% |
+| Espejo + rotación de palma corregida ⭐ | **90.52%** | **89.82%** | 99.33% | 99.17% |
+
+El espejo recupera ~17 pp ante la interpretación "otra mano" sin perder
+precisión con la mano dominante. Modelos en
+`data/models/alicia-alphabet-robust-{ctrl-slot,mirror-normrot,mirror}/`.
 
 **V-LIBRASIL v2 (legacy, 208 features, mean+std pooling sobre secuencia):**
 ```
@@ -573,9 +599,9 @@ echo $DISPLAY        # debe ser :0 o similar
 - [x] Validación inter-sujeto del `robust` con sujeto no visto (80% top-1)
 
 ### Fase 3 — Datos y modelos LSP
-- [ ] Colecta de videos de letras LSP (A–Z, Ñ) — Sprint 4 del roadmap interno
+- [x] Colecta de videos de letras LSP (A–Z, Ñ) — Sprint 4 del roadmap interno
 - [x] Validación del modelo `robust` con segundo sujeto (S02 — `robust-v4`: 91.8% top-1)
-- [ ] Entrenamiento de modelo de letras LSP
+- [x] Entrenamiento de modelo de letras LSP
 - [ ] Colecta de palabras y frases LSP (tríplice fronteira)
 
 ### Fase 4 — Salida trilíngue

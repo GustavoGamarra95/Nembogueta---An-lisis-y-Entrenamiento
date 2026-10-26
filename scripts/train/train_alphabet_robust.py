@@ -2,8 +2,17 @@
 Entrena un modelo base robusto del alfabeto LIBRAS/LSP.
 
 Combina:
-  A) Data augmentation en training (palm rotation, jitter, handedness flip)
+  A) Data augmentation en training (palm rotation, jitter, espejo geométrico)
   B) Mezcla LibrAI + datos del operador con class/source balancing
+
+Espejo geométrico (--flip-mode mirror, por defecto): MediaPipe decide la
+lateralidad y la geometría 3D a la vez; en manos planas la palma de una mano
+y el dorso de la otra tienen la misma silueta, y entre el 6% y el 36% de los
+frames reciben la interpretación "otra mano" (slot opuesto Y normal de la
+palma invertida). mirror_features reproduce exactamente ese caso: cambia el
+signo de los senos de los ángulos y de (sin_pitch, cos_pitch, cos_yaw) y
+permuta los slots. --flip-mode slot reproduce los modelos robust v1-v4
+(solo permuta slots, sin espejar la geometría).
 
 Objetivo: cerrar el gap entre LibrAI holdout (≈99%) y cámara real (≈24%)
 sin caer en catastrophic forgetting.
@@ -31,6 +40,38 @@ from sklearn.model_selection import train_test_split
 #   56..59 → 4 palm angles (sin_p, cos_p, sin_y, cos_y)
 HAND_OFFSETS = [0, 60]  # Right, Left
 PALM_SIN_COS_PAIRS = [(56, 57), (58, 59)]  # (pitch sin/cos), (yaw sin/cos)
+
+# Espejo en x: (nx, ny, nz) → (nx, −ny, −nz) en la normal de la palma, es decir
+# pitch → pitch+180° y yaw → 180°−yaw; el ángulo 2D con signo de cada triplet
+# cambia de signo (sin → −sin). Distancias y curl (z) no cambian.
+_HAND_MIRROR = np.ones(60, dtype=np.float32)
+_HAND_MIRROR[21:51:2] = -1.0   # sin de los 15 ángulos
+_HAND_MIRROR[[56, 57, 59]] = -1.0  # sin_pitch, cos_pitch, cos_yaw
+MIRROR_SIGNS = np.concatenate([_HAND_MIRROR, _HAND_MIRROR])
+
+
+def mirror_features(X: np.ndarray) -> np.ndarray:
+    """Vector (N, 120) sin normalizar → la misma mano vista espejada."""
+    X = X * MIRROR_SIGNS
+    return np.concatenate([X[:, 60:120], X[:, 0:60]], axis=1)
+
+
+def canonicalize_by_majority(X: np.ndarray) -> np.ndarray:
+    """
+    Resuelve la ambigüedad palma/dorso de MediaPipe en una secuencia de un
+    mismo signante (sesión, video o ventana reciente en vivo): toma como
+    interpretación habitual el slot mayoritario y espeja los frames que
+    cayeron en el otro. No se fija un slot porque la convención cambia entre
+    pipelines (LibrAI → Left, cámara en vivo → Right, misma geometría).
+    Usar con modelos entrenados con --flip-mode mirror
+    (evaluate_palm_ambiguity.py: mejor o igual que la inferencia directa).
+    """
+    left = np.abs(X[:, 60:]).sum(1) > 0
+    other = left != (left.mean() > 0.5)
+    out = X.copy()
+    if other.any():
+        out[other] = mirror_features(X[other])
+    return out
 
 
 def load_librai(root: Path, classes: list, seed: int = 42):
@@ -91,19 +132,36 @@ def augment_batch(
     palm_rot_deg: float = 20.0,
     jitter_sigma: float = 0.5,
     flip_prob: float = 0.5,
+    norm_mean: tf.Tensor = None,
+    norm_std: tf.Tensor = None,
+    flip_mode: str = "mirror",
+    palm_rot_space: str = "raw",
 ) -> tf.Tensor:
     """
-    Aplica augmentation per-sample sobre features (B, 120).
-    - palm angles: rotación 2D de cada par (sin, cos) por θ ∈ U(-rot, rot)
+    Aplica augmentation per-sample sobre features normalizadas (B, 120).
+    - palm angles: rotación 2D de cada par (sin, cos) por θ ∈ U(-rot, rot);
+      con palm_rot_space="raw" se rota en el espacio original (donde los
+      pares sí son sin/cos), con "normalized" como en robust v1-v4
     - jitter gaussiano en TODAS las features escalado por feat_std
-    - handedness flip: swap (0..60) ↔ (60..120) con probabilidad flip_prob
+    - flip con probabilidad flip_prob: "mirror" = espejo geométrico real
+      (ver mirror_features, en el espacio original); "slot" = solo swap
+      (0..60) ↔ (60..120) como en robust v1-v4
     """
     B = tf.shape(X)[0]
     F = 120
+    need_raw = flip_mode == "mirror" or palm_rot_space == "raw"
+    if need_raw and (norm_mean is None or norm_std is None):
+        raise ValueError("flip_mode='mirror' o palm_rot_space='raw' "
+                         "requieren norm_mean y norm_std")
 
-    # 1) Jitter
+    # 1) Jitter (en espacio normalizado)
     noise = tf.random.normal((B, F)) * jitter_sigma * feat_std[None, :]
     X = X + noise
+
+    if need_raw:
+        X = X * norm_std[None, :] + norm_mean[None, :]
+    if palm_rot_space == "normalized" and need_raw:
+        X = (X - norm_mean[None, :]) / norm_std[None, :]
 
     # 2) Palm rotation por mano
     rot_max = palm_rot_deg * np.pi / 180.0
@@ -124,10 +182,20 @@ def augment_batch(
             X = X + (new_s - s)[:, None] * mask_s[None, :]
             X = X + (new_c - c)[:, None] * mask_c[None, :]
 
-    # 3) Handedness flip
+    if palm_rot_space == "normalized" and need_raw:
+        X = X * norm_std[None, :] + norm_mean[None, :]
+
+    # 3) Flip (espacio original si mirror)
     flip_mask = tf.random.uniform((B,)) < flip_prob
-    X_flipped = tf.concat([X[:, 60:120], X[:, 0:60]], axis=1)
+    if flip_mode == "mirror":
+        X_signed = X * tf.constant(MIRROR_SIGNS)[None, :]
+    else:
+        X_signed = X
+    X_flipped = tf.concat([X_signed[:, 60:120], X_signed[:, 0:60]], axis=1)
     X = tf.where(flip_mask[:, None], X_flipped, X)
+
+    if need_raw:
+        X = (X - norm_mean[None, :]) / norm_std[None, :]
     return X
 
 
@@ -152,15 +220,20 @@ def make_dataset(
     X: np.ndarray, y: np.ndarray, sample_w: np.ndarray,
     feat_std: tf.Tensor, augment: bool, batch_size: int, shuffle: bool,
     palm_rot: float, jitter: float, flip_p: float,
+    norm_mean: np.ndarray = None, norm_std: np.ndarray = None,
+    flip_mode: str = "mirror", palm_rot_space: str = "raw",
 ) -> tf.data.Dataset:
     ds = tf.data.Dataset.from_tensor_slices((X, y, sample_w))
     if shuffle:
         ds = ds.shuffle(min(len(X), 20000), reshuffle_each_iteration=True)
     ds = ds.batch(batch_size, drop_remainder=False)
     if augment:
+        mean_tf = None if norm_mean is None else tf.constant(norm_mean)
+        std_tf = None if norm_std is None else tf.constant(norm_std)
         ds = ds.map(
             lambda x, yy, w: (
-                augment_batch(x, feat_std, palm_rot, jitter, flip_p),
+                augment_batch(x, feat_std, palm_rot, jitter, flip_p,
+                              mean_tf, std_tf, flip_mode, palm_rot_space),
                 yy, w,
             ),
             num_parallel_calls=tf.data.AUTOTUNE,
@@ -266,7 +339,8 @@ def run(args):
         X_tr_n, y_tr, w_tr, feat_std_tf,
         augment=True, batch_size=args.batch_size, shuffle=True,
         palm_rot=args.palm_rot_deg, jitter=args.jitter_sigma,
-        flip_p=args.flip_prob,
+        flip_p=args.flip_prob, norm_mean=norm_mean, norm_std=norm_std,
+        flip_mode=args.flip_mode, palm_rot_space=args.palm_rot_space,
     )
     val_ds = make_dataset(
         X_va_n, y_va, w_va, feat_std_tf,
@@ -274,6 +348,8 @@ def run(args):
         palm_rot=0, jitter=0, flip_p=0,
     )
 
+    if args.seed is not None:
+        tf.keras.utils.set_random_seed(args.seed)
     model = build_model(120, len(classes), dropout=args.dropout)
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=args.lr),
@@ -311,8 +387,9 @@ def run(args):
 
     print(
         f"\nTraining: lr={args.lr} dropout={args.dropout} "
-        f"palm_rot=±{args.palm_rot_deg}° jitter={args.jitter_sigma}σ "
-        f"flip={args.flip_prob}\n"
+        f"palm_rot=±{args.palm_rot_deg}° ({args.palm_rot_space}) "
+        f"jitter={args.jitter_sigma}σ flip={args.flip_prob} "
+        f"({args.flip_mode}) seed={args.seed}\n"
     )
     history = model.fit(
         train_ds, validation_data=val_ds,
@@ -345,6 +422,9 @@ def run(args):
         - norm_mean
     ) / norm_std
 
+    # Mismos tests vistos espejados (interpretación "otra mano" de MediaPipe)
+    Xl_te_mir, Xo_te_mir = mirror_features(Xl_te), mirror_features(Xo_te)
+
     results = {
         "base_v4": {
             "librai_test": evaluate(base_model, Xl_te_base, yl_te,
@@ -353,6 +433,12 @@ def run(args):
                                       "base_op_test"),
             "operator_all": evaluate(base_model, Xo_all_base, yo_all,
                                      "base_op_all"),
+            "librai_test_mirror": evaluate(
+                base_model, (Xl_te_mir - base_mean) / base_std, yl_te,
+                "base_librai_test_mirror"),
+            "operator_test_mirror": evaluate(
+                base_model, (Xo_te_mir - base_mean) / base_std, yo_te,
+                "base_op_test_mirror"),
         },
         "robust_new": {
             "librai_test": evaluate(best, Xl_te_n, yl_te,
@@ -361,6 +447,12 @@ def run(args):
                                       "robust_op_test"),
             "operator_all": evaluate(best, Xo_all_new, yo_all,
                                      "robust_op_all"),
+            "librai_test_mirror": evaluate(
+                best, (Xl_te_mir - norm_mean) / norm_std, yl_te,
+                "robust_librai_test_mirror"),
+            "operator_test_mirror": evaluate(
+                best, (Xo_te_mir - norm_mean) / norm_std, yo_te,
+                "robust_op_test_mirror"),
         },
     }
 
@@ -369,7 +461,8 @@ def run(args):
 
     print(f"\n{'Métrica':<25}  {'base v4':<40}  →  {'robust nuevo':<40}")
     print("-" * 115)
-    for k in ["librai_test", "operator_test", "operator_all"]:
+    for k in ["librai_test", "operator_test", "operator_all",
+              "librai_test_mirror", "operator_test_mirror"]:
         b = results["base_v4"][k]
         r = results["robust_new"][k]
         print(f"  {k:<23}  {line(b):<40}  →  {line(r):<40}")
@@ -412,14 +505,17 @@ def run(args):
         },
         "augmentation": {
             "palm_rot_deg": args.palm_rot_deg,
+            "palm_rot_space": args.palm_rot_space,
             "jitter_sigma": args.jitter_sigma,
             "flip_prob": args.flip_prob,
+            "flip_mode": args.flip_mode,
             "dropout": args.dropout,
         },
         "hyperparameters": {
             "lr": args.lr, "batch_size": args.batch_size,
             "epochs_max": args.epochs,
             "epochs_trained": len(history.history["loss"]),
+            "seed": args.seed,
         },
         "test_accuracy": results["robust_new"]["librai_test"]["top1"],
         "results": results,
@@ -452,6 +548,14 @@ def main():
     p.add_argument("--palm-rot-deg", type=float, default=20.0)
     p.add_argument("--jitter-sigma", type=float, default=0.5)
     p.add_argument("--flip-prob", type=float, default=0.5)
+    p.add_argument("--flip-mode", choices=["mirror", "slot"],
+                   default="mirror",
+                   help="mirror: espejo geométrico real; slot: solo permuta "
+                        "slots (robust v1-v4)")
+    p.add_argument("--palm-rot-space", choices=["raw", "normalized"],
+                   default="raw",
+                   help="raw: rota sin/cos reales; normalized: robust v1-v4")
+    p.add_argument("--seed", type=int, default=42)
     args = p.parse_args()
     run(args)
 
