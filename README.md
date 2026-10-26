@@ -172,7 +172,7 @@ argmax se restringe a sus clases (`LIBRAS:*`, `LSP:*` = LSC, `ASL:*`,
 | GN, letras compartidas, sujetos no vistos | — | 69.4% |
 
 - **v5**: LIBRAS (LibrAI + S01/S02), LSC (LSC70), ASL (Massey + Spelling It
-  Out) y LSPy (proxy letra por letra + frames reales de 8 intérpretes
+  Out) y LSPy (proxy letra por letra + frames reales de 8 videos de 7 canales
   públicos). Movimiento: LSC70, LSM dinámico y secuencias LSPy reales.
 - **v6**: v5 + alfabeto guaraní (achegety, lengua `GN`, 33 letras). Las 13
   letras propias del guaraní (ã, ẽ, ĩ, õ, ũ, ỹ, g̃, ch, mb, nd, ng, nt,
@@ -618,7 +618,7 @@ sus titulares; los videos no se redistribuyen.
 
 | Subconjunto | Muestras | Contenido |
 |---|---|---|
-| `alfabeto` | 243 | Alfabeto manual castellano (A–Z, Ñ, LL, RR), 9 intérpretes |
+| `alfabeto` | 243 | Alfabeto manual castellano (A–Z, Ñ, LL, RR), 9 videos de 8 canales |
 | `achegety` | 33 | Alfabeto guaraní, 1 intérprete, tiempos verificados frame a frame |
 | `lexico` | 1810 | Señas léxicas del Signario SLS, 1 intérprete |
 
@@ -738,14 +738,14 @@ echo $DISPLAY        # debe ser :0 o similar
       Manual" del canal Lengua de Señas LSPy, 7 videos del alfabeto en
       YouTube (Proyecto LSPY / Dra. Mirta Barreto, Información de Sordos,
       Tico Rodríguez, Ariel Torres, Milcar, CODA DOS LENGUAS) segmentados por
-      alineamiento forzado, y 20 letras del signario SLS — 9 intérpretes,
+      alineamiento forzado, y 20 letras del signario SLS — 9 videos de 8 canales,
       una toma por letra; uso autorizado por los titulares, se publican solo
       landmarks y modelos (CC BY 4.0), los videos no se redistribuyen
 - [ ] Colecta propia multi-sujeto de letras LSPy (protocolo de cámara real,
       con landmarks crudos para las letras con movimiento) — Sprint 4
 - [x] Validación del modelo `robust` con segundo sujeto (S02 — `robust-v4`: 91.8% top-1)
 - [x] Alicia v5 (`data/models/alicia-v5/`): estático multilengua con LSPy
-      proxy + frames reales de 8 intérpretes, y modelo de movimiento (LSC70,
+      proxy + frames reales de 8 videos de 7 canales, y modelo de movimiento (LSC70,
       LSM dinámico, LSPy real). Signario SLS (1 intérprete externo): fusión
       16/20, acierta J y Z; faltan N/Ñ, U y X
 - [x] Dataset LSPy-Landmarks v1 (alfabeto 243, achegety 33, léxico 1810;

@@ -24,7 +24,7 @@ Semilla 42 en ambos.
   la boca o la nariz; los dígrafos encadenan sus dos letras (CH = C→H,
   NG = N→G, ND = N→D, NT = N→T, MB = M→mano plana a la boca).
 - Las letras compartidas con LSPy usan además todos los datos LSPy de v5
-  (proxy + 9 intérpretes); las 13 propias salen solo de este video.
+  (proxy + 9 videos de 8 canales); las 13 propias salen solo de este video.
 
 ## Resultados
 

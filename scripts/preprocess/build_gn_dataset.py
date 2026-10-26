@@ -2,7 +2,7 @@
 Arma el alfabeto guaraní (achegety, 33 letras) para Alicia (lengua "GN").
 
   - Letras compartidas con el alfabeto LSPy (A, E, G, H, …): los mismos
-    datos que LSPY en data/processed/lspy_proxy (proxy + 9 intérpretes
+    datos que LSPY en data/processed/lspy_proxy (proxy + 9 videos de 8 canales
     reales) más los frames del video guaraní.
   - Letras propias del guaraní (Ã, Ẽ, Ĩ, Õ, Ũ, Ỹ, G̃, CH, MB, ND, NG, NT,
     PUSO): solo los frames del video guaraní, alineados con

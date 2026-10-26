@@ -17,7 +17,7 @@ Semilla 42 en ambos.
 | LIBRAS | LibrAI + sesiones de cámara real S01/S02 | LibrAI + 2 |
 | LSC | LSC70 (CC BY 4.0) | 70 |
 | ASL | Massey (CC0) + Spelling It Out | 10 |
-| LSPy | Proxy letra por letra desde LSC/LIBRAS/ASL (mapeo derivado del video "Alfabeto Manual" del canal Lengua de Señas LSPy) + frames reales de 8 intérpretes públicos (canal + 7 videos de YouTube alineados) | 8 reales |
+| LSPy | Proxy letra por letra desde LSC/LIBRAS/ASL (mapeo derivado del video "Alfabeto Manual" del canal Lengua de Señas LSPy) + frames reales de 8 videos públicos de 7 canales (canal + 7 videos de YouTube alineados) | 8 reales |
 | Movimiento | LSC70 (J, Z, Ñ), LSM dinámico (J, K, Ñ, Q, X, Z; Zenodo 14689869, CC BY 4.0, 20 personas), secuencias LSPy reales | — |
 
 El uso de los videos LSPy fue autorizado por sus titulares; se publican solo
