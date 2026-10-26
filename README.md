@@ -623,9 +623,16 @@ pytest tests/test_api
 
 ## Dataset LSPy-Landmarks v1
 
-Landmarks crudos de MediaPipe Hands (sin videos) preparados para publicar en
-Zenodo con licencia **CC BY 4.0**. El uso de las fuentes fue autorizado por
-sus titulares; los videos no se redistribuyen.
+Landmarks crudos de MediaPipe Hands (sin videos), publicados en Kaggle con
+licencia **CC BY 4.0**: https://www.kaggle.com/datasets/gustavogamarra/lspy-landmarks-v1
+(con el notebook de ejemplo
+[LSPy-Landmarks quickstart](https://www.kaggle.com/code/gustavogamarra/lspy-landmarks-quickstart),
+fuente en `notebooks/kaggle/`). El uso de las fuentes fue autorizado por sus
+titulares; los videos no se redistribuyen.
+
+Línea base del notebook (regresión logística sobre la mano normalizada,
+dejando un canal afuera): **75 %** de acierto medio en 24 letras estáticas y
+8 canales (62–88 % según el canal).
 
 | Subconjunto | Muestras | Contenido |
 |---|---|---|
