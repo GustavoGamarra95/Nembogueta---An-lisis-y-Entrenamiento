@@ -1,0 +1,402 @@
+{
+  "fuente": "fb_3777160885909384.mp4",
+  "verificado_a_mano": true,
+  "letras": {
+    "A": {
+      "propia_guarani": false,
+      "frames_video": 33,
+      "filas_lspy": 2861,
+      "tiempos_s": [
+        8.41,
+        9.52
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "Ã": {
+      "propia_guarani": true,
+      "frames_video": 24,
+      "filas_lspy": 0,
+      "tiempos_s": [
+        9.65,
+        10.45
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "CH": {
+      "propia_guarani": true,
+      "frames_video": 64,
+      "filas_lspy": 0,
+      "tiempos_s": [
+        10.59,
+        12.77
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "E": {
+      "propia_guarani": false,
+      "frames_video": 15,
+      "filas_lspy": 2816,
+      "tiempos_s": [
+        12.91,
+        13.39
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "Ẽ": {
+      "propia_guarani": true,
+      "frames_video": 42,
+      "filas_lspy": 0,
+      "tiempos_s": [
+        13.53,
+        14.95
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "G": {
+      "propia_guarani": false,
+      "frames_video": 27,
+      "filas_lspy": 5039,
+      "tiempos_s": [
+        15.09,
+        15.99
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "G̃": {
+      "propia_guarani": true,
+      "frames_video": 53,
+      "filas_lspy": 0,
+      "tiempos_s": [
+        16.13,
+        18.17
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "H": {
+      "propia_guarani": false,
+      "frames_video": 44,
+      "filas_lspy": 5264,
+      "tiempos_s": [
+        18.31,
+        19.79
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "I": {
+      "propia_guarani": false,
+      "frames_video": 36,
+      "filas_lspy": 4352,
+      "tiempos_s": [
+        19.93,
+        21.14
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "Ĩ": {
+      "propia_guarani": true,
+      "frames_video": 39,
+      "filas_lspy": 0,
+      "tiempos_s": [
+        21.28,
+        22.6
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "J": {
+      "propia_guarani": false,
+      "frames_video": 16,
+      "filas_lspy": 1577,
+      "tiempos_s": [
+        22.73,
+        23.25
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "K": {
+      "propia_guarani": false,
+      "frames_video": 51,
+      "filas_lspy": 5061,
+      "tiempos_s": [
+        23.39,
+        25.29
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "L": {
+      "propia_guarani": false,
+      "frames_video": 36,
+      "filas_lspy": 2857,
+      "tiempos_s": [
+        25.43,
+        26.64
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "M": {
+      "propia_guarani": false,
+      "frames_video": 41,
+      "filas_lspy": 4331,
+      "tiempos_s": [
+        26.78,
+        28.17
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "MB": {
+      "propia_guarani": true,
+      "frames_video": 43,
+      "filas_lspy": 0,
+      "tiempos_s": [
+        28.31,
+        29.76
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "N": {
+      "propia_guarani": false,
+      "frames_video": 31,
+      "filas_lspy": 2259,
+      "tiempos_s": [
+        29.9,
+        30.94
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "ND": {
+      "propia_guarani": true,
+      "frames_video": 42,
+      "filas_lspy": 0,
+      "tiempos_s": [
+        31.07,
+        32.49
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "NG": {
+      "propia_guarani": true,
+      "frames_video": 57,
+      "filas_lspy": 0,
+      "tiempos_s": [
+        32.63,
+        34.57
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "NT": {
+      "propia_guarani": true,
+      "frames_video": 40,
+      "filas_lspy": 0,
+      "tiempos_s": [
+        34.71,
+        36.06
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "Ñ": {
+      "propia_guarani": false,
+      "frames_video": 33,
+      "filas_lspy": 1978,
+      "tiempos_s": [
+        36.19,
+        37.3
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "O": {
+      "propia_guarani": false,
+      "frames_video": 35,
+      "filas_lspy": 4211,
+      "tiempos_s": [
+        37.44,
+        38.62
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "Õ": {
+      "propia_guarani": true,
+      "frames_video": 34,
+      "filas_lspy": 0,
+      "tiempos_s": [
+        38.76,
+        39.9
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "P": {
+      "propia_guarani": false,
+      "frames_video": 44,
+      "filas_lspy": 4339,
+      "tiempos_s": [
+        40.04,
+        41.52
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "R": {
+      "propia_guarani": false,
+      "frames_video": 37,
+      "filas_lspy": 2883,
+      "tiempos_s": [
+        41.66,
+        42.91
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "RR": {
+      "propia_guarani": false,
+      "frames_video": 16,
+      "filas_lspy": 934,
+      "tiempos_s": [
+        43.05,
+        43.57
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "S": {
+      "propia_guarani": false,
+      "frames_video": 21,
+      "filas_lspy": 4616,
+      "tiempos_s": [
+        43.7,
+        44.4
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "T": {
+      "propia_guarani": false,
+      "frames_video": 28,
+      "filas_lspy": 4776,
+      "tiempos_s": [
+        44.53,
+        45.47
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "U": {
+      "propia_guarani": false,
+      "frames_video": 37,
+      "filas_lspy": 2454,
+      "tiempos_s": [
+        45.61,
+        46.85
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "Ũ": {
+      "propia_guarani": true,
+      "frames_video": 56,
+      "filas_lspy": 0,
+      "tiempos_s": [
+        46.99,
+        48.89
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "V": {
+      "propia_guarani": false,
+      "frames_video": 64,
+      "filas_lspy": 2843,
+      "tiempos_s": [
+        49.03,
+        51.21
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "Y": {
+      "propia_guarani": false,
+      "frames_video": 38,
+      "filas_lspy": 5043,
+      "tiempos_s": [
+        51.35,
+        52.63
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "Ỹ": {
+      "propia_guarani": true,
+      "frames_video": 28,
+      "filas_lspy": 0,
+      "tiempos_s": [
+        52.77,
+        53.7
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    },
+    "PUSO": {
+      "propia_guarani": true,
+      "frames_video": 23,
+      "filas_lspy": 0,
+      "tiempos_s": [
+        53.84,
+        54.6
+      ],
+      "conf_alineamiento": 1.0,
+      "verificada": true,
+      "descartada_del_video": false
+    }
+  }
+}

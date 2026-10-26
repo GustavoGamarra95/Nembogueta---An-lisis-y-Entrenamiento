@@ -40,11 +40,25 @@ ORDER = ["A", "B", "C", "CH", "D", "E", "F", "G", "H", "I", "J", "K", "L",
          "W", "X", "Y", "Z"]
 OPTIONAL = {"CH", "LL", "RR"}
 
+# Achegety (alfabeto guaraní, 33 letras) en el orden de la lámina del video
+# "Achegety Guaraní Po Ñe'ẽ rehegua" (Lengua de Señas Py - LSPy)
+ORDER_GN = ["A", "Ã", "CH", "E", "Ẽ", "G", "G̃", "H", "I", "Ĩ", "J", "K", "L",
+            "M", "MB", "N", "ND", "NG", "NT", "Ñ", "O", "Õ", "P", "R", "RR",
+            "S", "T", "U", "Ũ", "V", "Y", "Ỹ", "PUSO"]
+ALPHABETS = {"castellano": (ORDER, OPTIONAL), "guarani": (ORDER_GN, set())}
 
-def emissions(recs, model, mu, sd, classes, rest_prob):
-    letters = [l for l in ORDER if f"LSPY:{l}" in classes or l in OPTIONAL]
-    idx = {l: classes.index(f"LSPY:{l}") for l in letters
-           if f"LSPY:{l}" in classes}
+
+def emissions(recs, model, mu, sd, classes, rest_prob, order=ORDER,
+              optional=OPTIONAL, unknown_prob=0.15):
+    """
+    Letras con clase LSPY:* en el modelo → su probabilidad (anclas). Letras
+    sin clase (p. ej. vocales nasales del guaraní) → emisión constante
+    `unknown_prob` con mano visible: el orden las ubica entre las anclas.
+    """
+    known = [l for l in order if f"LSPY:{l}" in classes]
+    letters = [l for l in order if l in known or l in optional
+               or unknown_prob is not None]
+    idx = {l: classes.index(f"LSPY:{l}") for l in known}
     has = np.array([r is not None for r in recs])
     E = np.full((len(recs), len(letters)), np.log(1e-3))
     if has.any():
@@ -52,7 +66,8 @@ def emissions(recs, model, mu, sd, classes, rest_prob):
         p = model.predict((X - mu) / sd, verbose=0, batch_size=512)
         cols = [idx[l] for l in letters if l in idx]
         q = p[:, cols] / p[:, cols].sum(1, keepdims=True)
-        E_has = np.full((has.sum(), len(letters)), np.log(1e-3))
+        fill = np.log(unknown_prob) if unknown_prob is not None else np.log(1e-3)
+        E_has = np.full((has.sum(), len(letters)), fill)
         for k, l in enumerate([l for l in letters if l in idx]):
             E_has[:, letters.index(l)] = np.log(q[:, k] + 1e-6)
         E[has] = E_has
@@ -131,6 +146,10 @@ def main():
                     help="JSON {video_stem: {inicio_s, fin_s, incluir, "
                          "excluir}}: tramo útil y letras opcionales (LL, RR, "
                          "CH) confirmadas o ausentes en ese video")
+    ap.add_argument("--alphabet", choices=sorted(ALPHABETS), default="castellano")
+    ap.add_argument("--unknown-prob", type=float, default=None,
+                    help="Emisión constante para letras sin clase en el modelo "
+                         "(necesaria con --alphabet guarani, p. ej. 0.15)")
     ap.add_argument("--min-frames", type=int, default=4)
     ap.add_argument("--rest-prob", type=float, default=0.05)
     args = ap.parse_args()
@@ -146,8 +165,11 @@ def main():
         fps = cv2.VideoCapture(str(v)).get(5)
         a0 = int(cfg.get("inicio_s", 0) * fps)
         b0 = int(cfg["fin_s"] * fps) if "fin_s" in cfg else None
-        excl = set(cfg.get("excluir", [])) | {"CH"}
-        optional = OPTIONAL - set(cfg.get("incluir", [])) - excl
+        order, base_optional = ALPHABETS[args.alphabet]
+        excl = set(cfg.get("excluir", []))
+        if args.alphabet == "castellano":
+            excl |= {"CH"}
+        optional = base_optional - set(cfg.get("incluir", [])) - excl
         best = None
         for flip in (False, True):
             hands = mp.solutions.hands.Hands(static_image_mode=False,
@@ -156,7 +178,8 @@ def main():
             recs = process_frames(iter_frames(v, a0, b0), hands, flip)
             hands.close()
             letters, E, rest = emissions(recs, model, mu, sd, classes,
-                                         args.rest_prob)
+                                         args.rest_prob, order, optional,
+                                         args.unknown_prob)
             keep = [i for i, l in enumerate(letters) if l not in excl]
             letters, E = [letters[i] for i in keep], E[:, keep]
             segs, score = viterbi(letters, E, rest, args.min_frames, optional)
