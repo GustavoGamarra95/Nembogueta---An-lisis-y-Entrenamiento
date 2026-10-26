@@ -46,31 +46,28 @@ class LetterModelTrainer:
             model = tf.keras.Sequential(
                 [
                     tf.keras.layers.Conv1D(
-                        64, kernel_size=5, activation="relu",
-                        padding="same", input_shape=input_shape
+                        64,
+                        kernel_size=5,
+                        activation="relu",
+                        padding="same",
+                        input_shape=input_shape,
                     ),
                     tf.keras.layers.BatchNormalization(),
                     tf.keras.layers.Dropout(0.3),
-
                     tf.keras.layers.Conv1D(
                         128, kernel_size=5, activation="relu", padding="same"
                     ),
                     tf.keras.layers.BatchNormalization(),
                     tf.keras.layers.Dropout(0.3),
-
                     tf.keras.layers.Conv1D(
                         256, kernel_size=3, activation="relu", padding="same"
                     ),
                     tf.keras.layers.BatchNormalization(),
                     tf.keras.layers.Dropout(0.3),
-
-                    tf.keras.layers.LSTM(
-                        256, return_sequences=True
-                    ),
+                    tf.keras.layers.LSTM(256, return_sequences=True),
                     tf.keras.layers.Dropout(0.4),
                     tf.keras.layers.LSTM(128),
                     tf.keras.layers.Dropout(0.4),
-
                     tf.keras.layers.Dense(64, activation="relu"),
                     tf.keras.layers.Dropout(0.3),
                     tf.keras.layers.Dense(num_classes, activation="softmax"),
@@ -203,29 +200,28 @@ def train_model(
         model = tf.keras.Sequential(
             [
                 tf.keras.layers.Conv1D(
-                    64, kernel_size=5, activation="relu",
-                    padding="same", input_shape=(X.shape[1], X.shape[2])
+                    64,
+                    kernel_size=5,
+                    activation="relu",
+                    padding="same",
+                    input_shape=(X.shape[1], X.shape[2]),
                 ),
                 tf.keras.layers.BatchNormalization(),
                 tf.keras.layers.Dropout(0.3),
-
                 tf.keras.layers.Conv1D(
                     128, kernel_size=5, activation="relu", padding="same"
                 ),
                 tf.keras.layers.BatchNormalization(),
                 tf.keras.layers.Dropout(0.3),
-
                 tf.keras.layers.Conv1D(
                     256, kernel_size=3, activation="relu", padding="same"
                 ),
                 tf.keras.layers.BatchNormalization(),
                 tf.keras.layers.Dropout(0.3),
-
                 tf.keras.layers.LSTM(256, return_sequences=True),
                 tf.keras.layers.Dropout(0.4),
                 tf.keras.layers.LSTM(128),
                 tf.keras.layers.Dropout(0.4),
-
                 tf.keras.layers.Dense(64, activation="relu"),
                 tf.keras.layers.Dropout(0.3),
                 tf.keras.layers.Dense(27, activation="softmax"),  # a-z + ñ

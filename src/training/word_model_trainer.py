@@ -113,29 +113,28 @@ def train_model(
             model = Sequential(
                 [
                     tf.keras.layers.Conv1D(
-                        64, kernel_size=5, activation="relu",
-                        padding="same", input_shape=(X.shape[1], X.shape[2])
+                        64,
+                        kernel_size=5,
+                        activation="relu",
+                        padding="same",
+                        input_shape=(X.shape[1], X.shape[2]),
                     ),
                     tf.keras.layers.BatchNormalization(),
                     Dropout(0.3),
-
                     tf.keras.layers.Conv1D(
                         128, kernel_size=5, activation="relu", padding="same"
                     ),
                     tf.keras.layers.BatchNormalization(),
                     Dropout(0.3),
-
                     tf.keras.layers.Conv1D(
                         256, kernel_size=3, activation="relu", padding="same"
                     ),
                     tf.keras.layers.BatchNormalization(),
                     Dropout(0.3),
-
                     LSTM(256, return_sequences=True),
                     Dropout(0.4),
                     LSTM(128),
                     Dropout(0.4),
-
                     Dense(128, activation="relu"),
                     Dropout(0.3),
                     Dense(10, activation="softmax"),  # 10 clases para palabras

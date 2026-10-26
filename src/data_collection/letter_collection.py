@@ -20,9 +20,7 @@ class LetterDataCollector:
         self.output_path = Path(self.data_config["video_path"]["letters"])
         self.output_path.mkdir(parents=True, exist_ok=True)
 
-        os.environ[
-            "OPENCV_VIDEOIO_PRIORITY_BACKEND"
-        ] = "2"  # V4L2 en Linux
+        os.environ["OPENCV_VIDEOIO_PRIORITY_BACKEND"] = "2"  # V4L2 en Linux
 
     def _init_camera(self):
         logger.info("Intentando inicializar la cámara...")
@@ -205,7 +203,7 @@ if __name__ == "__main__":
         nargs="+",
         default=None,
         help="Letras específicas a coletar (ex: --letters Ç). "
-             "Se omitido, coleta todo o alfabeto estático.",
+        "Se omitido, coleta todo o alfabeto estático.",
     )
     args = parser.parse_args()
 

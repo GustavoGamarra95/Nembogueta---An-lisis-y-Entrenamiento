@@ -36,11 +36,13 @@ class PositionalEmbedding(layers.Layer):
 
     def get_config(self):
         config = super().get_config()
-        config.update({
-            "sequence_length": self.sequence_length,
-            "vocab_size": self.vocab_size,
-            "embed_dim": self.embed_dim,
-        })
+        config.update(
+            {
+                "sequence_length": self.sequence_length,
+                "vocab_size": self.vocab_size,
+                "embed_dim": self.embed_dim,
+            }
+        )
         return config
 
 
@@ -73,12 +75,14 @@ class TransformerBlock(layers.Layer):
 
     def get_config(self):
         config = super().get_config()
-        config.update({
-            "embed_dim": self.embed_dim,
-            "num_heads": self.num_heads,
-            "ff_dim": self.ff_dim,
-            "rate": self.rate,
-        })
+        config.update(
+            {
+                "embed_dim": self.embed_dim,
+                "num_heads": self.num_heads,
+                "ff_dim": self.ff_dim,
+                "rate": self.rate,
+            }
+        )
         return config
 
 
@@ -92,9 +96,9 @@ class AttentionLayer(layers.Layer):
         self.V = None
 
     def build(self, input_shape):
-        self.W = layers.Dense(self.units, name='attention_W')
-        self.U = layers.Dense(self.units, name='attention_U')
-        self.V = layers.Dense(1, name='attention_V')
+        self.W = layers.Dense(self.units, name="attention_W")
+        self.U = layers.Dense(self.units, name="attention_U")
+        self.V = layers.Dense(1, name="attention_V")
         super().build(input_shape)
 
     def call(self, inputs):
@@ -106,9 +110,11 @@ class AttentionLayer(layers.Layer):
 
     def get_config(self):
         config = super().get_config()
-        config.update({
-            "units": self.units,
-        })
+        config.update(
+            {
+                "units": self.units,
+            }
+        )
         return config
 
 
@@ -130,13 +136,13 @@ class LibrasUnifiedPredictor:
             static_image_mode=False,
             max_num_hands=2,
             min_detection_confidence=0.5,
-            min_tracking_confidence=0.5
+            min_tracking_confidence=0.5,
         )
         self.face_mesh = self.mp_face_mesh.FaceMesh(
             static_image_mode=False,
             max_num_faces=1,
             min_detection_confidence=0.5,
-            min_tracking_confidence=0.5
+            min_tracking_confidence=0.5,
         )
 
         logger.info("Inicializando predictor unificado...")
@@ -144,10 +150,10 @@ class LibrasUnifiedPredictor:
 
     def _load_all_models(self):
         handshape_dir = self.models_dir / "handshape"
-        self.models['handshape'] = {}
-        self.metadata['handshape'] = {}
+        self.models["handshape"] = {}
+        self.metadata["handshape"] = {}
 
-        orientations = ['back', 'front', 'left', 'right']
+        orientations = ["back", "front", "left", "right"]
         loaded_orientations = []
 
         for orientation in orientations:
@@ -155,11 +161,11 @@ class LibrasUnifiedPredictor:
             if (orient_dir / "best_model.keras").exists():
                 try:
                     model_path = orient_dir / "best_model.keras"
-                    self.models['handshape'][orientation] = (
-                        tf.keras.models.load_model(model_path)
-                    )
-                    with open(orient_dir / "metadata.json", 'r') as f:
-                        self.metadata['handshape'][orientation] = json.load(f)
+                    self.models["handshape"][
+                        orientation
+                    ] = tf.keras.models.load_model(model_path)
+                    with open(orient_dir / "metadata.json", "r") as f:
+                        self.metadata["handshape"][orientation] = json.load(f)
                     loaded_orientations.append(orientation)
                 except Exception as e:
                     logger.error(
@@ -172,25 +178,25 @@ class LibrasUnifiedPredictor:
                 f"{', '.join(loaded_orientations)}"
             )
             total_classes = sum(
-                [m['n_classes'] for m in self.metadata['handshape'].values()]
+                [m["n_classes"] for m in self.metadata["handshape"].values()]
             )
             logger.info(f"  [OK] {total_classes} clases total")
         else:
-            del self.models['handshape']
-            del self.metadata['handshape']
+            del self.models["handshape"]
+            del self.metadata["handshape"]
 
         facial_dir = self.models_dir / "facial_expressions"
         if (facial_dir / "best_model.keras").exists():
             logger.info("Cargando modelo de expresiones faciales...")
             try:
-                self.models['facial'] = tf.keras.models.load_model(
+                self.models["facial"] = tf.keras.models.load_model(
                     facial_dir / "best_model.keras"
                 )
                 with open(
-                    facial_dir / "metadata.json", 'r', encoding='utf-8'
+                    facial_dir / "metadata.json", "r", encoding="utf-8"
                 ) as f:
-                    self.metadata['facial'] = json.load(f)
-                n_expr = len(self.metadata['facial']['class_names'])
+                    self.metadata["facial"] = json.load(f)
+                n_expr = len(self.metadata["facial"]["class_names"])
                 logger.info(f"  [OK] {n_expr} expresiones")
             except Exception as e:
                 logger.error(f"Error cargando facial expressions: {e}")
@@ -199,33 +205,34 @@ class LibrasUnifiedPredictor:
         if (translation_dir / "best_model.keras").exists():
             logger.info("Cargando modelo de traduccion PT-BR -> LIBRAS...")
             try:
-                self.models['translation'] = tf.keras.models.load_model(
+                self.models["translation"] = tf.keras.models.load_model(
                     translation_dir / "best_model.keras"
                 )
                 with open(
-                    translation_dir / "vocab_pt_br.json",
-                    'r', encoding='utf-8'
+                    translation_dir / "vocab_pt_br.json", "r", encoding="utf-8"
                 ) as f:
                     self.vocab_pt = json.load(f)
                 with open(
                     translation_dir / "vocab_libras_gloss.json",
-                    'r', encoding='utf-8'
+                    "r",
+                    encoding="utf-8",
                 ) as f:
                     self.vocab_gloss = json.load(f)
 
                 try:
                     with open(
                         translation_dir / "metadata.json",
-                        'r', encoding='utf-8'
+                        "r",
+                        encoding="utf-8",
                     ) as f:
-                        self.metadata['translation'] = json.load(f)
+                        self.metadata["translation"] = json.load(f)
                 except (FileNotFoundError, json.JSONDecodeError) as e:
                     logger.warning(
                         f"No se pudo cargar metadata.json: {e}. "
                         "Usando valores por defecto."
                     )
-                    self.metadata['translation'] = {
-                        'max_seq_length': 100,  # valor por defecto
+                    self.metadata["translation"] = {
+                        "max_seq_length": 100,  # valor por defecto
                     }
 
                 self.inv_vocab_gloss = {
@@ -238,8 +245,8 @@ class LibrasUnifiedPredictor:
             except Exception as e:
                 logger.error(f"Error al cargar modelo de traducción: {e}")
                 # Quitar del diccionario si falla
-                if 'translation' in self.models:
-                    del self.models['translation']
+                if "translation" in self.models:
+                    del self.models["translation"]
 
         alphabet_dir = self.models_dir / "alphabet"
 
@@ -248,9 +255,9 @@ class LibrasUnifiedPredictor:
         if best_h5.exists():
             logger.info("Cargando modelo de alfabeto (dactilologia)...")
             try:
-                custom_objects = {'AttentionLayer': AttentionLayer}
+                custom_objects = {"AttentionLayer": AttentionLayer}
                 with tf.keras.utils.custom_object_scope(custom_objects):
-                    self.models['alphabet'] = tf.keras.models.load_model(
+                    self.models["alphabet"] = tf.keras.models.load_model(
                         str(best_h5), compile=False
                     )
                 # Cargar metadata (puede ser model_info.json o metadata.json)
@@ -260,21 +267,16 @@ class LibrasUnifiedPredictor:
                 if not metadata_path.exists():
                     metadata_path = alphabet_dir / "metadata.json"
 
-                with open(
-                    metadata_path, 'r', encoding='utf-8'
-                ) as f:
+                with open(metadata_path, "r", encoding="utf-8") as f:
                     metadata = json.load(f)
 
                 # label_names → class_names normalization for older artifacts
-                if (
-                    'label_names' in metadata
-                    and 'class_names' not in metadata
-                ):
-                    metadata['class_names'] = metadata['label_names']
+                if "label_names" in metadata and "class_names" not in metadata:
+                    metadata["class_names"] = metadata["label_names"]
 
-                self.metadata['alphabet'] = metadata
+                self.metadata["alphabet"] = metadata
                 num_letters = len(
-                    self.metadata['alphabet'].get('class_names', [])
+                    self.metadata["alphabet"].get("class_names", [])
                 )
                 logger.info(f"  [OK] {num_letters} letras del alfabeto")
             except Exception as e:
@@ -284,10 +286,11 @@ class LibrasUnifiedPredictor:
         if vlibrasil_dir.exists():
             run_dirs = sorted(
                 [
-                    d for d in vlibrasil_dir.iterdir()
-                    if d.is_dir() and d.name.startswith('run_')
+                    d
+                    for d in vlibrasil_dir.iterdir()
+                    if d.is_dir() and d.name.startswith("run_")
                 ],
-                reverse=True
+                reverse=True,
             )
 
             for run_dir in run_dirs:
@@ -298,15 +301,15 @@ class LibrasUnifiedPredictor:
                             f"Cargando modelo v-librasil desde "
                             f"{run_dir.name}..."
                         )
-                        self.models['vlibrasil'] = (
-                            tf.keras.models.load_model(str(model_path))
+                        self.models["vlibrasil"] = tf.keras.models.load_model(
+                            str(model_path)
                         )
 
                         metadata_path = run_dir / "metadata.json"
                         if metadata_path.exists():
                             try:
-                                with open(metadata_path, 'r') as f:
-                                    self.metadata['vlibrasil'] = json.load(f)
+                                with open(metadata_path, "r") as f:
+                                    self.metadata["vlibrasil"] = json.load(f)
                                 logger.info("  [OK] Metadata cargada")
                             except Exception as e:
                                 logger.error(f"Error cargando metadata: {e}")
@@ -332,14 +335,14 @@ class LibrasUnifiedPredictor:
         # threshold 0.1 empirically chosen to distinguish lateral vs frontal
         if abs(thumb_x_relative) > 0.1:
             if thumb_x_relative > 0:
-                return 'right'
+                return "right"
             else:
-                return 'left'
+                return "left"
         else:
             if is_back:
-                return 'back'
+                return "back"
             else:
-                return 'front'
+                return "front"
 
     def extract_hand_landmarks(
         self, frame: np.ndarray
@@ -361,21 +364,21 @@ class LibrasUnifiedPredictor:
             orientation = self.detect_hand_orientation(landmarks_array)
 
             handedness = "Right"
-            if (
+            if results.multi_handedness and idx < len(
                 results.multi_handedness
-                and idx < len(results.multi_handedness)
             ):
                 handedness = (
-                    results.multi_handedness[idx]
-                    .classification[0].label
+                    results.multi_handedness[idx].classification[0].label
                 )
 
-            hands_data.append({
-                'landmarks': landmarks_array,
-                'orientation': orientation,
-                'handedness': handedness,
-                'raw_landmarks': hand_landmarks
-            })
+            hands_data.append(
+                {
+                    "landmarks": landmarks_array,
+                    "orientation": orientation,
+                    "handedness": handedness,
+                    "raw_landmarks": hand_landmarks,
+                }
+            )
 
         return hands_data
 
@@ -397,25 +400,25 @@ class LibrasUnifiedPredictor:
     def predict_handshape(
         self, landmarks: np.ndarray, orientation: str
     ) -> Tuple[str, float, str]:
-        if 'handshape' not in self.models:
+        if "handshape" not in self.models:
             return ("N/A", 0.0, "none")
 
         # Verificar si existe modelo para esta orientación
-        if orientation not in self.models['handshape']:
-            available = list(self.models['handshape'].keys())
+        if orientation not in self.models["handshape"]:
+            available = list(self.models["handshape"].keys())
             if not available:
                 return ("N/A", 0.0, "none")
             orientation = available[0]  # Usar primera disponible
 
         landmarks_reshaped = landmarks.reshape(1, -1)
 
-        model = self.models['handshape'][orientation]
+        model = self.models["handshape"][orientation]
         pred = model.predict(landmarks_reshaped, verbose=0)
         class_idx = np.argmax(pred[0])
         confidence = pred[0][class_idx]
 
-        class_names = self.metadata['handshape'][orientation].get(
-            'class_names', []
+        class_names = self.metadata["handshape"][orientation].get(
+            "class_names", []
         )
         class_name = (
             class_names[class_idx]
@@ -428,13 +431,13 @@ class LibrasUnifiedPredictor:
     def predict_alphabet(
         self, landmarks: np.ndarray, use_smoothing: bool = False
     ) -> Tuple[str, float]:
-        if 'alphabet' not in self.models:
+        if "alphabet" not in self.models:
             return ("N/A", 0.0)
 
         # alphabet model expects temporal sequence (batch, timesteps, feats);
         # replicate single frame to match expected shape
-        sequence_length = self.metadata['alphabet'].get(
-            'input_shape', [30, 63]
+        sequence_length = self.metadata["alphabet"].get(
+            "input_shape", [30, 63]
         )[0]
 
         if landmarks.ndim == 1:
@@ -450,11 +453,11 @@ class LibrasUnifiedPredictor:
 
         landmarks_reshaped = landmarks_seq.reshape(1, sequence_length, -1)
 
-        pred = self.models['alphabet'].predict(landmarks_reshaped, verbose=0)
+        pred = self.models["alphabet"].predict(landmarks_reshaped, verbose=0)
         class_idx = np.argmax(pred[0])
         confidence = pred[0][class_idx]
 
-        class_names = self.metadata['alphabet'].get('class_names', [])
+        class_names = self.metadata["alphabet"].get("class_names", [])
         letter = (
             class_names[class_idx]
             if class_idx < len(class_names)
@@ -467,10 +470,10 @@ class LibrasUnifiedPredictor:
         if not self.alphabet_predictions_buffer:
             return ("N/A", 0.0)
 
-        class_names = self.metadata['alphabet'].get('class_names', [])
+        class_names = self.metadata["alphabet"].get("class_names", [])
 
         avg_probs = np.mean(
-            [p['probs'] for p in self.alphabet_predictions_buffer], axis=0
+            [p["probs"] for p in self.alphabet_predictions_buffer], axis=0
         )
 
         class_idx = np.argmax(avg_probs)
@@ -489,8 +492,7 @@ class LibrasUnifiedPredictor:
         top2_confs = [avg_probs[i] for i in top2_idx]
 
         top2_close = (
-            len(top2_confs) >= 2
-            and (top2_confs[0] - top2_confs[1]) < 0.1
+            len(top2_confs) >= 2 and (top2_confs[0] - top2_confs[1]) < 0.1
         )
         if confidence < 0.4 or top2_close:
             # show both candidates when top-2 are too close to distinguish
@@ -502,57 +504,55 @@ class LibrasUnifiedPredictor:
     def predict_facial_expression(
         self, landmarks: np.ndarray
     ) -> Tuple[str, float]:
-        if 'facial' not in self.models:
+        if "facial" not in self.models:
             return ("N/A", 0.0)
 
         # repeat single frame to match LSTM temporal input shape
-        sequence_length = self.metadata['facial']['sequence_length']
+        sequence_length = self.metadata["facial"]["sequence_length"]
         landmarks_seq = np.tile(landmarks, (sequence_length, 1))
         landmarks_seq = landmarks_seq.reshape(1, sequence_length, -1)
 
-        pred = self.models['facial'].predict(landmarks_seq, verbose=0)
+        pred = self.models["facial"].predict(landmarks_seq, verbose=0)
         class_idx = np.argmax(pred[0])
         confidence = pred[0][class_idx]
 
-        class_names = self.metadata['facial']['class_names']
+        class_names = self.metadata["facial"]["class_names"]
         expression = class_names[class_idx]
 
         return (expression, float(confidence))
 
     def translate_text_to_gloss(self, text_pt: str) -> List[str]:
-        if 'translation' not in self.models:
+        if "translation" not in self.models:
             return []
 
         tokens = text_pt.lower().split()
-        unk_id = self.vocab_pt.get('<UNK>', 0)
+        unk_id = self.vocab_pt.get("<UNK>", 0)
         token_ids = [self.vocab_pt.get(t, unk_id) for t in tokens]
 
-        max_len = self.metadata['translation']['max_seq_length']
+        max_len = self.metadata["translation"]["max_seq_length"]
         if len(token_ids) < max_len:
             token_ids += [0] * (max_len - len(token_ids))
         else:
             token_ids = token_ids[:max_len]
 
         encoder_input = np.array([token_ids])
-        decoder_input = np.array([[self.vocab_gloss['<SOS>']]])
+        decoder_input = np.array([[self.vocab_gloss["<SOS>"]]])
 
         generated = []
         for _ in range(max_len):
-            pred = self.models['translation'].predict(
-                [encoder_input, decoder_input],
-                verbose=0
+            pred = self.models["translation"].predict(
+                [encoder_input, decoder_input], verbose=0
             )
             next_token = np.argmax(pred[0, -1, :])
 
-            if next_token == self.vocab_gloss.get('<EOS>', 1):
+            if next_token == self.vocab_gloss.get("<EOS>", 1):
                 break
 
-            generated.append(self.inv_vocab_gloss.get(next_token, '<UNK>'))
+            generated.append(self.inv_vocab_gloss.get(next_token, "<UNK>"))
 
-            decoder_input = np.concatenate([
-                decoder_input,
-                [[next_token]]
-            ], axis=1)
+            decoder_input = np.concatenate(
+                [decoder_input, [[next_token]]], axis=1
+            )
 
         return generated
 
@@ -560,66 +560,68 @@ class LibrasUnifiedPredictor:
         self, frame: np.ndarray, draw_landmarks: bool = False
     ) -> Dict[str, any]:
         results = {
-            'hands': [],  # Lista de predicciones para cada mano
-            'facial_expression': None,
-            'landmarks_detected': {
-                'hands': 0,  # Número de manos detectadas
-                'face': False
-            }
+            "hands": [],  # Lista de predicciones para cada mano
+            "facial_expression": None,
+            "landmarks_detected": {
+                "hands": 0,  # Número de manos detectadas
+                "face": False,
+            },
         }
 
         hands_data = self.extract_hand_landmarks(frame)
         if hands_data is not None and len(hands_data) > 0:
-            results['landmarks_detected']['hands'] = len(hands_data)
+            results["landmarks_detected"]["hands"] = len(hands_data)
 
             for hand_info in hands_data:
-                landmarks = hand_info['landmarks']
-                orientation = hand_info['orientation']
-                handedness = hand_info['handedness']
+                landmarks = hand_info["landmarks"]
+                orientation = hand_info["orientation"]
+                handedness = hand_info["handedness"]
 
                 if draw_landmarks:
                     self.mp_drawing.draw_landmarks(
                         frame,
-                        hand_info['raw_landmarks'],
-                        self.mp_hands.HAND_CONNECTIONS
+                        hand_info["raw_landmarks"],
+                        self.mp_hands.HAND_CONNECTIONS,
                     )
 
                 hand_predictions = {
-                    'handedness': handedness,
-                    'orientation': orientation,
-                    'handshape': None,
-                    'alphabet': None
+                    "handedness": handedness,
+                    "orientation": orientation,
+                    "handshape": None,
+                    "alphabet": None,
                 }
 
-                if 'handshape' in self.models:
-                    class_name, confidence, used_orientation = (
-                        self.predict_handshape(landmarks, orientation)
-                    )
-                    hand_predictions['handshape'] = {
-                        'class': class_name,
-                        'confidence': confidence,
-                        'model_used': used_orientation
+                if "handshape" in self.models:
+                    (
+                        class_name,
+                        confidence,
+                        used_orientation,
+                    ) = self.predict_handshape(landmarks, orientation)
+                    hand_predictions["handshape"] = {
+                        "class": class_name,
+                        "confidence": confidence,
+                        "model_used": used_orientation,
                     }
 
-                if 'alphabet' in self.models:
+                if "alphabet" in self.models:
                     letter, confidence = self.predict_alphabet(landmarks)
-                    hand_predictions['alphabet'] = {
-                        'letter': letter,
-                        'confidence': confidence
+                    hand_predictions["alphabet"] = {
+                        "letter": letter,
+                        "confidence": confidence,
                     }
 
-                results['hands'].append(hand_predictions)
+                results["hands"].append(hand_predictions)
 
         face_landmarks = self.extract_face_landmarks(frame)
         if face_landmarks is not None:
-            results['landmarks_detected']['face'] = True
-            if 'facial' in self.models:
-                expression, confidence = (
-                    self.predict_facial_expression(face_landmarks)
+            results["landmarks_detected"]["face"] = True
+            if "facial" in self.models:
+                expression, confidence = self.predict_facial_expression(
+                    face_landmarks
                 )
-                results['facial_expression'] = {
-                    'expression': expression,
-                    'confidence': confidence
+                results["facial_expression"] = {
+                    "expression": expression,
+                    "confidence": confidence,
                 }
 
         return results
@@ -628,13 +630,13 @@ class LibrasUnifiedPredictor:
         info = {}
         for model_name, metadata in self.metadata.items():
             info[model_name] = {
-                'loaded': model_name in self.models,
-                'metadata': metadata
+                "loaded": model_name in self.models,
+                "metadata": metadata,
             }
         return info
 
     def __del__(self):
-        if hasattr(self, 'hands'):
+        if hasattr(self, "hands"):
             self.hands.close()
-        if hasattr(self, 'face_mesh'):
+        if hasattr(self, "face_mesh"):
             self.face_mesh.close()
