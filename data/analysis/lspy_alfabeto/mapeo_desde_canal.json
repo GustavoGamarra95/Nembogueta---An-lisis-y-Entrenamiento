@@ -1,0 +1,582 @@
+{
+  "A": {
+    "lengua": "LSC",
+    "letra": "G",
+    "prob_media": 0.661,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "G",
+        0.661
+      ],
+      "LIBRAS": [
+        "A",
+        0.33
+      ],
+      "ASL": [
+        "G",
+        0.474
+      ]
+    }
+  },
+  "B": {
+    "lengua": "LSC",
+    "letra": "B",
+    "prob_media": 0.999,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "B",
+        0.999
+      ],
+      "LIBRAS": [
+        "B",
+        0.978
+      ],
+      "ASL": [
+        "B",
+        0.984
+      ]
+    }
+  },
+  "C": {
+    "lengua": "ASL",
+    "letra": "C",
+    "prob_media": 1.0,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "C",
+        0.94
+      ],
+      "LIBRAS": [
+        "C",
+        0.992
+      ],
+      "ASL": [
+        "C",
+        1.0
+      ]
+    }
+  },
+  "D": {
+    "lengua": "LSC",
+    "letra": "D",
+    "prob_media": 0.99,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "D",
+        0.99
+      ],
+      "LIBRAS": [
+        "C",
+        0.919
+      ],
+      "ASL": [
+        "D",
+        0.958
+      ]
+    }
+  },
+  "E": {
+    "lengua": "LSC",
+    "letra": "E",
+    "prob_media": 0.926,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "E",
+        0.926
+      ],
+      "LIBRAS": [
+        "E",
+        0.636
+      ],
+      "ASL": [
+        "E",
+        0.919
+      ]
+    }
+  },
+  "F": {
+    "lengua": "LSC",
+    "letra": "E",
+    "prob_media": 0.929,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "E",
+        0.929
+      ],
+      "LIBRAS": [
+        "E",
+        0.63
+      ],
+      "ASL": [
+        "E",
+        0.919
+      ]
+    }
+  },
+  "G": {
+    "lengua": "ASL",
+    "letra": "G",
+    "prob_media": 0.999,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "G",
+        0.654
+      ],
+      "LIBRAS": [
+        "Ç",
+        0.502
+      ],
+      "ASL": [
+        "G",
+        0.999
+      ]
+    }
+  },
+  "H": {
+    "lengua": "ASL",
+    "letra": "H",
+    "prob_media": 0.998,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "H",
+        0.796
+      ],
+      "LIBRAS": [
+        "P",
+        0.968
+      ],
+      "ASL": [
+        "H",
+        0.998
+      ]
+    }
+  },
+  "I": {
+    "lengua": "LIBRAS",
+    "letra": "I",
+    "prob_media": 1.0,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "I",
+        0.879
+      ],
+      "LIBRAS": [
+        "I",
+        1.0
+      ],
+      "ASL": [
+        "I",
+        0.798
+      ]
+    }
+  },
+  "J": {
+    "lengua": "LSC",
+    "letra": "R",
+    "prob_media": 0.731,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "R",
+        0.731
+      ],
+      "LIBRAS": [
+        "R",
+        0.701
+      ],
+      "ASL": [
+        "K",
+        0.65
+      ]
+    }
+  },
+  "K": {
+    "lengua": "ASL",
+    "letra": "K",
+    "prob_media": 0.725,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "R",
+        0.693
+      ],
+      "LIBRAS": [
+        "R",
+        0.64
+      ],
+      "ASL": [
+        "K",
+        0.725
+      ]
+    }
+  },
+  "L": {
+    "lengua": "ASL",
+    "letra": "D",
+    "prob_media": 0.898,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "L",
+        0.855
+      ],
+      "LIBRAS": [
+        "L",
+        0.567
+      ],
+      "ASL": [
+        "D",
+        0.898
+      ]
+    }
+  },
+  "LL": {
+    "lengua": "ASL",
+    "letra": "D",
+    "prob_media": 0.898,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "L",
+        0.739
+      ],
+      "LIBRAS": [
+        "G",
+        0.352
+      ],
+      "ASL": [
+        "D",
+        0.898
+      ]
+    }
+  },
+  "M": {
+    "lengua": "LIBRAS",
+    "letra": "M",
+    "prob_media": 0.973,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "M",
+        0.909
+      ],
+      "LIBRAS": [
+        "M",
+        0.973
+      ],
+      "ASL": [
+        "N",
+        0.262
+      ]
+    }
+  },
+  "N": {
+    "lengua": "ASL",
+    "letra": "H",
+    "prob_media": 0.911,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "N",
+        0.519
+      ],
+      "LIBRAS": [
+        "P",
+        0.839
+      ],
+      "ASL": [
+        "H",
+        0.911
+      ]
+    }
+  },
+  "O": {
+    "lengua": "LIBRAS",
+    "letra": "O",
+    "prob_media": 0.987,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "O",
+        0.957
+      ],
+      "LIBRAS": [
+        "O",
+        0.987
+      ],
+      "ASL": [
+        "O",
+        0.928
+      ]
+    }
+  },
+  "P": {
+    "lengua": "ASL",
+    "letra": "K",
+    "prob_media": 1.0,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "K",
+        0.996
+      ],
+      "LIBRAS": [
+        "P",
+        0.961
+      ],
+      "ASL": [
+        "K",
+        1.0
+      ]
+    }
+  },
+  "Q": {
+    "lengua": "ASL",
+    "letra": "Q",
+    "prob_media": 0.942,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "Z",
+        0.514
+      ],
+      "LIBRAS": [
+        "P",
+        0.719
+      ],
+      "ASL": [
+        "Q",
+        0.942
+      ]
+    }
+  },
+  "R": {
+    "lengua": "LSC",
+    "letra": "R",
+    "prob_media": 0.85,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "R",
+        0.85
+      ],
+      "LIBRAS": [
+        "R",
+        0.775
+      ],
+      "ASL": [
+        "R",
+        0.787
+      ]
+    }
+  },
+  "RR": {
+    "lengua": "LSC",
+    "letra": "R",
+    "prob_media": 0.853,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "R",
+        0.853
+      ],
+      "LIBRAS": [
+        "R",
+        0.775
+      ],
+      "ASL": [
+        "R",
+        0.766
+      ]
+    }
+  },
+  "S": {
+    "lengua": "LIBRAS",
+    "letra": "S",
+    "prob_media": 0.397,
+    "acuerdo": 0.933,
+    "candidatos": {
+      "LSC": [
+        "X",
+        0.193
+      ],
+      "LIBRAS": [
+        "S",
+        0.397
+      ],
+      "ASL": [
+        "M",
+        0.212
+      ]
+    }
+  },
+  "T": {
+    "lengua": "LIBRAS",
+    "letra": "A",
+    "prob_media": 0.559,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "A",
+        0.395
+      ],
+      "LIBRAS": [
+        "A",
+        0.559
+      ],
+      "ASL": [
+        "T",
+        0.462
+      ]
+    }
+  },
+  "U": {
+    "lengua": "LSC",
+    "letra": "R",
+    "prob_media": 0.83,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "R",
+        0.83
+      ],
+      "LIBRAS": [
+        "R",
+        0.7
+      ],
+      "ASL": [
+        "R",
+        0.693
+      ]
+    }
+  },
+  "V": {
+    "lengua": "LSC",
+    "letra": "V",
+    "prob_media": 0.802,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "V",
+        0.802
+      ],
+      "LIBRAS": [
+        "U",
+        0.576
+      ],
+      "ASL": [
+        "V",
+        0.674
+      ]
+    }
+  },
+  "W": {
+    "lengua": "LIBRAS",
+    "letra": "W",
+    "prob_media": 1.0,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "W",
+        0.998
+      ],
+      "LIBRAS": [
+        "W",
+        1.0
+      ],
+      "ASL": [
+        "W",
+        1.0
+      ]
+    }
+  },
+  "X": {
+    "lengua": "LIBRAS",
+    "letra": "S",
+    "prob_media": 0.981,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "S",
+        0.319
+      ],
+      "LIBRAS": [
+        "S",
+        0.981
+      ],
+      "ASL": [
+        "S",
+        0.536
+      ]
+    }
+  },
+  "Y": {
+    "lengua": "ASL",
+    "letra": "Y",
+    "prob_media": 0.983,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "Y",
+        0.924
+      ],
+      "LIBRAS": [
+        "Y",
+        0.866
+      ],
+      "ASL": [
+        "Y",
+        0.983
+      ]
+    }
+  },
+  "Z": {
+    "lengua": "LIBRAS",
+    "letra": "I",
+    "prob_media": 0.999,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "I",
+        0.837
+      ],
+      "LIBRAS": [
+        "I",
+        0.999
+      ],
+      "ASL": [
+        "I",
+        0.747
+      ]
+    }
+  },
+  "Ñ": {
+    "lengua": "LIBRAS",
+    "letra": "P",
+    "prob_media": 0.935,
+    "acuerdo": 1.0,
+    "candidatos": {
+      "LSC": [
+        "Ñ",
+        0.47
+      ],
+      "LIBRAS": [
+        "P",
+        0.935
+      ],
+      "ASL": [
+        "H",
+        0.929
+      ]
+    }
+  }
+}

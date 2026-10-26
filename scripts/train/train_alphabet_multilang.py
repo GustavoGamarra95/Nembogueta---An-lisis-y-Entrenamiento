@@ -11,7 +11,8 @@ Datos:
           alfabeto LSP, split por sujeto según index.csv
 
 Cada fuente pesa lo mismo en el gradiente (sample_weight = n_librai / n_fuente).
-Augmentation y arquitectura son las de train_alphabet_robust.py.
+Augmentation (incluido el espejo geométrico) y arquitectura son las de
+train_alphabet_robust.py.
 
 Uso:
     python scripts/train/train_alphabet_multilang.py \\
@@ -42,10 +43,15 @@ from train_alphabet_robust import (  # noqa: E402
 
 
 def load_lsp(root: Path, n_val: int, n_test: int, seed: int):
-    """Split por sujeto: ningún sujeto aparece en dos splits."""
+    """
+    Split por sujeto: ningún sujeto aparece en dos splits. Los sujetos con
+    prefijo "train_" van siempre a train (p. ej. una única fuente real que
+    no debe consumirse en val/test).
+    """
     with open(root / "index.csv") as f:
         rows = list(csv.DictReader(f))
-    subjects = sorted({r["subject"] for r in rows})
+    subjects = sorted({r["subject"] for r in rows
+                       if not r["subject"].startswith("train_")})
     rng = np.random.default_rng(seed)
     rng.shuffle(subjects)
     test_s = set(subjects[:n_test])
@@ -60,7 +66,9 @@ def load_lsp(root: Path, n_val: int, n_test: int, seed: int):
         splits[split][1].append(r["label"])
     out = {k: (np.array(xs, dtype=np.float32), np.array(ys))
            for k, (xs, ys) in splits.items()}
-    subj = {"train": len(subjects) - n_val - n_test,
+    n_fixed = len({r["subject"] for r in rows
+                   if r["subject"].startswith("train_")})
+    subj = {"train": len(subjects) - n_val - n_test + n_fixed,
             "val": n_val, "test": n_test}
     return out, letters, subj
 
@@ -100,12 +108,24 @@ def run(args):
     lsp, lsp_letters, lsp_subj = load_lsp(
         args.lsp_dir, args.lsp_val_subjects, args.lsp_test_subjects, args.seed)
 
+    # Lenguas extra con split por sujeto: NOMBRE=dir[:n_val:n_test]
+    extra_langs = {}
+    for spec in args.extra_langs:
+        name, rest = spec.split("=", 1)
+        parts = rest.split(":")
+        n_va, n_te = (int(parts[1]), int(parts[2])) if len(parts) == 3 \
+            else (args.lsp_val_subjects, args.lsp_test_subjects)
+        data, letters, subj = load_lsp(Path(parts[0]), n_va, n_te, args.seed)
+        extra_langs[name] = (data, letters, subj, Path(parts[0]))
+
     classes = ([f"LIBRAS:{l}" for l in libras_letters]
-               + [f"LSP:{l}" for l in lsp_letters])
+               + [f"LSP:{l}" for l in lsp_letters]
+               + [f"{n}:{l}" for n, e in extra_langs.items() for l in e[1]])
+    langs = ["LIBRAS", "LSP", *extra_langs]
     masks = {lang: np.array([c.startswith(lang + ":") for c in classes])
-             for lang in ("LIBRAS", "LSP")}
-    print(f"Clases: {len(classes)} (LIBRAS {len(libras_letters)}, "
-          f"LSP {len(lsp_letters)})")
+             for lang in langs}
+    print(f"Clases: {len(classes)} (" + ", ".join(
+        f"{lang} {masks[lang].sum()}" for lang in langs) + ")")
 
     # LIBRAS: LibrAI + operador (índices locales → globales)
     (Xl_tr, yl_tr), (Xl_va, yl_va), (Xl_te, yl_te) = load_librai(
@@ -130,12 +150,18 @@ def run(args):
         "operator": (Xo_tr, yo_tr, Xo_va, yo_va, Xo_te, yo_te),
         "lsp": (Xp_tr, yp_tr, Xp_va, yp_va, Xp_te, yp_te),
     }
+    for name, (data, _, _, _) in extra_langs.items():
+        sources[name.lower()] = tuple(
+            a for s in ("train", "val", "test")
+            for a in (data[s][0], to_global(data[s][1], name, classes)))
     n_ref = len(Xl_tr)
     weights = {k: n_ref / max(len(v[0]), 1) for k, v in sources.items()}
     for k, v in sources.items():
         print(f"{k:9s} train={len(v[0]):6d}  val={len(v[2]):5d}  "
               f"test={len(v[4]):5d}  peso={weights[k]:.2f}")
     print(f"LSP sujetos: {lsp_subj}")
+    for name, e in extra_langs.items():
+        print(f"{name} sujetos: {e[2]}")
 
     X_tr = np.vstack([v[0] for v in sources.values()]).astype(np.float32)
     y_tr = np.concatenate([v[1] for v in sources.values()])
@@ -156,7 +182,9 @@ def run(args):
     train_ds = make_dataset(
         norm(X_tr), y_tr, w_tr, feat_std_tf, augment=True,
         batch_size=args.batch_size, shuffle=True, palm_rot=args.palm_rot_deg,
-        jitter=args.jitter_sigma, flip_p=args.flip_prob)
+        jitter=args.jitter_sigma, flip_p=args.flip_prob,
+        norm_mean=norm_mean, norm_std=norm_std, flip_mode=args.flip_mode,
+        palm_rot_space=args.palm_rot_space)
     val_ds = make_dataset(
         norm(X_va), y_va, w_va, feat_std_tf, augment=False, batch_size=512,
         shuffle=False, palm_rot=0, jitter=0, flip_p=0)
@@ -194,6 +222,9 @@ def run(args):
         "operator_test": (Xo_te, yo_te, "LIBRAS"),
         "lsp_test": (Xp_te, yp_te, "LSP"),
     }
+    for name in extra_langs:
+        v = sources[name.lower()]
+        tests[f"{name.lower()}_test"] = (v[4], v[5], name)
     results = {k: evaluate(best, norm(X), y, masks[lang])
                for k, (X, y, lang) in tests.items()}
     print(f"{'Conjunto':15}{'n':>7}{'top1 todas':>12}{'top1 lengua':>13}"
@@ -208,6 +239,10 @@ def run(args):
                                       masks["LIBRAS"], classes),
         "LSP": per_letter(best, norm(Xp_te), yp_te, masks["LSP"], classes),
     }
+    for name in extra_langs:
+        v = sources[name.lower()]
+        if len(v[4]):
+            pl[name] = per_letter(best, norm(v[4]), v[5], masks[name], classes)
     for name, d in pl.items():
         print(f"\nPor letra ({name}, restringido a la lengua):")
         print("  " + "  ".join(f"{c.split(':')[1]} {v * 100:.0f}%"
@@ -223,10 +258,8 @@ def run(args):
         "num_classes": len(classes),
         "classes": classes,
         "label_names": classes,
-        "languages": {
-            "LIBRAS": [c for c in classes if c.startswith("LIBRAS:")],
-            "LSP": [c for c in classes if c.startswith("LSP:")],
-        },
+        "languages": {lang: [c for c in classes if c.startswith(lang + ":")]
+                      for lang in langs},
         "inference": "elegir lengua y aplicar argmax solo sobre sus clases",
         "model_type": "dnn_robust_multilang",
         "data_provenance": {
@@ -234,7 +267,9 @@ def run(args):
                        + ", ".join(p.name for p in
                                    [args.session_dir, *args.extra_sessions])],
             "LSP": [f"LSC70 (Lengua de Señas Colombiana) desde {args.lsp_dir}"],
+            **{name: [str(e[3])] for name, e in extra_langs.items()},
         },
+        "extra_lang_split_subjects": {name: e[2] for name, e in extra_langs.items()},
         "training_data": {
             k: {"train": int(len(v[0])), "val": int(len(v[2])),
                 "test": int(len(v[4])), "weight": float(weights[k])}
@@ -243,8 +278,10 @@ def run(args):
         "lsp_split_subjects": lsp_subj,
         "augmentation": {
             "palm_rot_deg": args.palm_rot_deg,
+            "palm_rot_space": args.palm_rot_space,
             "jitter_sigma": args.jitter_sigma,
             "flip_prob": args.flip_prob,
+            "flip_mode": args.flip_mode,
             "dropout": args.dropout,
         },
         "hyperparameters": {
@@ -274,6 +311,10 @@ def main():
     p.add_argument("--libras-classes-from", type=Path, default=Path(
         "/data/models/librai-alphabet-robust-v4/run_20260615_001921"),
         help="Modelo del que se toma la lista de letras LIBRAS")
+    p.add_argument("--extra-langs", nargs="*", default=[],
+                   help="Lenguas extra con index.csv, split por sujeto: "
+                        "NOMBRE=dir[:n_val:n_test] (p. ej. "
+                        "ASL=data/processed/asl_spelling_it_out:1:1)")
     p.add_argument("--lsp-val-subjects", type=int, default=10)
     p.add_argument("--lsp-test-subjects", type=int, default=10)
     p.add_argument("--output-root", type=Path,
@@ -287,6 +328,10 @@ def main():
     p.add_argument("--palm-rot-deg", type=float, default=20.0)
     p.add_argument("--jitter-sigma", type=float, default=0.5)
     p.add_argument("--flip-prob", type=float, default=0.5)
+    p.add_argument("--flip-mode", choices=["mirror", "slot"],
+                   default="mirror")
+    p.add_argument("--palm-rot-space", choices=["raw", "normalized"],
+                   default="raw")
     run(p.parse_args())
 
 
