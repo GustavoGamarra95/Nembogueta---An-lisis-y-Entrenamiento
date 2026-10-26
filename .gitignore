@@ -44,6 +44,7 @@ data/models/*/
 !data/models/librai-alphabet-robust*/
 !data/models/alicia-alphabet-robust*/
 !data/models/alicia-v5/
+!data/models/alicia-v6/
 logs/
 *.h5
 *.tflite
@@ -72,4 +73,5 @@ hand_landmarker.task
 !data/models/librai-alphabet-robust*/**/*.keras
 !data/models/alicia-alphabet-robust*/**/*.keras
 !data/models/alicia-v5/**/*.keras
+!data/models/alicia-v6/**/*.keras
 !data/realworld_eval/**/*.keras

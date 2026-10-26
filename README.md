@@ -616,6 +616,10 @@ echo $DISPLAY        # debe ser :0 o similar
 - [ ] Colecta de palabras y frases LSP (tríplice fronteira)
 
 ### Fase 4 — Salida trilíngue
+- [x] Alfabeto guaraní (achegety, 33 letras) en Alicia v6
+      (`data/models/alicia-v6/`): las 13 letras propias del guaraní (nasales,
+      g̃, dígrafos, puso) vienen de un único video leído frame a frame —
+      prototipo sin validación externa
 - [ ] Diccionario LSP → {ES paraguayo, Guaraní, PT-BR}
 - [ ] Integración en `unified_predictor.py` con `output_lang`
 - [ ] Demo end-to-end multi-idioma
